@@ -1,0 +1,30 @@
+---
+import { getAllPosts, getPost } from "@/lib/client";
+
+export async function getStaticPaths() {
+  const data = await getAllPosts();
+  const allPosts = data.publication.posts.edges;
+  return allPosts.map((post) => {
+    return {
+      params: { slug: post.node.slug },
+    };
+  });
+}
+const { slug } = Astro.params;
+const post = await getPost(slug);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>{post.title}</title>
+  </head>
+  <body>
+    <img src={post.coverImage.url} alt={post.title} />
+
+    <h1>{post.title}</h1>
+    <p>{post.readTimeInMinutes} min read</p>
+
+    <Fragment set:html={post.content.html} />
+  </body>
+</html>
