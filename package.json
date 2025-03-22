@@ -1,7 +1,19 @@
 {
   "name": "astro-shadcn",
-  "type": "module",
   "version": "0.0.1",
+  "description": "Astro with shadcn/ui",
+  "keywords": [
+    "Astro",
+    "TypeScript"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "Minsup Ju",
+    "email": "me@ptcookie.net",
+    "url": "https://github.com/PtCookie"
+  },
+  "packageManager": "pnpm@10.6.5",
+  "type": "module",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
@@ -27,5 +39,7 @@
     "@vitest/ui": "^3.0.9",
     "vitest": "^3.0.9"
   },
-  "packageManager": "pnpm@10.6.5"
+  "engines": {
+    "node": "^18.17.1 || ^20.3.0 || ^22.0.0"
+  }
 }
