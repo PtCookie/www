@@ -27,6 +27,7 @@
     "dependencies": {
         "@astrojs/mdx": "^4.2.1",
         "@astrojs/react": "^4.2.1",
+        "@radix-ui/react-slot": "^1.1.2",
         "@tailwindcss/vite": "^4.0.15",
         "astro": "^5.5.4",
         "canvas-confetti": "^1.9.3",
