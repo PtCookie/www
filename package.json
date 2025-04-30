@@ -26,11 +26,11 @@
         "test": "vitest"
     },
     "dependencies": {
-        "@astrojs/mdx": "^4.2.4",
-        "@astrojs/react": "^4.2.4",
+        "@astrojs/mdx": "^4.2.5",
+        "@astrojs/react": "^4.2.6",
         "@radix-ui/react-slot": "^1.2.0",
         "@tailwindcss/vite": "^4.1.4",
-        "astro": "^5.7.3",
+        "astro": "^5.7.9",
         "canvas-confetti": "^1.9.3",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
