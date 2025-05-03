@@ -1,24 +1,20 @@
 ---
+import BaseLayout from "@/layouts/BaseLayout.astro";
 import { getAllPosts } from "@/lib/client";
 
 const data = await getAllPosts();
 const allPosts = data.publication.posts.edges;
 ---
 
-<html lang="en">
-  <head>
-    <title>Astro + Hashnode</title>
-  </head>
-  <body>
-    {
-      allPosts.map((post) => (
-        <div>
-          <h2>{post.node.title}</h2>
-          <p>{post.node.brief}</p>
-          <img src={post.node.coverImage.url} alt={post.node.title} />
-          <a href={`/posts/${post.node.slug}`}>Read more</a>
-        </div>
-      ))
-    }
-  </body>
-</html>
+<BaseLayout title={"Astro + Hashnode"}>
+  {
+    allPosts.map((post) => (
+      <div>
+        <h2>{post.node.title}</h2>
+        <p>{post.node.brief}</p>
+        <img src={post.node.coverImage.url} alt={post.node.title} />
+        <a href={`/posts/${post.node.slug}`}>Read more</a>
+      </div>
+    ))
+  }
+</BaseLayout>
