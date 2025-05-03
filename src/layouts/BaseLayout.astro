@@ -1,5 +1,6 @@
 ---
 import Header from "@/components/Header.astro";
+import Footer from "../components/Footer.astro";
 
 import "@/styles/global.css";
 
@@ -20,8 +21,11 @@ const { title } = Astro.props;
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
   </head>
-  <body class="flex h-screen flex-col">
+  <body class="flex min-h-screen flex-col">
     <Header />
-    <slot />
+    <main class="mx-auto w-full max-w-3xl grow">
+      <slot />
+    </main>
+    <Footer />
   </body>
 </html>
