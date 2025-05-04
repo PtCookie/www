@@ -6,18 +6,25 @@ export const getClient = () => {
   return new GraphQLClient("https://gql.hashnode.com");
 };
 
+interface PostPagination {
+  first?: number;
+  after?: string;
+}
+
 const hostname = import.meta.env.PUBLIC_HASHNODE_BASE_URL;
 
-export const getAllPosts = async () => {
+export const getAllPosts = async (pagination?: PostPagination) => {
   const client = getClient();
+  const first = pagination?.first ?? 5;
+  const after = pagination?.after ?? "";
 
   return await client.request<AllPostsData>(
     gql`
-      query allPosts {
+      query allPosts($first: Int!, $after: String) {
         publication(host: "${hostname}") {
           id
           title
-          posts(first: 20) {
+          posts(first: $first, after: $after) {
             pageInfo{
               hasNextPage
               endCursor
@@ -48,6 +55,7 @@ export const getAllPosts = async () => {
         }
       }
     `,
+    { first, after },
   );
 };
 

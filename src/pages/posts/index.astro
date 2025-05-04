@@ -1,20 +1,14 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { getAllPosts } from "@/lib/client";
+import { PostCard } from "@/components/PostCard";
 
-const data = await getAllPosts();
+const data = await getAllPosts({ first: 20 });
 const allPosts = data.publication.posts.edges;
 ---
 
 <BaseLayout>
-  {
-    allPosts.map((post) => (
-      <div>
-        <h2>{post.node.title}</h2>
-        <p>{post.node.brief}</p>
-        <img src={post.node.coverImage.url} alt={post.node.title} />
-        <a href={`/posts/${post.node.slug}`}>Read more</a>
-      </div>
-    ))
-  }
+  <div class="grid flex-1 place-items-center content-center gap-8">
+    {allPosts.map((post) => <PostCard post={post.node} />)}
+  </div>
 </BaseLayout>

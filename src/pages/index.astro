@@ -1,7 +1,18 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getAllPosts } from "@/lib/client";
+import { PostCard } from "@/components/PostCard";
+
+const data = await getAllPosts();
+const allPosts = data.publication.posts.edges;
 ---
 
 <BaseLayout>
-  <div class="grid flex-1 place-items-center content-center"></div>
+  <div class="grid flex-1 place-items-center content-center gap-8">
+    <div class="my-24">
+      <h1 class="text-8xl font-bold">Hello, World!</h1>
+    </div>
+    {allPosts.map((post) => <PostCard post={post.node} disableImage />)}
+    <a href="/posts" class="text-primary font-sans text-lg font-medium hover:underline sm:text-xl">View All</a>
+  </div>
 </BaseLayout>
