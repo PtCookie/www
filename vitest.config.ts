@@ -7,6 +7,7 @@ export default getViteConfig({
     setupFiles: "./test/setup.ts",
     coverage: {
       enabled: true,
+      include: ["src/**"],
     },
   },
 });
