@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
-import { Navigation } from "@/components/ui/Navigation.tsx";
+import { Navigation } from "@/components/Navigation.tsx";
 
 describe("Navigation", () => {
   test("should render the navigation menu with provided menu entries", async () => {

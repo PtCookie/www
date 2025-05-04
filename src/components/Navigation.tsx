@@ -17,7 +17,7 @@ export function Navigation({ menuEntry }: Props) {
       <NavigationMenuList>
         {menuEntry.map((item, index) => (
           <NavigationMenuItem key={index}>
-            <NavigationMenuLink href={item.link} className={"text-xl"}>
+            <NavigationMenuLink href={item.link} className={"font-sans text-base sm:text-lg"}>
               {item.name}
             </NavigationMenuLink>
           </NavigationMenuItem>
