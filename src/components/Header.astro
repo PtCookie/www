@@ -1,12 +1,8 @@
 ---
-import { type MenuEntry, Navigation } from "./Navigation";
+import { Navigation } from "./ui/Navigation";
+import { config } from "@/config";
 
-const title = "Title";
-const menuEntry: Array<MenuEntry> = [
-  { name: "Home", link: "/" },
-  { name: "Posts", link: "/posts" },
-  { name: "Tags", link: "/tags" },
-];
+const { title, menuEntry } = config;
 ---
 
 <header class="mx-auto my-4 flex w-full max-w-3xl justify-between border-b-2 px-4 py-2 sm:my-6">

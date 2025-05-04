@@ -5,14 +5,10 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
 } from "@/components/ui/navigation-menu.tsx";
-
-export interface MenuEntry {
-  name: string;
-  link: string;
-}
+import type { MenuEntry } from "@/config.ts";
 
 interface Props {
-  menuEntry: MenuEntry[];
+  menuEntry: Array<MenuEntry>;
 }
 
 export function Navigation({ menuEntry }: Props) {

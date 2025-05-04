@@ -1,7 +1,9 @@
 ---
-const from = 2021;
-const year = [from, new Date().getFullYear()].join("-");
-const author = "PtCookie";
+import { config } from "@/config";
+
+const { author, copyrightFrom } = config;
+
+const year = [copyrightFrom, new Date().getFullYear()].join("-");
 const credit = [year, author].join(", ");
 ---
 

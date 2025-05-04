@@ -6,7 +6,7 @@ const data = await getAllPosts();
 const allPosts = data.publication.posts.edges;
 ---
 
-<BaseLayout title={"Astro + Hashnode"}>
+<BaseLayout>
   {
     allPosts.map((post) => (
       <div>
