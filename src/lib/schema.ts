@@ -13,7 +13,7 @@ export const PostSchema = z.object({
   slug: z.string(),
   readTimeInMinutes: z.number(),
   content: z.object({
-    html: z.string(),
+    markdown: z.string(),
   }),
   tags: z.array(
     z.object({

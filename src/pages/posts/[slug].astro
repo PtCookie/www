@@ -1,4 +1,6 @@
 ---
+import { Markdown } from "@astropub/md";
+
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { getAllPosts, getPost } from "@/lib/client";
 
@@ -21,5 +23,7 @@ const post = await getPost(slug);
   <h1>{post.title}</h1>
   <p>{post.readTimeInMinutes} min read</p>
 
-  <Fragment set:html={post.content.html} />
+  <div class="prose sm:prose-lg max-w-none">
+    <Markdown of={post.content.markdown} />
+  </div>
 </BaseLayout>
