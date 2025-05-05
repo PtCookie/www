@@ -3,8 +3,8 @@ import { format } from "date-fns";
 
 import type { Post } from "@/lib/schema";
 import { cn } from "@/lib/utils";
+import { badgeVariants } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 
 interface Props {
   post: Post;
@@ -42,9 +42,13 @@ export function PostCard({ post, disableImage = false }: Props) {
         </a>
         <div className="flex flex-wrap gap-2">
           {post.tags.map((tag) => (
-            <Badge key={tag.slug} variant="secondary" className="font-mono">
+            <a
+              key={tag.slug}
+              href={`/tags/${tag.slug}`}
+              className={cn(badgeVariants({ variant: "secondary" }), "font-mono")}
+            >
               #{tag.name}
-            </Badge>
+            </a>
           ))}
         </div>
       </CardFooter>

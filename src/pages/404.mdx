@@ -3,11 +3,11 @@ layout: "@/layouts/BaseLayout.astro"
 title: Not found
 ---
 
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 
 <div className="flex grow flex-col items-center justify-center gap-8">
   <p className="text-2xl">Page not found</p>
-  <a href="/">
-    <Button>Go home</Button>
+  <a href="/" className={buttonVariants()}>
+    Go home
   </a>
 </div>

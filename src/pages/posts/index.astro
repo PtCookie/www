@@ -7,8 +7,9 @@ const data = await getAllPosts({ first: 20 });
 const allPosts = data.publication.posts.edges;
 ---
 
-<BaseLayout>
-  <div class="grid flex-1 place-items-center content-center gap-8">
+<BaseLayout title="Posts">
+  <h1 class="mt-8 mb-12 text-center text-5xl font-extrabold">Posts</h1>
+  <div class="grid flex-1 place-items-center content-start gap-8">
     {allPosts.map((post) => <PostCard post={post.node} />)}
   </div>
 </BaseLayout>

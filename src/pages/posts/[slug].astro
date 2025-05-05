@@ -4,7 +4,7 @@ import { format } from "date-fns";
 
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { getAllPosts, getPost } from "@/lib/client";
-import { Badge } from "@/components/ui/badge";
+import { badgeVariants } from "@/components/ui/badge";
 import { PostCard } from "@/components/PostCard";
 
 export async function getStaticPaths() {
@@ -21,6 +21,7 @@ export async function getStaticPaths() {
     };
   });
 }
+
 const { slug } = Astro.params;
 const post = await getPost(slug);
 const { prevPost, nextPost } = Astro.props;
@@ -36,9 +37,8 @@ const { prevPost, nextPost } = Astro.props;
   <div class="flex flex-wrap justify-end gap-2">
     {
       post.tags.map((tag) => (
-        <Badge key={tag.slug} variant="secondary" className="font-mono">
-          #{tag.name}
-        </Badge>
+        <a
+          href={`/tags/${tag.slug}`} class:list={[badgeVariants({ variant: "secondary" }), "font-mono"]}>#{tag.name}</a>
       ))
     }
   </div>
@@ -64,9 +64,7 @@ const { prevPost, nextPost } = Astro.props;
   <div class="my-8 flex flex-wrap justify-start gap-2">
     {
       post.tags.map((tag) => (
-        <Badge key={tag.slug} variant="secondary" className="font-mono">
-          #{tag.name}
-        </Badge>
+        <a          href={`/tags/${tag.slug}`} class:list={[badgeVariants({ variant: "secondary" }), "font-mono"]}>#{tag.name}</a>
       ))
     }
   </div>
