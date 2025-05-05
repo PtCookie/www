@@ -75,6 +75,7 @@
 
 @theme {
     --font-sans: "Inter Variable", Pretendard, sans-serif;
+    --font-serif: "Newsreader Variable", MaruBuri, serif;
     --font-mono: "JetBrains Mono", monospace;
 }
 
@@ -212,6 +213,57 @@
         src:
             local("Pretendard Thin"),
             url("./fonts/Pretendard-Thin.woff2") format("woff2");
+    }
+
+    @font-face {
+        font-family: "Newsreader Variable";
+        font-style: normal;
+        font-weight: 200 800;
+        font-display: swap;
+        src: url("/fonts/Newsreader-VariableFont_opsz,wght.ttf") format("truetype");
+    }
+
+    @font-face {
+        font-family: "Newsreader Variable";
+        font-style: italic;
+        font-weight: 200 800;
+        font-display: swap;
+        src: url("/fonts/Newsreader-Italic-VariableFont_opsz,wght.ttf") format("truetype");
+    }
+
+    @font-face {
+        font-family: MaruBuri;
+        font-style: normal;
+        font-weight: 200;
+        src: url("/fonts/MaruBuri-ExtraLight.otf") format("opentype");
+    }
+
+    @font-face {
+        font-family: MaruBuri;
+        font-style: normal;
+        font-weight: 300;
+        src: url("/fonts/MaruBuri-Light.otf") format("opentype");
+    }
+
+    @font-face {
+        font-family: MaruBuri;
+        font-style: normal;
+        font-weight: 400;
+        src: url("/fonts/MaruBuri-Regular.otf") format("opentype");
+    }
+
+    @font-face {
+        font-family: MaruBuri;
+        font-style: normal;
+        font-weight: 600;
+        src: url("/fonts/MaruBuri-SemiBold.otf") format("opentype");
+    }
+
+    @font-face {
+        font-family: MaruBuri;
+        font-style: normal;
+        font-weight: 700;
+        src: url("/fonts/MaruBuri-Bold.otf") format("opentype");
     }
 
     @font-face {
