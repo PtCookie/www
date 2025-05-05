@@ -1,6 +1,6 @@
 import { gql, GraphQLClient } from "graphql-request";
 
-import type { AllPostsData, PostData } from "./schema";
+import type { AllPostsData, PostData } from "./schema.ts";
 
 export const getClient = () => {
   return new GraphQLClient("https://gql.hashnode.com");
@@ -89,6 +89,8 @@ export const getPost = async (slug: string) => {
             }
             coverImage {
               url
+              attribution
+              photographer
             }
           }
         }

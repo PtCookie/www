@@ -1,14 +1,27 @@
 ---
+import { Image } from "astro:assets";
 import { getCollection } from "astro:content";
 
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { PostCard } from "@/components/PostCard";
+import { PostCard } from "@/components/PostCard.tsx";
 
 const posts = await getCollection("post");
 ---
 
-<BaseLayout>
-  <div class="grid flex-1 place-items-center content-center gap-8">
-    {posts.map((post) => <PostCard post={post.data} />)}
+<BaseLayout title="Posts">
+  <h1 class="mt-8 mb-12 text-center text-5xl font-extrabold">Posts</h1>
+  <div class="grid flex-1 place-items-center content-start gap-8">
+    {
+      posts.map((post) => (
+        <PostCard post={post.data}>
+          <Image
+            src={post.data.coverImage.url}
+            inferSize={true}
+            alt={post.data.title}
+            class="h-full w-full overflow-hidden rounded-t-xl object-cover"
+          />
+        </PostCard>
+      ))
+    }
   </div>
 </BaseLayout>

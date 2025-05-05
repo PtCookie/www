@@ -1,0 +1,42 @@
+---
+import { Image } from "astro:assets";
+
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getAllPosts } from "@/lib/client.ts";
+import { getAllTags } from "@/lib/utils.ts";
+import { PostCard } from "@/components/PostCard.tsx";
+
+export async function getStaticPaths() {
+  const data = await getAllPosts({ first: 20 });
+  const allTags = getAllTags(data.publication.posts.edges, true);
+
+  return allTags.map((tag) => {
+    const posts = data.publication.posts.edges.filter((post) => post.node.tags.some((t) => t.name === tag.name));
+
+    return {
+      params: { slug: tag.slug },
+      props: { tag, posts },
+    };
+  });
+}
+
+const { tag, posts } = Astro.props;
+---
+
+<BaseLayout title={tag.name}>
+  <h1 class="mt-8 mb-12 text-center text-5xl font-extrabold">{tag.name}</h1>
+  <div class="grid flex-1 place-items-center content-start gap-8">
+    {
+      posts.map((post) => (
+        <PostCard post={post.node}>
+          <Image
+            src={post.node.coverImage.url}
+            inferSize={true}
+            alt={post.node.title}
+            class="h-full w-full overflow-hidden rounded-t-xl object-cover"
+          />
+        </PostCard>
+      ))
+    }
+  </div>
+</BaseLayout>

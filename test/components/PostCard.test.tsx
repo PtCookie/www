@@ -17,7 +17,7 @@ const mockPost: Post = {
   brief: "This is a brief summary of the post.",
   slug: "sample-post",
   readTimeInMinutes: 10,
-  content: { html: "<div>content</div>" },
+  content: { markdown: "# Sample Post" },
   tags: [
     { name: "Tag One", slug: "tag1" },
     { name: "Tag Two", slug: "tag2" },
@@ -36,8 +36,8 @@ describe("PostCard", () => {
     expect(screen.getByText("10min read")).toBeInTheDocument();
     expect(screen.getByText(/this is a brief summary of the post/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /read more/i })).toHaveAttribute("href", "/posts/sample-post");
-    expect(screen.getByText("Tag One")).toBeInTheDocument();
-    expect(screen.getByText("Tag Two")).toBeInTheDocument();
+    expect(screen.getByText("#Tag One")).toBeInTheDocument();
+    expect(screen.getByText("#Tag Two")).toBeInTheDocument();
   });
 
   test("does not render an image when disableImage is true", () => {

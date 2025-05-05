@@ -1,27 +1,29 @@
 import React from "react";
 import { format } from "date-fns";
 
-import type { Post } from "@/lib/schema";
-import { cn } from "@/lib/utils";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import type { Post } from "@/lib/schema.ts";
+import { cn } from "@/lib/utils.ts";
+import { badgeVariants } from "@/components/ui/badge.tsx";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card.tsx";
 
 interface Props {
   post: Post;
   disableImage?: boolean;
+  children?: React.ReactNode;
 }
 
-export function PostCard({ post, disableImage = false }: Props) {
+export function PostCard({ post, disableImage = false, children }: Props) {
   return (
     <Card className="w-full max-w-2xl">
       <CardHeader className={cn("-mt-6 p-0", !disableImage && "h-48")}>
-        {!disableImage && (
-          <img
-            src={post.coverImage.url}
-            alt={post.title}
-            className="h-full w-full overflow-hidden rounded-t-xl object-cover"
-          />
-        )}
+        {!disableImage &&
+          (children || (
+            <img
+              src={post.coverImage.url}
+              alt={post.title}
+              className="h-full w-full overflow-hidden rounded-t-xl object-cover"
+            />
+          ))}
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
@@ -42,9 +44,14 @@ export function PostCard({ post, disableImage = false }: Props) {
         </a>
         <div className="flex flex-wrap gap-2">
           {post.tags.map((tag) => (
-            <Badge key={tag.slug} variant="secondary" className="font-mono">
-              {tag.name}
-            </Badge>
+            <a
+              key={tag.slug}
+              href={`/tags/${tag.slug}`}
+              data-testid="badge"
+              className={cn(badgeVariants({ variant: "secondary" }), "font-mono")}
+            >
+              #{tag.name}
+            </a>
           ))}
         </div>
       </CardFooter>

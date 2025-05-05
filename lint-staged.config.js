@@ -1,6 +1,6 @@
 /** @type {import('lint-staged').Configuration} */
 const config = {
-  "*.{js,jsx,ts,tsx}": ["eslint", "prettier --write"],
+  "*.{js,jsx,ts,tsx,astro}": ["eslint", "prettier --write"],
   "*.{mjs,cjs}": ["eslint"],
   "*.json": ["prettier --write"],
 };

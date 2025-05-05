@@ -1,5 +1,10 @@
 import { z } from "astro:content";
 
+export const TagSchema = z.object({
+  name: z.string(),
+  slug: z.string(),
+});
+
 export const PostSchema = z.object({
   id: z.string(),
   author: z.object({
@@ -15,14 +20,11 @@ export const PostSchema = z.object({
   content: z.object({
     markdown: z.string(),
   }),
-  tags: z.array(
-    z.object({
-      name: z.string(),
-      slug: z.string(),
-    }),
-  ),
+  tags: z.array(TagSchema),
   coverImage: z.object({
     url: z.string(),
+    attribution: z.string().optional(),
+    photographer: z.string().optional(),
   }),
 });
 
@@ -52,6 +54,7 @@ export const PostDataSchema = z.object({
   }),
 });
 
+export type Tag = z.infer<typeof TagSchema>;
 export type Post = z.infer<typeof PostSchema>;
 export type AllPostsData = z.infer<typeof AllPostsDataSchema>;
 export type PostData = z.infer<typeof PostDataSchema>;

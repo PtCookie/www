@@ -9,7 +9,13 @@ export default getViteConfig({
     coverage: {
       enabled: true,
       include: ["src/**"],
-      exclude: ["src/*config.ts", ...coverageConfigDefaults.exclude],
+      exclude: [
+        "src/**/*.astro", // exclude til container API is stable
+        "src/*config.ts",
+        "src/lib/**",
+        "!src/lib/utils.ts",
+        ...coverageConfigDefaults.exclude,
+      ],
     },
   },
 });

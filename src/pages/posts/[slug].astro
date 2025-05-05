@@ -1,27 +1,93 @@
 ---
+import { Image } from "astro:assets";
 import { getCollection } from "astro:content";
 import { Markdown } from "@astropub/md";
+import { format } from "date-fns";
 
 import BaseLayout from "@/layouts/BaseLayout.astro";
+import { badgeVariants } from "@/components/ui/badge.tsx";
+import { PostCard } from "@/components/PostCard.tsx";
 
 export async function getStaticPaths() {
   const posts = await getCollection("post");
 
-  return posts.map((post) => ({
-    params: { slug: post.data.slug },
-    props: { post },
-  }));
+  return posts.map((post, index) => {
+    return {
+      params: { slug: post.data.slug },
+      props: {
+        post,
+        prevPost: index + 1 < posts.length ? posts[index + 1] : null,
+        nextPost: index > 0 ? posts[index - 1] : null,
+      },
+    };
+  });
 }
-const { post } = Astro.props;
+
+const { post, prevPost, nextPost } = Astro.props;
 ---
 
 <BaseLayout title={post.data.title} description={post.data.subtitle}>
-  <img src={post.data.coverImage.url} alt={post.data.title} />
-
-  <h1>{post.data.title}</h1>
-  <p>{post.data.readTimeInMinutes} min read</p>
-
-  <div class="prose sm:prose-lg max-w-none">
-    <Markdown of={post.data.content.markdown} />
+  <h1 class="my-8 text-5xl font-extrabold">{post.data.title}</h1>
+  <h3 class="mb-4 text-2xl font-semibold">{post.data.subtitle}</h3>
+  <div class="text-muted-foreground mb-2 flex justify-between font-sans text-xs sm:text-sm">
+    <p>{format(post.data.publishedAt, "yyyy-MM-dd")}</p>
+    <p>{post.data.readTimeInMinutes}min read</p>
   </div>
+  <div class="flex flex-wrap justify-end gap-2">
+    {
+      post.data.tags.map((tag) => (
+        <a
+          href={`/tags/${tag.slug}`}
+          data-testid="badge"
+          class:list={[badgeVariants({ variant: "secondary" }), "font-mono"]}
+        >
+          #{tag.name}
+        </a>
+      ))
+    }
+  </div>
+
+  <figure class="relative mt-6 mb-10">
+    <Image src={post.data.coverImage.url} inferSize={true} alt={post.data.title} class="rounded-md" />
+    {
+      post.data.coverImage.photographer && post.data.coverImage.attribution && (
+        <figcaption class="bg-muted absolute right-4 bottom-4 rounded-sm px-2.5 py-1 text-sm italic">
+          Photo by&nbsp;
+          <a href={post.data.coverImage.attribution} class="underline">
+            {post.data.coverImage.photographer}
+          </a>
+        </figcaption>
+      )
+    }
+  </figure>
+
+  <article class="prose sm:prose-lg dark:prose-invert prose-p:font-serif max-w-none">
+    <Markdown of={post.data.content.markdown} />
+  </article>
+
+  <div class="my-8 flex flex-wrap justify-start gap-2">
+    {
+      post.data.tags.map((tag) => (
+        <a
+          href={`/tags/${tag.slug}`}
+          data-testid="badge"
+          class:list={[badgeVariants({ variant: "secondary" }), "font-mono"]}
+        >
+          #{tag.name}
+        </a>
+      ))
+    }
+  </div>
+
+  {
+    (prevPost || nextPost) && (
+      <Fragment>
+        <h3 class="mb-4 text-center text-lg font-medium sm:text-xl">Read Next</h3>
+        <div class="my-4 grid flex-1 place-items-center content-center gap-8">
+          {nextPost && <PostCard post={nextPost.data} disableImage />}
+          {prevPost && <PostCard post={prevPost.data} disableImage />}
+        </div>
+      </Fragment>
+    )
+  }
 </BaseLayout>
