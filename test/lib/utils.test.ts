@@ -51,14 +51,14 @@ describe("getAllTags", () => {
   test("should return all tags with their counts (unsorted)", () => {
     const posts = [
       {
-        node: {
+        data: {
           tags: [
             { name: "React", slug: "reactjs" },
             { name: "TypeScript", slug: "typescript" },
           ],
         },
       },
-      { node: { tags: [{ name: "TypeScript", slug: "typescript" }] } },
+      { data: { tags: [{ name: "TypeScript", slug: "typescript" }] } },
     ];
     const result = getAllTags(posts);
 
@@ -71,7 +71,7 @@ describe("getAllTags", () => {
   test("should return all tags with their counts (sorted by count and name)", () => {
     const posts = [
       {
-        node: {
+        data: {
           tags: [
             { name: "Node.js", slug: "nodejs" },
             { name: "TypeScript", slug: "typescript" },
@@ -79,14 +79,14 @@ describe("getAllTags", () => {
         },
       },
       {
-        node: {
+        data: {
           tags: [
             { name: "TypeScript", slug: "typescript" },
             { name: "React", slug: "reactjs" },
           ],
         },
       },
-      { node: { tags: [{ name: "Node.js", slug: "nodejs" }] } },
+      { data: { tags: [{ name: "Node.js", slug: "nodejs" }] } },
     ];
     const result = getAllTags(posts, true);
 
@@ -98,14 +98,14 @@ describe("getAllTags", () => {
   });
 
   test("should return an empty array when no posts are provided", () => {
-    const posts: Array<{ node: { tags: Array<Tag> } }> = [];
+    const posts: Array<{ data: { tags: Array<Tag> } }> = [];
     const result = getAllTags(posts);
 
     expect(result).toEqual([]);
   });
 
   test("should handle posts with no tags", () => {
-    const posts = [{ node: { tags: [] } }, { node: { tags: [{ name: "TypeScript", slug: "typescript" }] } }];
+    const posts = [{ data: { tags: [] } }, { data: { tags: [{ name: "TypeScript", slug: "typescript" }] } }];
     const result = getAllTags(posts);
 
     expect(result).toEqual([{ name: "TypeScript", slug: "typescript", count: 1 }]);

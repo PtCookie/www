@@ -23,8 +23,8 @@ export const PostSchema = z.object({
   tags: z.array(TagSchema),
   coverImage: z.object({
     url: z.string(),
-    attribution: z.string().optional(),
-    photographer: z.string().optional(),
+    attribution: z.string().nullable(),
+    photographer: z.string().nullable(),
   }),
 });
 
@@ -46,15 +46,6 @@ export const AllPostsDataSchema = z.object({
   }),
 });
 
-export const PostDataSchema = z.object({
-  id: z.string(),
-  publication: z.object({
-    title: z.string(),
-    post: PostSchema,
-  }),
-});
-
 export type Tag = z.infer<typeof TagSchema>;
 export type Post = z.infer<typeof PostSchema>;
 export type AllPostsData = z.infer<typeof AllPostsDataSchema>;
-export type PostData = z.infer<typeof PostDataSchema>;

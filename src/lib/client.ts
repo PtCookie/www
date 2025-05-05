@@ -1,10 +1,6 @@
 import { gql, GraphQLClient } from "graphql-request";
 
-import type { AllPostsData, PostData } from "./schema.ts";
-
-export const getClient = () => {
-  return new GraphQLClient("https://gql.hashnode.com");
-};
+import type { AllPostsData } from "./schema.ts";
 
 interface PostPagination {
   first?: number;
@@ -13,9 +9,13 @@ interface PostPagination {
 
 const hostname = import.meta.env.PUBLIC_HASHNODE_BASE_URL;
 
+const getClient = () => {
+  return new GraphQLClient("https://gql.hashnode.com");
+};
+
 export const getAllPosts = async (pagination?: PostPagination) => {
   const client = getClient();
-  const first = pagination?.first ?? 5;
+  const first = pagination?.first ?? 20;
   const after = pagination?.after ?? "";
 
   return await client.request<AllPostsData>(
@@ -30,6 +30,7 @@ export const getAllPosts = async (pagination?: PostPagination) => {
               endCursor
             }
             edges {
+              cursor
               node {
                 id
                 author{
@@ -51,6 +52,8 @@ export const getAllPosts = async (pagination?: PostPagination) => {
                 }
                 coverImage {
                   url
+                  attribution
+                  photographer
                 }
               }
             }
@@ -60,44 +63,4 @@ export const getAllPosts = async (pagination?: PostPagination) => {
     `,
     { first, after },
   );
-};
-
-export const getPost = async (slug: string) => {
-  const client = getClient();
-
-  const data = await client.request<PostData>(
-    gql`
-      query postDetails($slug: String!) {
-        publication(host: "${hostname}") {
-          id
-          post(slug: $slug) {
-            id
-            author{
-              name
-              profilePicture
-            }
-            publishedAt
-            title
-            subtitle
-            readTimeInMinutes
-            content{
-              markdown
-            }
-            tags {
-              name
-              slug
-            }
-            coverImage {
-              url
-              attribution
-              photographer
-            }
-          }
-        }
-      }
-    `,
-    { slug: slug },
-  );
-
-  return data.publication.post;
 };

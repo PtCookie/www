@@ -1,21 +1,21 @@
 ---
 import { Image } from "astro:assets";
+import { getCollection } from "astro:content";
 
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { getAllPosts } from "@/lib/client.ts";
 import { getAllTags } from "@/lib/utils.ts";
 import { PostCard } from "@/components/PostCard.tsx";
 
 export async function getStaticPaths() {
-  const data = await getAllPosts({ first: 20 });
-  const allTags = getAllTags(data.publication.posts.edges, true);
+  const posts = await getCollection("post");
+  const allTags = getAllTags(posts, true);
 
   return allTags.map((tag) => {
-    const posts = data.publication.posts.edges.filter((post) => post.node.tags.some((t) => t.name === tag.name));
+    const filteredPosts = posts.filter((post) => post.data.tags.some((t) => t.name === tag.name));
 
     return {
       params: { slug: tag.slug },
-      props: { tag, posts },
+      props: { tag, posts: filteredPosts },
     };
   });
 }
@@ -28,11 +28,11 @@ const { tag, posts } = Astro.props;
   <div class="grid flex-1 place-items-center content-start gap-8">
     {
       posts.map((post) => (
-        <PostCard post={post.node}>
+        <PostCard post={post.data}>
           <Image
-            src={post.node.coverImage.url}
+            src={post.data.coverImage.url}
             inferSize={true}
-            alt={post.node.title}
+            alt={post.data.title}
             class="h-full w-full overflow-hidden rounded-t-xl object-cover"
           />
         </PostCard>
