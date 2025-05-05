@@ -86,6 +86,8 @@ export const getPost = async (slug: string) => {
             }
             coverImage {
               url
+              attribution
+              photographer
             }
           }
         }

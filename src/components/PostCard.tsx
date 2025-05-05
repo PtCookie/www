@@ -43,7 +43,7 @@ export function PostCard({ post, disableImage = false }: Props) {
         <div className="flex flex-wrap gap-2">
           {post.tags.map((tag) => (
             <Badge key={tag.slug} variant="secondary" className="font-mono">
-              {tag.name}
+              #{tag.name}
             </Badge>
           ))}
         </div>

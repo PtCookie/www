@@ -1,11 +1,13 @@
 ---
 import { Markdown } from "@astropub/md";
+import { format } from "date-fns";
 
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { getAllPosts, getPost } from "@/lib/client";
+import { Badge } from "@/components/ui/badge";
 
 export async function getStaticPaths() {
-  const data = await getAllPosts();
+  const data = await getAllPosts({ first: 20 });
   const allPosts = data.publication.posts.edges;
   return allPosts.map((post) => {
     return {
@@ -18,12 +20,47 @@ const post = await getPost(slug);
 ---
 
 <BaseLayout title={post.title} description={post.subtitle}>
-  <img src={post.coverImage.url} alt={post.title} />
+  <h1 class="my-8 text-5xl font-extrabold">{post.title}</h1>
+  <h3 class="mb-4 text-2xl font-semibold">{post.subtitle}</h3>
+  <div class="text-muted-foreground mb-2 flex justify-between font-sans text-xs sm:text-sm">
+    <p>{format(post.publishedAt, "yyyy-MM-dd")}</p>
+    <p>{post.readTimeInMinutes}min read</p>
+  </div>
+  <div class="flex flex-wrap justify-end gap-2">
+    {
+      post.tags.map((tag) => (
+        <Badge key={tag.slug} variant="secondary" className="font-mono">
+          #{tag.name}
+        </Badge>
+      ))
+    }
+  </div>
 
-  <h1>{post.title}</h1>
-  <p>{post.readTimeInMinutes} min read</p>
+  <figure class="relative mt-6 mb-10">
+    <img src={post.coverImage.url} alt={post.title} class="rounded-md" />
+    {
+      post.coverImage.photographer && post.coverImage.attribution && (
+        <figcaption class="bg-muted absolute right-4 bottom-4 rounded-sm px-2.5 py-1 text-sm italic">
+          Photo by&nbsp;
+          <a href={post.coverImage.attribution} class="underline">
+            {post.coverImage.photographer}
+          </a>
+        </figcaption>
+      )
+    }
+  </figure>
 
-  <div class="prose sm:prose-lg max-w-none">
+  <article class="prose sm:prose-lg dark:prose-invert prose-p:font-serif max-w-none">
     <Markdown of={post.content.markdown} />
+  </article>
+
+  <div class="my-8 flex flex-wrap justify-start gap-2">
+    {
+      post.tags.map((tag) => (
+        <Badge key={tag.slug} variant="secondary" className="font-mono">
+          #{tag.name}
+        </Badge>
+      ))
+    }
   </div>
 </BaseLayout>

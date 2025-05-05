@@ -23,6 +23,8 @@ export const PostSchema = z.object({
   ),
   coverImage: z.object({
     url: z.string(),
+    attribution: z.string().optional(),
+    photographer: z.string().optional(),
   }),
 });
 
