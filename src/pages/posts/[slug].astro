@@ -38,7 +38,12 @@ const { prevPost, nextPost } = Astro.props;
     {
       post.tags.map((tag) => (
         <a
-          href={`/tags/${tag.slug}`} class:list={[badgeVariants({ variant: "secondary" }), "font-mono"]}>#{tag.name}</a>
+          href={`/tags/${tag.slug}`}
+          data-testid="badge"
+          class:list={[badgeVariants({ variant: "secondary" }), "font-mono"]}
+        >
+          #{tag.name}
+        </a>
       ))
     }
   </div>
@@ -64,18 +69,26 @@ const { prevPost, nextPost } = Astro.props;
   <div class="my-8 flex flex-wrap justify-start gap-2">
     {
       post.tags.map((tag) => (
-        <a          href={`/tags/${tag.slug}`} class:list={[badgeVariants({ variant: "secondary" }), "font-mono"]}>#{tag.name}</a>
+        <a
+          href={`/tags/${tag.slug}`}
+          data-testid="badge"
+          class:list={[badgeVariants({ variant: "secondary" }), "font-mono"]}
+        >
+          #{tag.name}
+        </a>
       ))
     }
   </div>
 
   {
     (prevPost || nextPost) && (
-      <h3 class="mb-4 text-lg font-medium text-center sm:text-xl">Read Next</h3>
-      <div class="grid flex-1 my-4 place-items-center content-center gap-8">
-        {nextPost && <PostCard post={nextPost.node} disableImage />}
-        {prevPost && <PostCard post={prevPost.node} disableImage />}
-      </div>
+      <Fragment>
+        <h3 class="mb-4 text-center text-lg font-medium sm:text-xl">Read Next</h3>
+        <div class="my-4 grid flex-1 place-items-center content-center gap-8">
+          {nextPost && <PostCard post={nextPost.node} disableImage />}
+          {prevPost && <PostCard post={prevPost.node} disableImage />}
+        </div>
+      </Fragment>
     )
   }
 </BaseLayout>

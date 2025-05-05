@@ -45,6 +45,7 @@ export function PostCard({ post, disableImage = false }: Props) {
             <a
               key={tag.slug}
               href={`/tags/${tag.slug}`}
+              data-testid="badge"
               className={cn(badgeVariants({ variant: "secondary" }), "font-mono")}
             >
               #{tag.name}

@@ -14,7 +14,11 @@ const allTags = getAllTags(data.publication.posts.edges, true);
     {
       allTags.map((tag) => (
         <div>
-          <a href={`/tags/${tag.slug}`} class:list={[badgeVariants({ variant: "secondary" }), "font-mono"]}>
+          <a
+            href={`/tags/${tag.slug}`}
+            data-testid="badge"
+            class:list={[badgeVariants({ variant: "secondary" }), "font-mono"]}
+          >
             #{tag.name}
           </a>
           <p class="mt-2 pl-4">{tag.count} posts</p>
