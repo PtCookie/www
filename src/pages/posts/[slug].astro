@@ -1,43 +1,41 @@
 ---
 import { Image } from "astro:assets";
+import { getCollection } from "astro:content";
 import { Markdown } from "@astropub/md";
 import { format } from "date-fns";
 
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { getAllPosts, getPost } from "@/lib/client.ts";
 import { badgeVariants } from "@/components/ui/badge.tsx";
 import { PostCard } from "@/components/PostCard.tsx";
 
 export async function getStaticPaths() {
-  const data = await getAllPosts({ first: 20 });
-  const allPosts = data.publication.posts.edges;
+  const posts = await getCollection("post");
 
-  return allPosts.map((post, index) => {
+  return posts.map((post, index) => {
     return {
-      params: { slug: post.node.slug },
+      params: { slug: post.data.slug },
       props: {
-        prevPost: index + 1 < allPosts.length ? allPosts[index + 1] : null,
-        nextPost: index > 0 ? allPosts[index - 1] : null,
+        post,
+        prevPost: index + 1 < posts.length ? posts[index + 1] : null,
+        nextPost: index > 0 ? posts[index - 1] : null,
       },
     };
   });
 }
 
-const { slug } = Astro.params;
-const post = await getPost(slug);
-const { prevPost, nextPost } = Astro.props;
+const { post, prevPost, nextPost } = Astro.props;
 ---
 
-<BaseLayout title={post.title} description={post.subtitle}>
-  <h1 class="my-8 text-5xl font-extrabold">{post.title}</h1>
-  <h3 class="mb-4 text-2xl font-semibold">{post.subtitle}</h3>
+<BaseLayout title={post.data.title} description={post.data.subtitle}>
+  <h1 class="my-8 text-5xl font-extrabold">{post.data.title}</h1>
+  <h3 class="mb-4 text-2xl font-semibold">{post.data.subtitle}</h3>
   <div class="text-muted-foreground mb-2 flex justify-between font-sans text-xs sm:text-sm">
-    <p>{format(post.publishedAt, "yyyy-MM-dd")}</p>
-    <p>{post.readTimeInMinutes}min read</p>
+    <p>{format(post.data.publishedAt, "yyyy-MM-dd")}</p>
+    <p>{post.data.readTimeInMinutes}min read</p>
   </div>
   <div class="flex flex-wrap justify-end gap-2">
     {
-      post.tags.map((tag) => (
+      post.data.tags.map((tag) => (
         <a
           href={`/tags/${tag.slug}`}
           data-testid="badge"
@@ -50,13 +48,13 @@ const { prevPost, nextPost } = Astro.props;
   </div>
 
   <figure class="relative mt-6 mb-10">
-    <Image src={post.coverImage.url} inferSize={true} alt={post.title} class="rounded-md" />
+    <Image src={post.data.coverImage.url} inferSize={true} alt={post.data.title} class="rounded-md" />
     {
-      post.coverImage.photographer && post.coverImage.attribution && (
+      post.data.coverImage.photographer && post.data.coverImage.attribution && (
         <figcaption class="bg-muted absolute right-4 bottom-4 rounded-sm px-2.5 py-1 text-sm italic">
           Photo by&nbsp;
-          <a href={post.coverImage.attribution} class="underline">
-            {post.coverImage.photographer}
+          <a href={post.data.coverImage.attribution} class="underline">
+            {post.data.coverImage.photographer}
           </a>
         </figcaption>
       )
@@ -64,12 +62,12 @@ const { prevPost, nextPost } = Astro.props;
   </figure>
 
   <article class="prose sm:prose-lg dark:prose-invert prose-p:font-serif max-w-none">
-    <Markdown of={post.content.markdown} />
+    <Markdown of={post.data.content.markdown} />
   </article>
 
   <div class="my-8 flex flex-wrap justify-start gap-2">
     {
-      post.tags.map((tag) => (
+      post.data.tags.map((tag) => (
         <a
           href={`/tags/${tag.slug}`}
           data-testid="badge"
@@ -86,8 +84,8 @@ const { prevPost, nextPost } = Astro.props;
       <Fragment>
         <h3 class="mb-4 text-center text-lg font-medium sm:text-xl">Read Next</h3>
         <div class="my-4 grid flex-1 place-items-center content-center gap-8">
-          {nextPost && <PostCard post={nextPost.node} disableImage />}
-          {prevPost && <PostCard post={prevPost.node} disableImage />}
+          {nextPost && <PostCard post={nextPost.data} disableImage />}
+          {prevPost && <PostCard post={prevPost.data} disableImage />}
         </div>
       </Fragment>
     )

@@ -7,9 +7,9 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function getAllTags(posts: Array<{ node: { tags: Array<Tag> } }>, sort = false): Array<Tag & { count: number }> {
+export function getAllTags(posts: Array<{ data: { tags: Array<Tag> } }>, sort = false): Array<Tag & { count: number }> {
   const allTags = posts.reduce<Array<Tag & { count: number }>>((acc, post) => {
-    post.node.tags.forEach((tag) => {
+    post.data.tags.forEach((tag) => {
       const existingTag = acc.find((t) => t.name === tag.name);
 
       if (existingTag) {

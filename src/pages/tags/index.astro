@@ -1,11 +1,12 @@
 ---
+import { getCollection } from "astro:content";
+
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { getAllPosts } from "@/lib/client.ts";
 import { getAllTags } from "@/lib/utils.ts";
 import { badgeVariants } from "@/components/ui/badge.tsx";
 
-const data = await getAllPosts({ first: 20 });
-const allTags = getAllTags(data.publication.posts.edges, true);
+const posts = await getCollection("post");
+const allTags = getAllTags(posts, true);
 ---
 
 <BaseLayout title="Tags">
