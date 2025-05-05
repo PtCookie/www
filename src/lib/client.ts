@@ -36,19 +36,19 @@ export const getAllPosts = async (pagination?: PostPagination) => {
                   name
                   profilePicture
                 }
+                publishedAt
                 title
                 subtitle
                 brief
                 slug
-                coverImage {
-                  url
-                }
+                readTimeInMinutes
                 tags {
                   name
                   slug
                 }
-                publishedAt
-                readTimeInMinutes
+                coverImage {
+                  url
+                }
               }
             }
           }
