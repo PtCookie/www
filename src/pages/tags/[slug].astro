@@ -1,4 +1,6 @@
 ---
+import { Image } from "astro:assets";
+
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { getAllPosts } from "@/lib/client.ts";
 import { getAllTags } from "@/lib/utils.ts";
@@ -24,6 +26,17 @@ const { tag, posts } = Astro.props;
 <BaseLayout title={tag.name}>
   <h1 class="mt-8 mb-12 text-center text-5xl font-extrabold">{tag.name}</h1>
   <div class="grid flex-1 place-items-center content-start gap-8">
-    {posts.map((post) => <PostCard post={post.node} />)}
+    {
+      posts.map((post) => (
+        <PostCard post={post.node}>
+          <Image
+            src={post.node.coverImage.url}
+            inferSize={true}
+            alt={post.node.title}
+            class="h-full w-full overflow-hidden rounded-t-xl object-cover"
+          />
+        </PostCard>
+      ))
+    }
   </div>
 </BaseLayout>

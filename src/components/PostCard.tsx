@@ -9,19 +9,21 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card.
 interface Props {
   post: Post;
   disableImage?: boolean;
+  children?: React.ReactNode;
 }
 
-export function PostCard({ post, disableImage = false }: Props) {
+export function PostCard({ post, disableImage = false, children }: Props) {
   return (
     <Card className="w-full max-w-2xl">
       <CardHeader className={cn("-mt-6 p-0", !disableImage && "h-48")}>
-        {!disableImage && (
-          <img
-            src={post.coverImage.url}
-            alt={post.title}
-            className="h-full w-full overflow-hidden rounded-t-xl object-cover"
-          />
-        )}
+        {!disableImage &&
+          (children || (
+            <img
+              src={post.coverImage.url}
+              alt={post.title}
+              className="h-full w-full overflow-hidden rounded-t-xl object-cover"
+            />
+          ))}
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
