@@ -1,5 +1,6 @@
 /// <reference types="vitest" />
 import { getViteConfig } from "astro/config";
+import { coverageConfigDefaults } from "vitest/config";
 
 export default getViteConfig({
   test: {
@@ -8,6 +9,7 @@ export default getViteConfig({
     coverage: {
       enabled: true,
       include: ["src/**"],
+      exclude: ["src/*config.ts", ...coverageConfigDefaults.exclude],
     },
   },
 });
