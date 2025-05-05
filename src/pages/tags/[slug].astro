@@ -1,8 +1,8 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { getAllPosts } from "@/lib/client";
-import { getAllTags } from "@/lib/utils";
-import { PostCard } from "@/components/PostCard";
+import { getAllPosts } from "@/lib/client.ts";
+import { getAllTags } from "@/lib/utils.ts";
+import { PostCard } from "@/components/PostCard.tsx";
 
 export async function getStaticPaths() {
   const data = await getAllPosts({ first: 20 });

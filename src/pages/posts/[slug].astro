@@ -3,9 +3,9 @@ import { Markdown } from "@astropub/md";
 import { format } from "date-fns";
 
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { getAllPosts, getPost } from "@/lib/client";
-import { badgeVariants } from "@/components/ui/badge";
-import { PostCard } from "@/components/PostCard";
+import { getAllPosts, getPost } from "@/lib/client.ts";
+import { badgeVariants } from "@/components/ui/badge.tsx";
+import { PostCard } from "@/components/PostCard.tsx";
 
 export async function getStaticPaths() {
   const data = await getAllPosts({ first: 20 });
