@@ -6,7 +6,7 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
 } from "@/components/ui/navigation-menu.tsx";
-import { type MenuEntry } from "@/config";
+import type { MenuEntry } from "@/config";
 
 interface Props {
   menuEntry: Array<MenuEntry>;

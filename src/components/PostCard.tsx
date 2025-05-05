@@ -1,7 +1,7 @@
 import React from "react";
 import { format } from "date-fns";
 
-import { type Post } from "@/lib/schema";
+import type { Post } from "@/lib/schema";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

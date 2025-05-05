@@ -1,6 +1,7 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
+
 import { Navigation } from "@/components/Navigation.tsx";
 
 describe("Navigation", () => {
@@ -10,7 +11,6 @@ describe("Navigation", () => {
       { name: "Posts", link: "/posts" },
       { name: "Tags", link: "/tags" },
     ];
-
     render(<Navigation menuEntry={menuEntry} />);
 
     for (const item of menuEntry) {
@@ -21,6 +21,7 @@ describe("Navigation", () => {
 
   test("should render nothing if no menu entries are provided", () => {
     render(<Navigation menuEntry={[]} />);
+
     expect(screen.queryByRole("listitem")).not.toBeInTheDocument();
   });
 });
