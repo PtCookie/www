@@ -42,6 +42,9 @@ export const getAllPosts = async (pagination?: PostPagination) => {
                 brief
                 slug
                 readTimeInMinutes
+                content{
+                  markdown
+                }
                 tags {
                   name
                   slug

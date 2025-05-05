@@ -1,14 +1,14 @@
 ---
+import { getCollection } from "astro:content";
+
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { getAllPosts } from "@/lib/client";
 import { PostCard } from "@/components/PostCard";
 
-const data = await getAllPosts({ first: 20 });
-const allPosts = data.publication.posts.edges;
+const posts = await getCollection("post");
 ---
 
 <BaseLayout>
   <div class="grid flex-1 place-items-center content-center gap-8">
-    {allPosts.map((post) => <PostCard post={post.node} />)}
+    {posts.map((post) => <PostCard post={post.data} />)}
   </div>
 </BaseLayout>
