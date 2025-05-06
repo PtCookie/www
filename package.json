@@ -1,10 +1,11 @@
 {
-    "name": "astro-shadcn",
-    "version": "0.0.1",
-    "description": "Astro with shadcn/ui",
+    "name": "devlog",
+    "version": "0.1.0",
+    "description": "DevLog of PtCookie built with Astro and shadcn/ui",
     "keywords": [
         "Astro",
-        "TypeScript"
+        "TypeScript",
+        "TailwindCSS"
     ],
     "license": "MIT",
     "author": {

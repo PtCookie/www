@@ -1,6 +1,6 @@
-# Astro with shadcn/ui
+# PtCookie.DevLog
 
-Astro with shadcn/ui
+DevLog of PtCookie built with Astro and shadcn/ui.
 
 ## License
 

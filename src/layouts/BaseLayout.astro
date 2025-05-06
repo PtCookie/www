@@ -22,7 +22,9 @@ const description = Astro.props.description || config.description;
     <meta name="viewport" content="width=device-width" />
     <title>{title}</title>
 
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" sizes="any" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="generator" content={Astro.generator} />
     <ClientRouter />
 

@@ -12,9 +12,9 @@ export interface Config {
 }
 
 export const config: Config = {
-  title: "Astro + Hashnode",
-  description: "Description",
-  author: "Author",
+  title: "DevLog",
+  description: "A DevLog of PtCookie",
+  author: "PtCookie",
   copyrightFrom: 2021,
   menuEntry: [
     { name: "Home", link: "/" },
