@@ -38,7 +38,7 @@ export function Pagination({ total, currentPage, basePath, display = 3, prev, ne
         )}
         {pageNumbers.map((page) => (
           <PaginationItem key={page}>
-            <PaginationLink href={`${basePath}/${page}`} isActive={currentPage === page}>
+            <PaginationLink href={page === 1 ? basePath : `${basePath}/${page}`} isActive={currentPage === page}>
               {page}
             </PaginationLink>
           </PaginationItem>
