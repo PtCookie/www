@@ -16,7 +16,7 @@ const { title, menuEntry } = config;
   </div>
 </header>
 
-<script is:inline>
+<script>
   const getThemePreference = () => {
     if (typeof localStorage !== "undefined" && localStorage.getItem("theme")) {
       return localStorage.getItem("theme");
@@ -33,4 +33,10 @@ const { title, menuEntry } = config;
     });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
   }
+
+  document.addEventListener("astro:after-swap", () => {
+    if (localStorage.theme === "dark") {
+      document.documentElement.classList.add("dark");
+    }
+  });
 </script>
