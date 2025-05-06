@@ -28,3 +28,15 @@ export function getAllTags(posts: Array<{ data: { tags: Array<Tag> } }>, sort = 
 
   return allTags.sort((a, b) => (b.count === a.count ? a.name.localeCompare(b.name) : b.count - a.count));
 }
+
+export function range(stop: number): number[];
+export function range(start: number, stop: number): number[];
+export function range(start: number, stop: number, step: number): number[];
+export function range(start: number, stop?: number, step = 1): number[] {
+  if (stop === undefined) {
+    stop = start;
+    start = 0;
+  }
+
+  return Array.from({ length: (stop - start) / step + 1 }, (_, index) => start + index * step);
+}

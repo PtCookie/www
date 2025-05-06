@@ -7,6 +7,9 @@ import markdownIntegration from "@astropub/md";
 
 // https://astro.build/config
 export default defineConfig({
+  redirects: {
+    "/posts/1": "/posts",
+  },
   integrations: [react(), mdx(), markdownIntegration()],
   vite: {
     plugins: [tailwindcss()],
