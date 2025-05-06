@@ -47,21 +47,28 @@ const { post, prevPost, nextPost } = Astro.props;
     }
   </div>
 
-  <figure class="relative mt-6 mb-10">
-    <Image src={post.data.coverImage.url} inferSize={true} alt={post.data.title} class="rounded-md" />
-    {
-      post.data.coverImage.photographer && post.data.coverImage.attribution && (
-        <figcaption class="bg-muted absolute right-4 bottom-4 rounded-sm px-2.5 py-1 text-sm italic">
-          Photo by&nbsp;
-          <a href={post.data.coverImage.attribution} class="underline">
-            {post.data.coverImage.photographer}
-          </a>
-        </figcaption>
-      )
-    }
-  </figure>
+  {
+    post.data.coverImage.url && (
+      <figure class="relative mt-6 mb-10">
+        <Image src={post.data.coverImage.url} inferSize={true} alt={post.data.title} class="rounded-md" />
+        {post.data.coverImage.photographer && post.data.coverImage.attribution && (
+          <figcaption class="bg-muted absolute right-4 bottom-4 rounded-sm px-2.5 py-1 text-sm italic">
+            Photo by&nbsp;
+            <a href={post.data.coverImage.attribution} class="underline">
+              {post.data.coverImage.photographer}
+            </a>
+          </figcaption>
+        )}
+      </figure>
+    )
+  }
 
-  <article class="prose sm:prose-lg dark:prose-invert prose-p:font-serif max-w-none">
+  <article
+    class:list={[
+      "prose sm:prose-lg dark:prose-invert prose-p:font-serif max-w-none",
+      post.data.coverImage.url || "my-8",
+    ]}
+  >
     <Markdown of={post.data.content.markdown} />
   </article>
 
