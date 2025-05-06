@@ -10,7 +10,7 @@ import { PostCard } from "@/components/PostCard.tsx";
 export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
   const posts = await getCollection("post");
 
-  return paginate(posts, { pageSize: 5 });
+  return paginate(posts, { pageSize: 3 });
 }
 
 const { page } = Astro.props;

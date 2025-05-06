@@ -9,6 +9,7 @@ import markdownIntegration from "@astropub/md";
 export default defineConfig({
   redirects: {
     "/posts/1": "/posts",
+    "/tags/[slug]/1": "/tags/[slug]",
   },
   integrations: [react(), mdx(), markdownIntegration()],
   vite: {

@@ -1,33 +1,36 @@
 ---
+import type { GetStaticPathsOptions } from "astro";
 import { Image } from "astro:assets";
 import { getCollection } from "astro:content";
 
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { getAllTags } from "@/lib/utils.ts";
+import { Pagination } from "@/components/Pagination.tsx";
 import { PostCard } from "@/components/PostCard.tsx";
 
-export async function getStaticPaths() {
+export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
   const posts = await getCollection("post");
   const allTags = getAllTags(posts, true);
 
-  return allTags.map((tag) => {
+  return allTags.flatMap((tag) => {
     const filteredPosts = posts.filter((post) => post.data.tags.some((t) => t.name === tag.name));
 
-    return {
+    return paginate(filteredPosts, {
       params: { slug: tag.slug },
-      props: { tag, posts: filteredPosts },
-    };
+      props: { tag },
+      pageSize: 3,
+    });
   });
 }
 
-const { tag, posts } = Astro.props;
+const { tag, page } = Astro.props;
 ---
 
 <BaseLayout title={tag.name}>
   <h1 class="mt-8 mb-12 text-center text-5xl font-extrabold">{tag.name}</h1>
   <div class="grid flex-1 place-items-center content-start gap-8">
     {
-      posts.map((post) => (
+      page.data.map((post) => (
         <PostCard post={post.data}>
           <Image
             src={post.data.coverImage.url}
@@ -39,4 +42,18 @@ const { tag, posts } = Astro.props;
       ))
     }
   </div>
+  {
+    Math.ceil(page.total / page.size) > 1 && (
+      <div class="mt-8">
+        <Pagination
+          total={Math.ceil(page.total / page.size)}
+          currentPage={page.currentPage}
+          basePath={`/tags/${tag.slug}`}
+          display={3}
+          prev={page.url.prev}
+          next={page.url.next}
+        />
+      </div>
+    )
+  }
 </BaseLayout>
