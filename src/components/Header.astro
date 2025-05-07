@@ -18,7 +18,7 @@ const localizedEntry = menuEntry.map((entry) => ({ ...entry, link: `/${lang}${en
   </div>
   <div class="flex items-center">
     <Navigation menuEntry={lang ? localizedEntry : menuEntry} />
-    <ModeToggle client:load />
+    <ModeToggle lang={lang} client:load />
   </div>
 </header>
 

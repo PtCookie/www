@@ -2,8 +2,10 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 import type { Tag } from "@/lib/schema.ts";
+import { translation, type Translation } from "@/i18n/translation.ts";
+import type { Locale } from "@/config.ts";
 
-export function cn(...inputs: ClassValue[]) {
+export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
 }
 
@@ -39,4 +41,8 @@ export function range(start: number, stop?: number, step = 1): number[] {
   }
 
   return Array.from({ length: (stop - start) / step + 1 }, (_, index) => start + index * step);
+}
+
+export function translate(lang: Locale, key: keyof Translation): string {
+  return translation[lang][key];
 }

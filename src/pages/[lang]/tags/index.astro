@@ -2,8 +2,8 @@
 import { getCollection } from "astro:content";
 
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { getAllTags } from "@/lib/utils.ts";
 import { badgeVariants } from "@/components/ui/badge.tsx";
+import { getAllTags, translate } from "@/lib/utils.ts";
 import { config } from "@/config.ts";
 
 export async function getStaticPaths() {
@@ -15,8 +15,8 @@ const posts = await getCollection("post", ({ data }) => data.locale === lang);
 const allTags = getAllTags(posts, true);
 ---
 
-<BaseLayout lang={lang} title="Tags">
-  <h1 class="mt-8 mb-12 text-center text-5xl font-extrabold">Tags</h1>
+<BaseLayout lang={lang} title={translate(lang, "page.allTags")}>
+  <h1 class="mt-8 mb-12 text-center text-5xl font-extrabold">{translate(lang, "page.allTags")}</h1>
   <div class="grid flex-1 place-items-start content-start gap-8 px-8">
     {
       allTags.map((tag) => (
@@ -28,7 +28,9 @@ const allTags = getAllTags(posts, true);
           >
             #{tag.name}
           </a>
-          <p class="mt-2 pl-4">{tag.count} posts</p>
+          <p class="mt-2 pl-4">
+            {tag.count} {translate(lang, "page.posts")}
+          </p>
         </div>
       ))
     }

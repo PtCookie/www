@@ -1,7 +1,7 @@
 import { defineCollection } from "astro:content";
 
-import { HashnodeLoader } from "@/lib/loader";
-import { PostSchema } from "@/lib/schema";
+import { HashnodeLoader } from "@/lib/loader.ts";
+import { PostSchema } from "@/lib/schema.ts";
 
 const post = defineCollection({
   loader: HashnodeLoader(),

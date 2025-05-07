@@ -1,6 +1,6 @@
 import { gql, GraphQLClient } from "graphql-request";
 
-import type { Publication } from "./schema.ts";
+import type { Publication } from "@/lib/schema.ts";
 
 interface PostPagination {
   locale?: string;

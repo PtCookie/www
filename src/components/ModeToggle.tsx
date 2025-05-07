@@ -1,6 +1,7 @@
 import React from "react";
 import { Moon, Sun } from "lucide-react";
 
+import { translate } from "@/lib/utils.ts";
 import { Button } from "@/components/ui/button.tsx";
 import {
   DropdownMenu,
@@ -8,8 +9,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu.tsx";
+import { config, type Locale } from "@/config.ts";
 
-export function ModeToggle() {
+interface Props {
+  lang?: Locale;
+}
+
+export function ModeToggle({ lang = config.defaultLocale }: Props) {
   const [theme, setThemeState] = React.useState<"theme-light" | "dark" | "system">("theme-light");
 
   React.useEffect(() => {
@@ -34,13 +40,13 @@ export function ModeToggle() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem className="font-sans" onClick={() => setThemeState("theme-light")}>
-          Light
+          {translate(lang, "component.light")}
         </DropdownMenuItem>
         <DropdownMenuItem className="font-sans" onClick={() => setThemeState("dark")}>
-          Dark
+          {translate(lang, "component.dark")}
         </DropdownMenuItem>
         <DropdownMenuItem className="font-sans" onClick={() => setThemeState("system")}>
-          System
+          {translate(lang, "component.system")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

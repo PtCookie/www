@@ -21,7 +21,7 @@ describe("ModeToggle", () => {
 
   test("applies dark class to document when Dark is selected", async () => {
     const user = userEvent.setup();
-    render(<ModeToggle />);
+    render(<ModeToggle lang="en" />);
 
     await user.click(screen.getByRole("button", { name: /toggle theme/i }));
     await user.click(screen.getByText(/dark/i));
@@ -31,7 +31,7 @@ describe("ModeToggle", () => {
 
   test("removes dark class from document when Light is selected", async () => {
     const user = userEvent.setup();
-    render(<ModeToggle />);
+    render(<ModeToggle lang="en" />);
 
     // Ensure dark mode is applied first
     await user.click(screen.getByRole("button", { name: /toggle theme/i }));
@@ -55,7 +55,7 @@ describe("ModeToggle", () => {
         removeListener: vi.fn(),
       };
     });
-    render(<ModeToggle />);
+    render(<ModeToggle lang="en" />);
 
     await user.click(screen.getByRole("button", { name: /toggle theme/i }));
     await user.click(screen.getByText(/system/i));

@@ -7,13 +7,15 @@ import { format } from "date-fns";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { badgeVariants } from "@/components/ui/badge.tsx";
 import { PostCard } from "@/components/PostCard.tsx";
+import { translate } from "@/lib/utils.ts";
+import type { Locale } from "@/config.ts";
 
 export async function getStaticPaths() {
   const posts = await getCollection("post");
 
   return posts.map((post, index) => {
     return {
-      params: { lang: post.data.locale, slug: post.data.slug },
+      params: { lang: post.data.locale as Locale, slug: post.data.slug },
       props: {
         post,
         prevPost: index + 1 < posts.length ? posts[index + 1] : null,
@@ -32,7 +34,7 @@ const { lang } = Astro.params;
   <h3 class="mb-3 text-xl font-semibold sm:mb-4 sm:text-2xl">{post.data.subtitle}</h3>
   <div class="text-muted-foreground mb-2 flex justify-between font-sans text-xs sm:text-sm">
     <p>{format(post.data.publishedAt, "yyyy-MM-dd")}</p>
-    <p>{post.data.readTimeInMinutes}min read</p>
+    <p>{post.data.readTimeInMinutes}{translate(lang, "component.readTime")}</p>
   </div>
   <div class="flex flex-wrap justify-end gap-2">
     {
@@ -90,7 +92,7 @@ const { lang } = Astro.params;
   {
     (prevPost || nextPost) && (
       <Fragment>
-        <h3 class="text-center text-lg font-medium sm:mb-4 sm:text-xl">Read Next</h3>
+        <h3 class="text-center text-lg font-medium sm:mb-4 sm:text-xl">{translate(lang, "page.readNext")}</h3>
         <div class="my-4 grid flex-1 place-items-center content-center gap-8">
           {nextPost && <PostCard post={nextPost.data} lang={lang} disableImage />}
           {prevPost && <PostCard post={prevPost.data} lang={lang} disableImage />}

@@ -22,12 +22,17 @@ const mockPost: Post = {
     { name: "Tag One", slug: "tag1" },
     { name: "Tag Two", slug: "tag2" },
   ],
-  coverImage: { url: "/cover-image.jpg" },
+  coverImage: {
+    url: "/cover-image.jpg",
+    attribution: null,
+    photographer: null,
+  },
+  locale: "en",
 };
 
 describe("PostCard", () => {
   test("renders correctly with all content", () => {
-    render(<PostCard post={mockPost} />);
+    render(<PostCard post={mockPost} lang="en" />);
 
     expect(screen.getByRole("img")).toBeInTheDocument();
     expect(screen.getByAltText("Sample Post")).toBeInTheDocument();
@@ -35,7 +40,7 @@ describe("PostCard", () => {
     expect(screen.getByText("2025-03-22")).toBeInTheDocument();
     expect(screen.getByText("10min read")).toBeInTheDocument();
     expect(screen.getByText(/this is a brief summary of the post/i)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /read more/i })).toHaveAttribute("href", "/posts/sample-post");
+    expect(screen.getByRole("link", { name: /read more/i })).toHaveAttribute("href", "/en/posts/sample-post");
     expect(screen.getByText("#Tag One")).toBeInTheDocument();
     expect(screen.getByText("#Tag Two")).toBeInTheDocument();
   });
