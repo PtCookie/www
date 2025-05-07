@@ -1,10 +1,10 @@
 import { gql, GraphQLClient } from "graphql-request";
 
-import type { AllPostsData } from "./schema.ts";
+import type { Publication } from "./schema.ts";
 
 interface PostPagination {
+  locale?: string;
   first?: number;
-  after?: string;
 }
 
 const hostname = import.meta.env.PUBLIC_HASHNODE_BASE_URL;
@@ -13,19 +13,17 @@ const getClient = () => {
   return new GraphQLClient("https://gql.hashnode.com");
 };
 
-export const getAllPosts = async (pagination?: PostPagination) => {
+export const getPublication = async ({ locale, first = 20 }: PostPagination) => {
   const client = getClient();
-  const first = pagination?.first ?? 20;
-  const after = pagination?.after ?? "";
 
-  return await client.request<AllPostsData>(
+  return await client.request<Publication>(
     gql`
-      query allPosts($first: Int!, $after: String) {
-        publication(host: "${hostname}") {
+      query allPosts($host: String, $first: Int!) {
+        publication(host: $host) {
           id
           title
-          posts(first: $first, after: $after) {
-            pageInfo{
+          posts(first: $first) {
+            pageInfo {
               hasNextPage
               endCursor
             }
@@ -33,7 +31,7 @@ export const getAllPosts = async (pagination?: PostPagination) => {
               cursor
               node {
                 id
-                author{
+                author {
                   name
                   profilePicture
                 }
@@ -43,7 +41,7 @@ export const getAllPosts = async (pagination?: PostPagination) => {
                 brief
                 slug
                 readTimeInMinutes
-                content{
+                content {
                   markdown
                 }
                 tags {
@@ -61,6 +59,9 @@ export const getAllPosts = async (pagination?: PostPagination) => {
         }
       }
     `,
-    { first, after },
+    {
+      host: [hostname, locale].filter(Boolean).join("/"),
+      first,
+    },
   );
 };

@@ -1,22 +1,19 @@
 import type { Loader, LoaderContext } from "astro/loaders";
 
-import { getAllPosts } from "@/lib/client.ts";
+import { getPublication } from "@/lib/client.ts";
 
-interface HashnodeLoaderOptions {
-  hostname: string;
-}
-
-export function HashnodeLoader(options: HashnodeLoaderOptions): Loader {
+export function HashnodeLoader(): Loader {
   return {
     name: "hashnode-loader",
     load: async ({ store, logger, parseData }: LoaderContext): Promise<void> => {
-      logger.info(`Loading posts of "${options.hostname}" from Hashnode`);
+      logger.info(`Loading posts of from Hashnode`);
       store.clear();
 
-      const data = await getAllPosts();
+      const locale = "en";
+      const data = await getPublication({ locale });
 
       for (const item of data.publication.posts.edges) {
-        const parsedData = await parseData({ id: item.node.id, data: item.node });
+        const parsedData = await parseData({ id: item.node.id, data: { ...item.node, locale } });
 
         store.set({
           id: parsedData.id,
@@ -24,7 +21,7 @@ export function HashnodeLoader(options: HashnodeLoaderOptions): Loader {
         });
       }
 
-      logger.info(`Finished loading ${store.entries().length} posts of "${options.hostname}" from Hashnode`);
+      logger.info(`Finished loading ${store.entries().length} posts of from Hashnode`);
     },
   };
 }
