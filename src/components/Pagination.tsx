@@ -1,6 +1,5 @@
 import React from "react";
 
-import { range } from "@/lib/utils.ts";
 import {
   Pagination as UIPagination,
   PaginationContent,
@@ -10,6 +9,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination.tsx";
+import { range } from "@/lib/utils.ts";
 
 interface Props {
   total: number;

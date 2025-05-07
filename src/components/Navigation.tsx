@@ -1,12 +1,12 @@
 import React from "react";
 
-import type { MenuEntry } from "@/config.ts";
 import {
   NavigationMenu,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
 } from "@/components/ui/navigation-menu.tsx";
+import type { MenuEntry } from "@/config.ts";
 
 interface Props {
   menuEntry: Array<MenuEntry>;

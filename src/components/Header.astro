@@ -1,6 +1,7 @@
 ---
 import { Navigation } from "./Navigation.tsx";
 import { ModeToggle } from "./ModeToggle.tsx";
+import { LangToggle } from "./LangToggle.tsx";
 import { config, type Locale } from "@/config.ts";
 
 interface Props {
@@ -10,6 +11,7 @@ interface Props {
 const { lang } = Astro.props;
 const { title, menuEntry } = config;
 const localizedEntry = menuEntry.map((entry) => ({ ...entry, link: `/${lang}${entry.link}` }));
+const currentUrl = Astro.url.pathname;
 ---
 
 <header class="mx-auto my-1.5 flex w-full max-w-3xl justify-between border-b-2 px-8 py-2 sm:my-6">
@@ -19,6 +21,7 @@ const localizedEntry = menuEntry.map((entry) => ({ ...entry, link: `/${lang}${en
   <div class="flex items-center">
     <Navigation menuEntry={lang ? localizedEntry : menuEntry} />
     <ModeToggle lang={lang} client:load />
+    <LangToggle lang={lang} currentUrl={currentUrl} client:load />
   </div>
 </header>
 

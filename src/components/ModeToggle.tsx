@@ -1,7 +1,6 @@
 import React from "react";
 import { Moon, Sun } from "lucide-react";
 
-import { translate } from "@/lib/utils.ts";
 import { Button } from "@/components/ui/button.tsx";
 import {
   DropdownMenu,
@@ -9,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu.tsx";
+import { translate } from "@/lib/utils.ts";
 import { config, type Locale } from "@/config.ts";
 
 interface Props {

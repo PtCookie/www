@@ -1,10 +1,10 @@
 import React from "react";
 import { format } from "date-fns";
 
-import type { Post } from "@/lib/schema.ts";
-import { cn, translate } from "@/lib/utils.ts";
 import { badgeVariants } from "@/components/ui/badge.tsx";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card.tsx";
+import type { Post } from "@/lib/schema.ts";
+import { cn, translate } from "@/lib/utils.ts";
 import { config, type Locale } from "@/config.ts";
 
 interface Props {
