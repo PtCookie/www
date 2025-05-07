@@ -1,11 +1,9 @@
 ---
 import type { GetStaticPathsOptions } from "astro";
-import { Image } from "astro:assets";
 import { getCollection } from "astro:content";
 
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { Pagination } from "@/components/Pagination.tsx";
-import { PostCard } from "@/components/PostCard.tsx";
+import PostList from "@/components/PostList.astro";
 
 export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
   const posts = await getCollection("post");
@@ -17,33 +15,5 @@ const { page } = Astro.props;
 ---
 
 <BaseLayout title="Posts">
-  <h1 class="mt-8 mb-12 text-center text-5xl font-extrabold">Posts</h1>
-  <div class="grid flex-1 place-items-center content-start gap-8">
-    {
-      page.data.map((post) => (
-        <PostCard post={post.data}>
-          <Image
-            src={post.data.coverImage.url}
-            inferSize={true}
-            alt={post.data.title}
-            class="h-full w-full overflow-hidden rounded-t-xl object-cover"
-          />
-        </PostCard>
-      ))
-    }
-  </div>
-  {
-    Math.ceil(page.total / page.size) > 1 && (
-      <div class="mt-8">
-        <Pagination
-          total={Math.ceil(page.total / page.size)}
-          currentPage={page.currentPage}
-          basePath={"/posts"}
-          display={3}
-          prev={page.url.prev}
-          next={page.url.next}
-        />
-      </div>
-    )
-  }
+  <PostList title="All Posts" basePath="/posts" page={page} />
 </BaseLayout>
