@@ -1,0 +1,35 @@
+---
+import type { GetStaticPathsOptions } from "astro";
+import { getCollection } from "astro:content";
+
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import PostList from "@/components/PostList.astro";
+import { getAllTags } from "@/lib/utils.ts";
+import { config } from "@/config.ts";
+
+export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
+  const posts = await getCollection("post");
+  const allTags = getAllTags(posts, true);
+
+  return config.locales.flatMap((locale) => {
+    return allTags.flatMap((tag) => {
+      const filteredPosts = posts.filter(
+        (post) => post.data.locale === locale && post.data.tags.some((t) => t.name === tag.name),
+      );
+
+      return paginate(filteredPosts, {
+        params: { lang: locale, slug: tag.slug },
+        props: { tag },
+        pageSize: 3,
+      });
+    });
+  });
+}
+
+const { tag, page } = Astro.props;
+const { lang } = Astro.params;
+---
+
+<BaseLayout lang={lang} title={tag.name}>
+  <PostList title={tag.name} basePath={`/${lang}/tags/${tag.slug}`} page={page} lang={lang} />
+</BaseLayout>

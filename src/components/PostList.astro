@@ -5,21 +5,23 @@ import type { CollectionEntry } from "astro:content";
 
 import { Pagination } from "@/components/Pagination.tsx";
 import { PostCard } from "@/components/PostCard.tsx";
+import type { Locale } from "@/config.ts";
 
 interface Props {
   title: string;
   basePath: string;
   page: Page<CollectionEntry<"post">>;
+  lang?: Locale;
 }
 
-const { title, basePath, page } = Astro.props;
+const { title, basePath, page, lang } = Astro.props;
 ---
 
 <h1 class="mt-8 mb-12 text-center text-4xl font-extrabold sm:text-5xl">{title}</h1>
 <div class="grid flex-1 place-items-center content-start gap-8">
   {
     page.data.map((post) => (
-      <PostCard post={post.data}>
+      <PostCard post={post.data} lang={lang}>
         <Image
           src={post.data.coverImage.url}
           inferSize={true}

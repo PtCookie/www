@@ -1,0 +1,25 @@
+---
+import { getCollection } from "astro:content";
+
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { PostCard } from "@/components/PostCard.tsx";
+import { config } from "@/config.ts";
+
+export async function getStaticPaths() {
+  return config.locales.map((locale) => ({ params: { lang: locale } }));
+}
+
+const { lang } = Astro.params;
+const posts = (await getCollection("post", ({ data }) => data.locale === lang)).slice(0, 3);
+---
+
+<BaseLayout lang={lang}>
+  <div class="grid flex-1 place-items-center content-center gap-8">
+    <div class="my-24">
+      <h1 class="text-8xl font-bold">Hello, World!</h1>
+    </div>
+    {posts.map((post) => <PostCard post={post.data} lang={lang} disableImage />)}
+    <a href={`/${lang}/posts`} class="text-primary font-sans text-lg font-medium hover:underline sm:text-xl">View All</a
+    >
+  </div>
+</BaseLayout>

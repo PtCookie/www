@@ -26,7 +26,7 @@ export const PostSchema = z.object({
     attribution: z.string().nullable(),
     photographer: z.string().nullable(),
   }),
-  locale: z.string().optional(),
+  locale: z.string(),
 });
 
 export const PublicationSchema = z.object({

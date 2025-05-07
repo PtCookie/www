@@ -5,14 +5,16 @@ import type { Post } from "@/lib/schema.ts";
 import { cn } from "@/lib/utils.ts";
 import { badgeVariants } from "@/components/ui/badge.tsx";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card.tsx";
+import type { Locale } from "@/config.ts";
 
 interface Props {
   post: Post;
+  lang?: Locale;
   disableImage?: boolean;
   children?: React.ReactNode;
 }
 
-export function PostCard({ post, disableImage = false, children }: Props) {
+export function PostCard({ post, lang, disableImage = false, children }: Props) {
   return (
     <Card className="w-full max-w-2xl">
       <CardHeader className={cn("-mt-6 p-0", !disableImage && "h-48")}>
@@ -37,7 +39,7 @@ export function PostCard({ post, disableImage = false, children }: Props) {
       </CardContent>
       <CardFooter className="flex items-start justify-between">
         <a
-          href={`/posts/${post.slug}`}
+          href={lang ? `/${lang}/posts/${post.slug}` : `/posts/${post.slug}`}
           className="text-primary font-sans text-xs font-medium hover:underline sm:text-sm"
         >
           Read more
@@ -46,7 +48,7 @@ export function PostCard({ post, disableImage = false, children }: Props) {
           {post.tags.map((tag) => (
             <a
               key={tag.slug}
-              href={`/tags/${tag.slug}`}
+              href={lang ? `/${lang}/tags/${tag.slug}` : `/tags/${tag.slug}`}
               data-testid="badge"
               className={cn(badgeVariants({ variant: "secondary" }), "font-mono")}
             >

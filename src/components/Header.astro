@@ -1,17 +1,23 @@
 ---
-import { config } from "@/config.ts";
 import { Navigation } from "./Navigation.tsx";
 import { ModeToggle } from "./ModeToggle.tsx";
+import { config, type Locale } from "@/config.ts";
 
+interface Props {
+  lang?: Locale;
+}
+
+const { lang } = Astro.props;
 const { title, menuEntry } = config;
+const localizedEntry = menuEntry.map((entry) => ({ ...entry, link: `/${lang}${entry.link}` }));
 ---
 
 <header class="mx-auto my-1.5 flex w-full max-w-3xl justify-between border-b-2 px-8 py-2 sm:my-6">
   <div class="flex items-center">
-    <a class="font-sans text-xl leading-tight font-medium sm:text-3xl" href="/">{title}</a>
+    <a class="font-sans text-xl leading-tight font-medium sm:text-3xl" href={`/${lang}`}>{title}</a>
   </div>
   <div class="flex items-center">
-    <Navigation menuEntry={menuEntry} />
+    <Navigation menuEntry={lang ? localizedEntry : menuEntry} />
     <ModeToggle client:load />
   </div>
 </header>

@@ -3,12 +3,16 @@ export interface MenuEntry {
   link: string;
 }
 
+export type Locale = "ko" | "en";
+
 export interface Config {
   title: string;
   description: string;
   author: string;
   copyrightFrom: number;
   menuEntry: Array<MenuEntry>;
+  locales: Array<Locale>;
+  defaultLocale: Locale;
 }
 
 export const config: Config = {
@@ -21,4 +25,6 @@ export const config: Config = {
     { name: "Posts", link: "/posts" },
     { name: "Tags", link: "/tags" },
   ],
+  locales: ["ko", "en"],
+  defaultLocale: "ko",
 };

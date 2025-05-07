@@ -3,21 +3,23 @@ import { ClientRouter } from "astro:transitions";
 
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
-import { config } from "@/config.ts";
+import { config, type Locale } from "@/config.ts";
 import "@/styles/global.css";
 
 interface Props {
+  lang?: Locale;
   title?: string;
   description?: string;
 }
 
+const { lang } = Astro.props;
 const title = [Astro.props.title, config.title].filter(Boolean).join(" | ");
 const description = Astro.props.description || config.description;
 const ogType = Astro.props.description ? "article" : "website";
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={lang ?? config.defaultLocale}>
   <head>
     <!--Base-->
     <meta charset="utf-8" />
@@ -51,7 +53,7 @@ const ogType = Astro.props.description ? "article" : "website";
     <ClientRouter />
   </head>
   <body class="flex min-h-screen flex-col">
-    <Header />
+    <Header lang={lang} />
     <main class="mx-auto flex w-full max-w-5/6 grow flex-col sm:max-w-3xl sm:px-8">
       <slot />
     </main>

@@ -1,6 +1,7 @@
 import type { Loader, LoaderContext } from "astro/loaders";
 
 import { getPublication } from "@/lib/client.ts";
+import { config } from "@/config.ts";
 
 export function HashnodeLoader(): Loader {
   return {
@@ -9,16 +10,17 @@ export function HashnodeLoader(): Loader {
       logger.info(`Loading posts of from Hashnode`);
       store.clear();
 
-      const locale = "en";
-      const data = await getPublication({ locale });
+      for (const locale of config.locales) {
+        const data = await getPublication({ locale });
 
-      for (const item of data.publication.posts.edges) {
-        const parsedData = await parseData({ id: item.node.id, data: { ...item.node, locale } });
+        for (const item of data.publication.posts.edges) {
+          const parsedData = await parseData({ id: item.node.id, data: { ...item.node, locale } });
 
-        store.set({
-          id: parsedData.id,
-          data: parsedData,
-        });
+          store.set({
+            id: parsedData.id,
+            data: parsedData,
+          });
+        }
       }
 
       logger.info(`Finished loading ${store.entries().length} posts of from Hashnode`);

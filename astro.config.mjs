@@ -30,4 +30,15 @@ export default defineConfig({
       wrap: true,
     },
   },
+  i18n: {
+    locales: ["ko", "en"],
+    defaultLocale: "ko",
+    fallback: {
+      en: "ko",
+    },
+    routing: {
+      prefixDefaultLocale: true,
+      fallbackType: "rewrite",
+    },
+  },
 });

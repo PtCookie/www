@@ -4,19 +4,25 @@ import { getCollection } from "astro:content";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { getAllTags } from "@/lib/utils.ts";
 import { badgeVariants } from "@/components/ui/badge.tsx";
+import { config } from "@/config.ts";
 
-const posts = await getCollection("post");
+export async function getStaticPaths() {
+  return config.locales.map((locale) => ({ params: { lang: locale } }));
+}
+
+const { lang } = Astro.params;
+const posts = await getCollection("post", ({ data }) => data.locale === lang);
 const allTags = getAllTags(posts, true);
 ---
 
-<BaseLayout title="Tags">
+<BaseLayout lang={lang} title="Tags">
   <h1 class="mt-8 mb-12 text-center text-5xl font-extrabold">Tags</h1>
   <div class="grid flex-1 place-items-start content-start gap-8 px-8">
     {
       allTags.map((tag) => (
         <div>
           <a
-            href={`/tags/${tag.slug}`}
+            href={`/${lang}/tags/${tag.slug}`}
             data-testid="badge"
             class:list={[badgeVariants({ variant: "secondary" }), "font-mono"]}
           >
