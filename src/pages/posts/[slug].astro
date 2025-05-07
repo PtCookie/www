@@ -27,8 +27,8 @@ const { post, prevPost, nextPost } = Astro.props;
 ---
 
 <BaseLayout title={post.data.title} description={post.data.subtitle}>
-  <h1 class="my-8 text-5xl font-extrabold">{post.data.title}</h1>
-  <h3 class="mb-4 text-2xl font-semibold">{post.data.subtitle}</h3>
+  <h1 class="my-4 text-3xl font-extrabold sm:my-8 sm:text-5xl">{post.data.title}</h1>
+  <h3 class="mb-3 text-xl font-semibold sm:mb-4 sm:text-2xl">{post.data.subtitle}</h3>
   <div class="text-muted-foreground mb-2 flex justify-between font-sans text-xs sm:text-sm">
     <p>{format(post.data.publishedAt, "yyyy-MM-dd")}</p>
     <p>{post.data.readTimeInMinutes}min read</p>
@@ -49,10 +49,10 @@ const { post, prevPost, nextPost } = Astro.props;
 
   {
     post.data.coverImage.url && (
-      <figure class="relative mt-6 mb-10">
+      <figure class="relative mt-4 mb-8 sm:mt-6 sm:mb-10">
         <Image src={post.data.coverImage.url} inferSize={true} alt={post.data.title} class="rounded-md" />
         {post.data.coverImage.photographer && post.data.coverImage.attribution && (
-          <figcaption class="bg-muted absolute right-4 bottom-4 rounded-sm px-2.5 py-1 text-sm italic">
+          <figcaption class="bg-muted absolute right-2 bottom-2 rounded-sm px-2.5 py-1 text-xs italic sm:right-4 sm:bottom-4 sm:text-sm">
             Photo by&nbsp;
             <a href={post.data.coverImage.attribution} class="underline">
               {post.data.coverImage.photographer}
@@ -72,7 +72,7 @@ const { post, prevPost, nextPost } = Astro.props;
     <Markdown of={post.data.content.markdown} />
   </article>
 
-  <div class="my-8 flex flex-wrap justify-start gap-2">
+  <div class="my-6 flex flex-wrap justify-start gap-2 sm:my-8">
     {
       post.data.tags.map((tag) => (
         <a
@@ -89,7 +89,7 @@ const { post, prevPost, nextPost } = Astro.props;
   {
     (prevPost || nextPost) && (
       <Fragment>
-        <h3 class="mb-4 text-center text-lg font-medium sm:text-xl">Read Next</h3>
+        <h3 class="text-center text-lg font-medium sm:mb-4 sm:text-xl">Read Next</h3>
         <div class="my-4 grid flex-1 place-items-center content-center gap-8">
           {nextPost && <PostCard post={nextPost.data} disableImage />}
           {prevPost && <PostCard post={prevPost.data} disableImage />}

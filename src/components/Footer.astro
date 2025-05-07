@@ -7,11 +7,9 @@ const year = [copyrightFrom, new Date().getFullYear()].join("-");
 const credit = [year, author].join(", ");
 ---
 
-<footer class="mx-auto my-4 flex w-full max-w-3xl flex-col gap-4 border-t-2 py-4 sm:my-6 sm:py-8">
-  <p class="text-muted-foreground text-center font-sans">
-    Built with {Astro.generator}
-  </p>
-  <p class="text-muted-foreground text-center font-sans">
-    &copy; {credit}
-  </p>
+<footer
+  class="text-muted-foreground mx-auto my-6 flex w-full max-w-3xl flex-col gap-4 border-t-2 py-4 text-center font-sans text-sm sm:py-8 sm:text-base"
+>
+  <p>Built with {Astro.generator}</p>
+  <p>&copy; {credit}</p>
 </footer>

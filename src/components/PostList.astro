@@ -15,7 +15,7 @@ interface Props {
 const { title, basePath, page } = Astro.props;
 ---
 
-<h1 class="mt-8 mb-12 text-center text-5xl font-extrabold">{title}</h1>
+<h1 class="mt-8 mb-12 text-center text-4xl font-extrabold sm:text-5xl">{title}</h1>
 <div class="grid flex-1 place-items-center content-start gap-8">
   {
     page.data.map((post) => (
