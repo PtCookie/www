@@ -202,7 +202,7 @@
         font-display: swap;
         src:
             local("Pretendard Black"),
-            url("./fonts/Pretendard-Black.woff2") format("woff2");
+            url("/fonts/Pretendard-Black.woff2") format("woff2");
     }
 
     @font-face {
@@ -211,7 +211,7 @@
         font-display: swap;
         src:
             local("Pretendard ExtraBold"),
-            url("./fonts/Pretendard-ExtraBold.woff2") format("woff2");
+            url("/fonts/Pretendard-ExtraBold.woff2") format("woff2");
     }
 
     @font-face {
@@ -220,7 +220,7 @@
         font-display: swap;
         src:
             local("Pretendard Bold"),
-            url("./fonts/Pretendard-Bold.woff2") format("woff2");
+            url("/fonts/Pretendard-Bold.woff2") format("woff2");
     }
 
     @font-face {
@@ -229,7 +229,7 @@
         font-display: swap;
         src:
             local("Pretendard SemiBold"),
-            url("./fonts/Pretendard-SemiBold.woff2") format("woff2");
+            url("/fonts/Pretendard-SemiBold.woff2") format("woff2");
     }
 
     @font-face {
@@ -238,7 +238,7 @@
         font-display: swap;
         src:
             local("Pretendard Medium"),
-            url("./fonts/Pretendard-Medium.woff2") format("woff2");
+            url("/fonts/Pretendard-Medium.woff2") format("woff2");
     }
 
     @font-face {
@@ -247,7 +247,7 @@
         font-display: swap;
         src:
             local("Pretendard Regular"),
-            url("./fonts/Pretendard-Regular.woff2") format("woff2");
+            url("/fonts/Pretendard-Regular.woff2") format("woff2");
     }
 
     @font-face {
@@ -256,7 +256,7 @@
         font-display: swap;
         src:
             local("Pretendard Light"),
-            url("./fonts/Pretendard-Light.woff2") format("woff2");
+            url("/fonts/Pretendard-Light.woff2") format("woff2");
     }
 
     @font-face {
@@ -265,7 +265,7 @@
         font-display: swap;
         src:
             local("Pretendard ExtraLight"),
-            url("./fonts/Pretendard-ExtraLight.woff2") format("woff2");
+            url("/fonts/Pretendard-ExtraLight.woff2") format("woff2");
     }
 
     @font-face {
@@ -274,7 +274,7 @@
         font-display: swap;
         src:
             local("Pretendard Thin"),
-            url("./fonts/Pretendard-Thin.woff2") format("woff2");
+            url("/fonts/Pretendard-Thin.woff2") format("woff2");
     }
 
     @font-face {
@@ -334,7 +334,7 @@
         font-weight: 100;
         src:
             local("JetBrains Mono Thin"),
-            url("./fonts/JetBrainsMono-Thin.woff2") format("woff2");
+            url("/fonts/JetBrainsMono-Thin.woff2") format("woff2");
     }
 
     @font-face {
@@ -343,7 +343,7 @@
         font-weight: 200;
         src:
             local("JetBrains Mono ExtraLight"),
-            url("./fonts/JetBrainsMono-ExtraLight.woff2") format("woff2");
+            url("/fonts/JetBrainsMono-ExtraLight.woff2") format("woff2");
     }
 
     @font-face {
@@ -352,7 +352,7 @@
         font-weight: 300;
         src:
             local("JetBrains Mono Light"),
-            url("./fonts/JetBrainsMono-Light.woff2") format("woff2");
+            url("/fonts/JetBrainsMono-Light.woff2") format("woff2");
     }
 
     @font-face {
@@ -361,7 +361,7 @@
         font-weight: 400;
         src:
             local("JetBrains Mono Regular"),
-            url("./fonts/JetBrainsMono-Regular.woff2") format("woff2");
+            url("/fonts/JetBrainsMono-Regular.woff2") format("woff2");
     }
 
     @font-face {
@@ -370,7 +370,7 @@
         font-weight: 500;
         src:
             local("JetBrains Mono Medium"),
-            url("./fonts/JetBrainsMono-Medium.woff2") format("woff2");
+            url("/fonts/JetBrainsMono-Medium.woff2") format("woff2");
     }
 
     @font-face {
@@ -379,7 +379,7 @@
         font-weight: 600;
         src:
             local("JetBrains Mono SemiBold"),
-            url("./fonts/JetBrainsMono-SemiBold.woff2") format("woff2");
+            url("/fonts/JetBrainsMono-SemiBold.woff2") format("woff2");
     }
 
     @font-face {
@@ -388,7 +388,7 @@
         font-weight: 700;
         src:
             local("JetBrains Mono Bold"),
-            url("./fonts/JetBrainsMono-Bold.woff2") format("woff2");
+            url("/fonts/JetBrainsMono-Bold.woff2") format("woff2");
     }
 
     @font-face {
@@ -397,7 +397,7 @@
         font-weight: 800;
         src:
             local("JetBrains Mono ExtraBold"),
-            url("./fonts/JetBrainsMono-ExtraBold.woff2") format("woff2");
+            url("/fonts/JetBrainsMono-ExtraBold.woff2") format("woff2");
     }
 
     @font-face {
@@ -406,7 +406,7 @@
         font-weight: 100;
         src:
             local("JetBrains Mono ThinItalic"),
-            url("./fonts/JetBrainsMono-ThinItalic.woff2") format("woff2");
+            url("/fonts/JetBrainsMono-ThinItalic.woff2") format("woff2");
     }
 
     @font-face {
@@ -415,7 +415,7 @@
         font-weight: 200;
         src:
             local("JetBrains Mono ExtraLightItalic"),
-            url("./fonts/JetBrainsMono-ExtraLightItalic.woff2") format("woff2");
+            url("/fonts/JetBrainsMono-ExtraLightItalic.woff2") format("woff2");
     }
 
     @font-face {
@@ -424,7 +424,7 @@
         font-weight: 300;
         src:
             local("JetBrains Mono LightItalic"),
-            url("./fonts/JetBrainsMono-LightItalic.woff2") format("woff2");
+            url("/fonts/JetBrainsMono-LightItalic.woff2") format("woff2");
     }
 
     @font-face {
@@ -433,7 +433,7 @@
         font-weight: 400;
         src:
             local("JetBrains Mono Italic"),
-            url("./fonts/JetBrainsMono-Italic.woff2") format("woff2");
+            url("/fonts/JetBrainsMono-Italic.woff2") format("woff2");
     }
 
     @font-face {
@@ -442,7 +442,7 @@
         font-weight: 500;
         src:
             local("JetBrains Mono MediumItalic"),
-            url("./fonts/JetBrainsMono-MediumItalic.woff2") format("woff2");
+            url("/fonts/JetBrainsMono-MediumItalic.woff2") format("woff2");
     }
 
     @font-face {
@@ -451,7 +451,7 @@
         font-weight: 600;
         src:
             local("JetBrains Mono SemiBoldItalic"),
-            url("./fonts/JetBrainsMono-SemiBoldItalic.woff2") format("woff2");
+            url("/fonts/JetBrainsMono-SemiBoldItalic.woff2") format("woff2");
     }
 
     @font-face {
@@ -460,7 +460,7 @@
         font-weight: 700;
         src:
             local("JetBrains Mono BoldItalic"),
-            url("./fonts/JetBrainsMono-BoldItalic.woff2") format("woff2");
+            url("/fonts/JetBrainsMono-BoldItalic.woff2") format("woff2");
     }
 
     @font-face {
@@ -469,7 +469,7 @@
         font-weight: 800;
         src:
             local("JetBrains Mono ExtraBoldItalic"),
-            url("./fonts/JetBrainsMono-ExtraBoldItalic.woff2") format("woff2");
+            url("/fonts/JetBrainsMono-ExtraBoldItalic.woff2") format("woff2");
     }
 
     * {
