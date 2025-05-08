@@ -18,6 +18,8 @@ const posts = (await getCollection("post", ({ data }) => data.locale === lang)).
 <BaseLayout lang={lang}>
   <div class="grid flex-1 place-items-center content-start gap-8">
     <Intro />
+    <p class="mt-3 mb-12 place-self-start sm:mt-4 sm:mb-16 sm:text-lg">{translate(lang, "page.introduction")}</p>
+    <h3 class="text-center text-2xl font-medium sm:text-3xl">{translate(lang, "page.recentPosts")}</h3>
     {posts.map((post) => <PostCard post={post.data} lang={lang} disableImage />)}
     <a href={`/${lang}/posts`} class="text-primary font-sans text-lg font-medium hover:underline sm:text-xl">
       {translate(lang, "page.viewAll")}

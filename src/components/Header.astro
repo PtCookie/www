@@ -16,7 +16,7 @@ const currentUrl = Astro.url.pathname;
 
 <header class="mx-auto my-1.5 flex w-full max-w-3xl justify-between border-b-2 px-8 py-2 sm:my-6">
   <div class="flex items-center">
-    <a class="font-sans text-xl leading-tight font-medium sm:text-3xl" href={`/${lang}`}>{title}</a>
+    <a class="font-mono text-xl leading-tight font-bold italic sm:text-3xl" href={`/${lang}`}>{title}</a>
   </div>
   <div class="flex items-center">
     <Navigation menuEntry={lang ? localizedEntry : menuEntry} />

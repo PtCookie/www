@@ -6,6 +6,8 @@ export interface Translation {
   "component.system": string;
   "component.readTime": string;
   "component.readMore": string;
+  "page.introduction": string;
+  "page.recentPosts": string;
   "page.viewAll": string;
   "page.allPosts": string;
   "page.readNext": string;
@@ -20,6 +22,8 @@ export const translation: { [key in Locale]: Translation } = {
     "component.system": "시스템",
     "component.readTime": "분 소요",
     "component.readMore": "더 읽기",
+    "page.introduction": "개발하면서 느낀 점이나 나중에 찾아보기 위해 정리해놓은 블로그입니다",
+    "page.recentPosts": "최근 게시글",
     "page.viewAll": "전체 보기",
     "page.allPosts": "모든 게시글",
     "page.readNext": "다음 읽기",
@@ -32,6 +36,8 @@ export const translation: { [key in Locale]: Translation } = {
     "component.system": "System",
     "component.readTime": "min read",
     "component.readMore": "Read more",
+    "page.introduction": "Blog where organized things worth referring to later while developing",
+    "page.recentPosts": "Recent Posts",
     "page.viewAll": "View All",
     "page.allPosts": "All Posts",
     "page.readNext": "Read Next",

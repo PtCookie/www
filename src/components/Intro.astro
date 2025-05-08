@@ -6,7 +6,7 @@ import Logo from "@/assets/logo.svg";
   <div id="background" class="bg-latte-base absolute inset-0 z-0"></div>
 
   <div id="terminal" class="bg-macchiato-base absolute inset-0 z-10 flex items-center justify-center">
-    <div class="text-macchiato-text relative font-mono text-2xl font-bold sm:text-6xl">
+    <div class="text-macchiato-text relative font-mono text-2xl font-semibold sm:text-6xl">
       <span id="terminal-input"></span>
       <span id="cursor" class="animate-caret-blink bg-macchiato-text inline-block h-6 w-2 sm:h-12 sm:w-4"></span>
     </div>
@@ -15,7 +15,7 @@ import Logo from "@/assets/logo.svg";
   <div id="opengraph-image" class="absolute inset-0 z-10 flex items-center justify-center bg-transparent opacity-0">
     <div class="flex items-start justify-center gap-4">
       <Logo id="blog-logo" class="h-1/12 w-1/12 sm:h-1/5 sm:w-1/5" />
-      <h1 id="blog-title" class="text-latte-text font-mono text-2xl font-bold sm:text-6xl">DevLog</h1>
+      <h1 id="blog-title" class="text-latte-text font-mono text-2xl font-bold italic sm:text-6xl">DevLog</h1>
     </div>
   </div>
 
@@ -60,98 +60,86 @@ import Logo from "@/assets/logo.svg";
     const gradientOverlay = document.getElementById("gradient-overlay");
 
     if (
-      !background ||
-      !terminal ||
-      !terminalInput ||
-      !cursor ||
-      !openGraphImage ||
-      !blogLogo ||
-      !blogTitle ||
-      !curtainOverlay ||
-      !gradientOverlay
+      background &&
+      terminal &&
+      terminalInput &&
+      cursor &&
+      openGraphImage &&
+      blogLogo &&
+      blogTitle &&
+      curtainOverlay &&
+      gradientOverlay
     ) {
-      console.error("Some required elements are missing from the DOM");
+      const masterTimeline = gsap.timeline();
 
-      return;
-    }
+      // Set initial states
+      masterTimeline.set(terminal, { opacity: 1 });
+      masterTimeline.set(terminalInput, { text: "" });
+      masterTimeline.set(openGraphImage, { opacity: 0 });
+      masterTimeline.set(blogLogo, { opacity: 0 });
+      masterTimeline.set(curtainOverlay, { y: "-100%" });
+      masterTimeline.set(gradientOverlay, { opacity: 0 });
 
-    const masterTimeline = gsap.timeline();
+      const helloWorldTyping = gsap.timeline();
+      typeText(helloWorldTyping, terminalInput, "Hello, World!", 0.1);
 
-    // Set initial states
-    masterTimeline.set(terminal, { opacity: 1 });
-    masterTimeline.set(terminalInput, { text: "" });
-    masterTimeline.set(openGraphImage, { opacity: 0 });
-    masterTimeline.set(blogLogo, { opacity: 0 });
-    masterTimeline.set(curtainOverlay, { y: "-100%" });
-    masterTimeline.set(gradientOverlay, { opacity: 0 });
+      // Blink the cursor twice (1.25 sec * 2)
+      helloWorldTyping.to(cursor, { duration: 2.5 });
 
-    const helloWorldTyping = gsap.timeline();
-    typeText(helloWorldTyping, terminalInput, "Hello, World!", 0.1);
+      deleteText(helloWorldTyping, terminalInput, "Hello, World!", 0.05);
 
-    // Blink the cursor twice (1.25 sec * 2)
-    helloWorldTyping.to(cursor, { duration: 2.5 });
+      const titleTyping = gsap.timeline();
+      typeText(titleTyping, terminalInput, "PtCookie.DevLog", 0.1);
 
-    deleteText(helloWorldTyping, terminalInput, "Hello, World!", 0.05);
+      // Blink the cursor twice (1.25 sec * 2)
+      titleTyping.to(cursor, { duration: 2.5 });
 
-    const titleTyping = gsap.timeline();
-    typeText(titleTyping, terminalInput, "PtCookie.DevLog", 0.1);
+      // Wipe terminal
+      const wipeOutTerminal = gsap.timeline();
+      wipeOutTerminal
+        .to(curtainOverlay, {
+          y: "0%",
+          duration: 1,
+          ease: "power2.in",
+        })
+        .set(terminal, { opacity: 0 })
+        .to(openGraphImage, { opacity: 1, duration: 1 })
+        .to(curtainOverlay, {
+          y: "100%",
+          duration: 1,
+          ease: "power2.out",
+        })
+        .set(curtainOverlay, {
+          opacity: 0,
+        });
 
-    // Blink the cursor twice (1.25 sec * 2)
-    titleTyping.to(cursor, { duration: 2.5 });
-
-    // Wipe terminal
-    const wipeOutTerminal = gsap.timeline();
-    wipeOutTerminal
-      .to(curtainOverlay, {
-        y: "0%",
-        duration: 1,
-        ease: "power2.in",
-      })
-      .set(terminal, { opacity: 0 })
-      .to(openGraphImage, { opacity: 1, duration: 1 })
-      .to(curtainOverlay, {
-        y: "100%",
-        duration: 1,
-        ease: "power2.out",
-      })
-      .set(curtainOverlay, {
-        opacity: 0,
-      });
-
-    const logoTransition = gsap.timeline();
-    logoTransition.from(blogLogo, {
-      rotationY: 180,
-      opacity: 1,
-      duration: 1,
-      ease: "back.out(1.7)",
-    });
-
-    const finalTouches = gsap.timeline();
-    finalTouches
-      .to(gradientOverlay, {
+      const logoTransition = gsap.timeline();
+      logoTransition.from(blogLogo, {
+        rotationY: 180,
         opacity: 1,
         duration: 1,
-        ease: "power1.inOut",
-      })
-      .to(
-        background,
-        {
-          backgroundColor: "white",
-          duration: 1,
-        },
-        "<",
-      )
-      .to(
-        blogTitle,
-        {
-          fontStyle: "italic",
-          duration: 0.5,
-        },
-        "<50%",
-      );
+        ease: "back.out(1.7)",
+      });
 
-    masterTimeline.add(helloWorldTyping).add(titleTyping).add(wipeOutTerminal).add(logoTransition).add(finalTouches);
-    masterTimeline.play();
+      const finalTouches = gsap.timeline();
+      finalTouches
+        .to(gradientOverlay, {
+          opacity: 1,
+          duration: 1,
+          ease: "power1.inOut",
+        })
+        .to(
+          background,
+          {
+            backgroundColor: "white",
+            duration: 1,
+          },
+          "<",
+        );
+
+      masterTimeline.add(helloWorldTyping).add(titleTyping).add(wipeOutTerminal).add(logoTransition).add(finalTouches);
+      masterTimeline.play();
+    }
   }
 
   function typeText(timeline: gsap.core.Timeline, element: Element, text: string, speed: number): void {
