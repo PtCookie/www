@@ -2,15 +2,17 @@ import React from "react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { navigate } from "astro:transitions/client";
 
 import { LangToggle } from "@/components/LangToggle.tsx";
 
+vi.mock("astro:transitions/client", () => ({
+  navigate: vi.fn(),
+}));
+
 describe("LangToggle", () => {
   beforeEach(() => {
-    vi.stubGlobal("location", () => ({
-      href: "",
-    }));
-    window.location.href = "";
+    vi.clearAllMocks();
   });
 
   test("renders correctly", () => {
@@ -19,33 +21,33 @@ describe("LangToggle", () => {
     expect(screen.getByRole("button", { name: "Toggle Locale" })).toBeInTheDocument();
   });
 
-  test("changes href when clicking on Korean option", async () => {
+  test("should navigate to Korean version when Korean language is selected", async () => {
     const user = userEvent.setup();
     render(<LangToggle lang="en" currentUrl="/en/page" />);
 
     await user.click(screen.getByRole("button", { name: "Toggle Locale" }));
     await user.click(screen.getByText("한글"));
 
-    expect(window.location.href).toBe("/ko/page");
+    expect(navigate).toHaveBeenCalledWith("/ko/page");
   });
 
-  test("changes href when clicking on English option", async () => {
+  test("should navigate to English version when English language is selected", async () => {
     const user = userEvent.setup();
     render(<LangToggle lang="ko" currentUrl="/ko/page" />);
 
     await user.click(screen.getByRole("button", { name: "Toggle Locale" }));
     await user.click(screen.getByText("English"));
 
-    expect(window.location.href).toBe("/en/page");
+    expect(navigate).toHaveBeenCalledWith("/en/page");
   });
 
-  test("does not change href if the selected language is the current language", async () => {
+  test("should not navigate when selected language matches current language", async () => {
     const user = userEvent.setup();
     render(<LangToggle lang="en" currentUrl="/en/page" />);
 
     await user.click(screen.getByRole("button", { name: "Toggle Locale" }));
     await user.click(screen.getByText("English"));
 
-    expect(window.location.href).toBe("");
+    expect(navigate).not.toHaveBeenCalled();
   });
 });

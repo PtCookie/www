@@ -1,4 +1,5 @@
 import React from "react";
+import { navigate } from "astro:transitions/client";
 import { Languages } from "lucide-react";
 
 import { Button } from "@/components/ui/button.tsx";
@@ -16,9 +17,9 @@ interface Props {
 }
 
 export function LangToggle({ lang = config.defaultLocale, currentUrl }: Props) {
-  function handleClick(targetLocale: Locale) {
+  async function handleClick(targetLocale: Locale) {
     if (lang !== targetLocale) {
-      window.location.href = currentUrl.replace(lang, targetLocale);
+      await navigate(currentUrl.replace(lang, targetLocale));
     }
   }
 
