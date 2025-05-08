@@ -1,0 +1,190 @@
+---
+import Logo from "@/assets/logo.svg";
+---
+
+<div class="relative my-4 aspect-40/21 w-full max-w-[1200px] overflow-hidden rounded-lg noscript:hidden">
+  <div id="background" class="bg-latte-base absolute inset-0 z-0"></div>
+
+  <div id="terminal" class="bg-macchiato-base absolute inset-0 z-10 flex items-center justify-center">
+    <div class="text-macchiato-text relative font-mono text-2xl font-bold sm:text-6xl">
+      <span id="terminal-input"></span>
+      <span id="cursor" class="animate-caret-blink bg-macchiato-text inline-block h-6 w-2 sm:h-12 sm:w-4"></span>
+    </div>
+  </div>
+
+  <div id="opengraph-image" class="absolute inset-0 z-10 flex items-center justify-center bg-transparent opacity-0">
+    <div class="flex items-start justify-center gap-4">
+      <Logo id="blog-logo" class="h-1/12 w-1/12 sm:h-1/5 sm:w-1/5" />
+      <h1 id="blog-title" class="text-latte-text font-mono text-2xl font-bold sm:text-6xl">DevLog</h1>
+    </div>
+  </div>
+
+  <!-- Animation effects -->
+  <div
+    id="curtain-overlay"
+    class="from-macchiato-base to-latte-text absolute inset-0 z-20 translate-y-full bg-gradient-to-t"
+  >
+  </div>
+  <div
+    id="gradient-overlay"
+    class="via-latte-rosewater/35 to-latte-lavender/25 from-latte-base absolute inset-0 z-5 bg-gradient-to-r from-15% via-65% opacity-0"
+  >
+  </div>
+</div>
+
+<noscript>
+  <div class="my-4 aspect-40/21 w-full max-w-[1200px]">
+    <img src="/og.png" alt="PtCookie.DevLog" class="rounded-lg" />
+  </div>
+</noscript>
+
+<script>
+  import { gsap } from "gsap";
+  import { TextPlugin } from "gsap/TextPlugin";
+
+  gsap.registerPlugin(TextPlugin);
+
+  document.addEventListener("DOMContentLoaded", () => {
+    initAnimation();
+  });
+
+  function initAnimation(): void {
+    const background = document.getElementById("background");
+    const terminal = document.getElementById("terminal");
+    const terminalInput = document.getElementById("terminal-input");
+    const cursor = document.getElementById("cursor");
+    const openGraphImage = document.getElementById("opengraph-image");
+    const blogLogo = document.getElementById("blog-logo");
+    const blogTitle = document.getElementById("blog-title");
+    const curtainOverlay = document.getElementById("curtain-overlay");
+    const gradientOverlay = document.getElementById("gradient-overlay");
+
+    if (
+      !background ||
+      !terminal ||
+      !terminalInput ||
+      !cursor ||
+      !openGraphImage ||
+      !blogLogo ||
+      !blogTitle ||
+      !curtainOverlay ||
+      !gradientOverlay
+    ) {
+      console.error("Some required elements are missing from the DOM");
+
+      return;
+    }
+
+    const masterTimeline = gsap.timeline();
+
+    // Set initial states
+    masterTimeline.set(terminal, { opacity: 1 });
+    masterTimeline.set(terminalInput, { text: "" });
+    masterTimeline.set(openGraphImage, { opacity: 0 });
+    masterTimeline.set(blogLogo, { opacity: 0 });
+    masterTimeline.set(curtainOverlay, { y: "-100%" });
+    masterTimeline.set(gradientOverlay, { opacity: 0 });
+
+    const helloWorldTyping = gsap.timeline();
+    typeText(helloWorldTyping, terminalInput, "Hello, World!", 0.1);
+
+    // Blink the cursor twice (1.25 sec * 2)
+    helloWorldTyping.to(cursor, { duration: 2.5 });
+
+    deleteText(helloWorldTyping, terminalInput, "Hello, World!", 0.05);
+
+    const titleTyping = gsap.timeline();
+    typeText(titleTyping, terminalInput, "PtCookie.DevLog", 0.1);
+
+    // Blink the cursor twice (1.25 sec * 2)
+    titleTyping.to(cursor, { duration: 2.5 });
+
+    // Wipe terminal
+    const wipeOutTerminal = gsap.timeline();
+    wipeOutTerminal
+      .to(curtainOverlay, {
+        y: "0%",
+        duration: 1,
+        ease: "power2.in",
+      })
+      .set(terminal, { opacity: 0 })
+      .to(openGraphImage, { opacity: 1, duration: 1 })
+      .to(curtainOverlay, {
+        y: "100%",
+        duration: 1,
+        ease: "power2.out",
+      })
+      .set(curtainOverlay, {
+        opacity: 0,
+      });
+
+    const logoTransition = gsap.timeline();
+    logoTransition.from(blogLogo, {
+      rotationY: 180,
+      opacity: 1,
+      duration: 1,
+      ease: "back.out(1.7)",
+    });
+
+    const finalTouches = gsap.timeline();
+    finalTouches
+      .to(gradientOverlay, {
+        opacity: 1,
+        duration: 1,
+        ease: "power1.inOut",
+      })
+      .to(
+        background,
+        {
+          backgroundColor: "white",
+          duration: 1,
+        },
+        "<",
+      )
+      .to(
+        blogTitle,
+        {
+          fontStyle: "italic",
+          duration: 0.5,
+        },
+        "<50%",
+      );
+
+    masterTimeline.add(helloWorldTyping).add(titleTyping).add(wipeOutTerminal).add(logoTransition).add(finalTouches);
+    masterTimeline.play();
+  }
+
+  function typeText(timeline: gsap.core.Timeline, element: Element, text: string, speed: number): void {
+    let currentText = "";
+
+    for (let i = 0; i < text.length; i++) {
+      timeline.to(
+        {},
+        {
+          duration: speed,
+          onComplete: () => {
+            currentText += text[i];
+            (element as HTMLElement).innerText = currentText;
+          },
+        },
+      );
+    }
+  }
+
+  function deleteText(timeline: gsap.core.Timeline, element: Element, text: string, speed: number): void {
+    let currentText = text;
+
+    for (let i = text.length; i > 0; i--) {
+      timeline.to(
+        {},
+        {
+          duration: speed,
+          onComplete: () => {
+            currentText = currentText.slice(0, -1);
+            (element as HTMLElement).innerText = currentText;
+          },
+        },
+      );
+    }
+  }
+</script>

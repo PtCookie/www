@@ -25,7 +25,7 @@ export function LangToggle({ lang = config.defaultLocale, currentUrl }: Props) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" className="noscript:hidden">
           <Languages className="h-[1.2rem] w-[1.2rem]" />
           <span className="sr-only">Toggle Locale</span>
         </Button>
