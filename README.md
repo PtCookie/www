@@ -48,7 +48,7 @@ DevLog of PtCookie built with Astro and shadcn/ui.
 
 ```plaintext
 node: "^18.17.1 || ^20.9.0 || ^22.0.0"
-packageManager: "pnpm@10.8.1"
+packageManager: "pnpm@10.10.0"
 ```
 
 ### Development build
