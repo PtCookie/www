@@ -1,34 +1,24 @@
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-import { defineConfig } from "eslint/config";
-import globals from "globals";
-import js from "@eslint/js";
+// @ts-check
+import { resolve } from "node:path";
+import eslint from "@eslint/js";
 import { includeIgnoreFile } from "@eslint/compat";
+import globals from "globals";
 import tsEslint from "typescript-eslint";
+import pluginAstro from "eslint-plugin-astro";
 import pluginReact from "eslint-plugin-react";
-import eslintPluginAstro from "eslint-plugin-astro";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const gitignorePath = resolve(__dirname, ".gitignore");
-
-export default defineConfig([
-  includeIgnoreFile(gitignorePath),
-  { files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"] },
+export default tsEslint.config(
+  includeIgnoreFile(resolve(import.meta.dirname, ".gitignore")),
+  eslint.configs.recommended,
   {
     files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
-    languageOptions: { globals: { ...globals.browser, ...globals.node } },
-  },
-  {
-    files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
-    plugins: { js },
-    extends: ["js/recommended"],
+    languageOptions: { globals: globals.browser },
   },
   tsEslint.configs.recommended,
+  pluginAstro.configs.recommended,
   {
     files: ["**/*.{jsx,tsx}"],
     settings: { react: { version: "detect" } },
     ...pluginReact.configs.flat.recommended,
   },
-  ...eslintPluginAstro.configs.recommended,
-]);
+);
