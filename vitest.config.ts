@@ -7,7 +7,7 @@ export default defineConfig({
     setupFiles: "./test/setup.ts",
     coverage: {
       enabled: true,
-      include: ["app/**"],
+      include: ["app/**", "components/**", "lib/**", "hooks/**"],
     },
   },
   plugins: [tsconfigPaths()],

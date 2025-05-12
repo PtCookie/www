@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
+import { ThemeContext } from "@/components/ThemeContext";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { cn } from "@/lib/utils";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -24,8 +28,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <body className={cn(geistSans.variable, geistMono.variable, "flex min-h-screen flex-col antialiased")}>
+        <ThemeContext attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <Header />
+          <main className="mx-auto flex w-full max-w-5/6 grow flex-col sm:px-8">{children}</main>
+          <Footer />
+        </ThemeContext>
+      </body>
     </html>
   );
 }

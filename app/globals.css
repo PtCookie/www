@@ -1,26 +1,181 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
 
 :root {
-    --background: #ffffff;
-    --foreground: #171717;
+    --radius: 0.625rem;
+    --background: var(--color-latte-base);
+    --foreground: var(--color-latte-text);
+    --card: var(--color-latte-mantle);
+    --card-foreground: var(--color-latte-text);
+    --popover: var(--color-latte-mantle);
+    --popover-foreground: var(--color-latte-text);
+    --primary: var(--color-latte-subtext1);
+    --primary-foreground: var(--color-latte-mantle);
+    --secondary: var(--color-latte-crust);
+    --secondary-foreground: var(--color-latte-subtext1);
+    --muted: var(--color-latte-crust);
+    --muted-foreground: color-mix(in srgb, var(--color-latte-overlay2), transparent 20%);
+    --accent: var(--color-latte-crust);
+    --accent-foreground: var(--color-latte-subtext1);
+    --destructive: var(--color-latte-red);
+    --border: var(--color-latte-surface0);
+    --input: var(--color-latte-surface0);
+    --ring: var(--color-latte-surface2);
+    --chart-1: var(--color-latte-flamingo);
+    --chart-2: var(--color-latte-mauve);
+    --chart-3: var(--color-latte-peach);
+    --chart-4: var(--color-latte-teal);
+    --chart-5: var(--color-latte-lavender);
+    --sidebar: var(--color-latte-mantle);
+    --sidebar-foreground: var(--color-latte-text);
+    --sidebar-primary: var(--color-latte-subtext1);
+    --sidebar-primary-foreground: var(--color-latte-mantle);
+    --sidebar-accent: var(--color-latte-crust);
+    --sidebar-accent-foreground: var(--color-latte-subtext1);
+    --sidebar-border: var(--color-latte-surface0);
+    --sidebar-ring: var(--color-latte-surface2);
+}
+
+.dark {
+    --background: var(--color-macchiato-base);
+    --foreground: var(--color-macchiato-text);
+    --card: var(--color-macchiato-mantle);
+    --card-foreground: var(--color-macchiato-text);
+    --popover: var(--color-macchiato-mantle);
+    --popover-foreground: var(--color-macchiato-text);
+    --primary: var(--color-macchiato-subtext1);
+    --primary-foreground: var(--color-macchiato-mantle);
+    --secondary: var(--color-macchiato-crust);
+    --secondary-foreground: var(--color-macchiato-subtext1);
+    --muted: var(--color-macchiato-crust);
+    --muted-foreground: color-mix(in srgb, var(--color-macchiato-overlay2), transparent 20%);
+    --accent: var(--color-macchiato-crust);
+    --accent-foreground: var(--color-macchiato-subtext1);
+    --destructive: var(--color-macchiato-red);
+    --border: var(--color-macchiato-surface0);
+    --input: var(--color-macchiato-surface0);
+    --ring: var(--color-macchiato-surface2);
+    --chart-1: var(--color-macchiato-flamingo);
+    --chart-2: var(--color-macchiato-mauve);
+    --chart-3: var(--color-macchiato-peach);
+    --chart-4: var(--color-macchiato-teal);
+    --chart-5: var(--color-macchiato-lavender);
+    --sidebar: var(--color-macchiato-mantle);
+    --sidebar-foreground: var(--color-macchiato-text);
+    --sidebar-primary: var(--color-macchiato-subtext1);
+    --sidebar-primary-foreground: var(--color-macchiato-mantle);
+    --sidebar-accent: var(--color-macchiato-crust);
+    --sidebar-accent-foreground: var(--color-macchiato-subtext1);
+    --sidebar-border: var(--color-macchiato-surface0);
+    --sidebar-ring: var(--color-macchiato-surface2);
+}
+
+@theme {
+    --font-sans: var(--font-geist-sans);
+    --font-mono: var(--font-geist-mono);
+
+    /* Catppuccin Latte */
+    --color-latte-rosewater: #dc8a78;
+    --color-latte-flamingo: #dd7878;
+    --color-latte-pink: #ea76cb;
+    --color-latte-mauve: #8839ef;
+    --color-latte-red: #d20f39;
+    --color-latte-maroon: #e64553;
+    --color-latte-peach: #fe640b;
+    --color-latte-yellow: #df8e1d;
+    --color-latte-green: #40a02b;
+    --color-latte-teal: #179299;
+    --color-latte-sky: #04a5e5;
+    --color-latte-sapphire: #209fb5;
+    --color-latte-blue: #1e66f5;
+    --color-latte-lavender: #7287fd;
+    --color-latte-text: #4c4f69;
+    --color-latte-subtext1: #5c5f77;
+    --color-latte-subtext0: #6c6f85;
+    --color-latte-overlay2: #7c7f93;
+    --color-latte-overlay1: #8c8fa1;
+    --color-latte-overlay0: #9ca0b0;
+    --color-latte-surface2: #acb0be;
+    --color-latte-surface1: #bcc0cc;
+    --color-latte-surface0: #ccd0da;
+    --color-latte-base: #eff1f5;
+    --color-latte-mantle: #e6e9ef;
+    --color-latte-crust: #dce0e8;
+
+    /* Catppuccin Macchiato */
+    --color-macchiato-rosewater: #f4dbd6;
+    --color-macchiato-flamingo: #f0c6c6;
+    --color-macchiato-pink: #f5bde6;
+    --color-macchiato-mauve: #c6a0f6;
+    --color-macchiato-red: #ed8796;
+    --color-macchiato-maroon: #ee99a0;
+    --color-macchiato-peach: #f5a97f;
+    --color-macchiato-yellow: #eed49f;
+    --color-macchiato-green: #a6da95;
+    --color-macchiato-teal: #8bd5ca;
+    --color-macchiato-sky: #91d7e3;
+    --color-macchiato-sapphire: #7dc4e4;
+    --color-macchiato-blue: #8aadf4;
+    --color-macchiato-lavender: #b7bdf8;
+    --color-macchiato-text: #cad3f5;
+    --color-macchiato-subtext1: #b8c0e0;
+    --color-macchiato-subtext0: #a5adcb;
+    --color-macchiato-overlay2: #939ab7;
+    --color-macchiato-overlay1: #8087a2;
+    --color-macchiato-overlay0: #6e738d;
+    --color-macchiato-surface2: #5b6078;
+    --color-macchiato-surface1: #494d64;
+    --color-macchiato-surface0: #363a4f;
+    --color-macchiato-base: #24273a;
+    --color-macchiato-mantle: #1e2030;
+    --color-macchiato-crust: #181926;
 }
 
 @theme inline {
     --color-background: var(--background);
     --color-foreground: var(--foreground);
-    --font-sans: var(--font-geist-sans);
-    --font-mono: var(--font-geist-mono);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --background: #0a0a0a;
-        --foreground: #ededed;
+@layer base {
+    * {
+        @apply border-border outline-ring/50;
     }
-}
-
-body {
-    background: var(--background);
-    color: var(--foreground);
-    font-family: Arial, Helvetica, sans-serif;
+    body {
+        @apply bg-background text-foreground;
+    }
 }
