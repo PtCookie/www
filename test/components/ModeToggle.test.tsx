@@ -1,9 +1,20 @@
-import React from "react";
+import * as React from "react";
 import { describe, expect, test, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { ModeToggle } from "@/components/ModeToggle.tsx";
+
+vi.stubGlobal(
+  "matchMedia",
+  vi.fn().mockImplementation((query) => {
+    return {
+      matches: query === "(prefers-color-scheme: dark)",
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+    };
+  }),
+);
 
 describe("ModeToggle", () => {
   test("renders the toggle button with expected accessibility label", () => {
@@ -48,13 +59,6 @@ describe("ModeToggle", () => {
 
   test("respects system preference when System is selected", async () => {
     const user = userEvent.setup();
-    window.matchMedia = vi.fn().mockImplementation((query) => {
-      return {
-        matches: query === "(prefers-color-scheme: dark)",
-        addListener: vi.fn(),
-        removeListener: vi.fn(),
-      };
-    });
     render(<ModeToggle lang="en" />);
 
     await user.click(screen.getByRole("button", { name: /toggle theme/i }));

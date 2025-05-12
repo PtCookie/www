@@ -7,6 +7,7 @@ import markdownIntegration from "@astropub/md";
 
 // https://astro.build/config
 export default defineConfig({
+  site: "https://devlog.ptcookie.net/",
   integrations: [react(), mdx(), markdownIntegration()],
   vite: {
     plugins: [tailwindcss()],

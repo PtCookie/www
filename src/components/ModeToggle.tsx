@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import { Moon, Sun } from "lucide-react";
 
 import { Button } from "@/components/ui/button.tsx";
@@ -16,11 +16,11 @@ interface Props {
 }
 
 export function ModeToggle({ lang = config.defaultLocale }: Props) {
-  const [theme, setThemeState] = React.useState<"theme-light" | "dark" | "system">("theme-light");
+  const [theme, setThemeState] = React.useState<"light" | "dark" | "system">("system");
 
   React.useEffect(() => {
     const isDarkMode = document.documentElement.classList.contains("dark");
-    setThemeState(isDarkMode ? "dark" : "theme-light");
+    setThemeState(isDarkMode ? "dark" : "light");
   }, []);
 
   React.useEffect(() => {
@@ -39,7 +39,7 @@ export function ModeToggle({ lang = config.defaultLocale }: Props) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem className="font-sans" onClick={() => setThemeState("theme-light")}>
+        <DropdownMenuItem className="font-sans" onClick={() => setThemeState("light")}>
           {translate(lang, "component.light")}
         </DropdownMenuItem>
         <DropdownMenuItem className="font-sans" onClick={() => setThemeState("dark")}>
