@@ -74,6 +74,7 @@
 
 @theme {
     --font-sans: var(--font-inter);
+    --font-serif: var(--font-newsreader);
     --font-mono: var(--font-jetbrains-mono);
 
     /* Catppuccin Latte */
