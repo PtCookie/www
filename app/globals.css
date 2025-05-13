@@ -73,8 +73,8 @@
 }
 
 @theme {
-    --font-sans: var(--font-geist-sans);
-    --font-mono: var(--font-geist-mono);
+    --font-sans: var(--font-inter);
+    --font-mono: var(--font-jetbrains-mono);
 
     /* Catppuccin Latte */
     --color-latte-rosewater: #dc8a78;
