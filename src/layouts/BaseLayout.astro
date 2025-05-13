@@ -4,6 +4,7 @@ import { ClientRouter } from "astro:transitions";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import { config, type Locale } from "@/config.ts";
+import packageJson from "../../package.json";
 import "@/styles/global.css";
 
 interface Props {
@@ -32,7 +33,7 @@ const ogType = Astro.props.description ? "article" : "website";
     <!--Metadata-->
     <link rel="canonical" href={Astro.site} />
     <meta name="description" content={description} />
-    <meta name="author" content={config.author} />
+    <meta name="author" content={packageJson.author.name} />
     <meta name="generator" content={Astro.generator} />
     <!--Open Graph-->
     <meta property="og:title" content={title} />
