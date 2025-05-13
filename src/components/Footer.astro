@@ -1,10 +1,11 @@
 ---
 import { config } from "@/config.ts";
+import packageJson from "../../package.json";
 
-const { author, copyrightFrom } = config;
+const { copyrightFrom } = config;
 
 const year = [copyrightFrom, new Date().getFullYear()].join("-");
-const credit = [year, author].join(", ");
+const credit = [year, packageJson.author.name].join(", ");
 ---
 
 <footer
