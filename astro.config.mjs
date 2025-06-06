@@ -3,13 +3,12 @@ import { defineConfig } from "astro/config";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@astrojs/react";
 import mdx from "@astrojs/mdx";
-import markdownIntegration from "@astropub/md";
 import og from "astro-og";
 
 // https://astro.build/config
 export default defineConfig({
   site: "https://devlog.ptcookie.net/",
-  integrations: [react(), mdx(), markdownIntegration(), og()],
+  integrations: [react(), mdx(), og()],
   vite: {
     plugins: [tailwindcss()],
   },
