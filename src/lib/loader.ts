@@ -6,7 +6,7 @@ import { config } from "@/config.ts";
 export function HashnodeLoader(): Loader {
   return {
     name: "hashnode-loader",
-    load: async ({ store, logger, parseData }: LoaderContext): Promise<void> => {
+    load: async ({ store, logger, parseData, renderMarkdown }: LoaderContext): Promise<void> => {
       logger.info(`Loading posts of from Hashnode`);
       store.clear();
 
@@ -19,6 +19,7 @@ export function HashnodeLoader(): Loader {
           store.set({
             id: parsedData.id,
             data: parsedData,
+            rendered: await renderMarkdown(parsedData.content.markdown),
           });
         }
       }
