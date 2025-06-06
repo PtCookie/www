@@ -13,7 +13,7 @@
         "email": "me@ptcookie.net",
         "url": "https://devlog.ptcookie.net/"
     },
-    "packageManager": "pnpm@10.10.0",
+    "packageManager": "pnpm@10.11.1",
     "type": "module",
     "scripts": {
         "prepare": "husky",
