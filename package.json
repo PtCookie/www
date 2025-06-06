@@ -1,7 +1,7 @@
 {
-    "name": "next-app",
+    "name": "ptcookie.net",
     "version": "0.1.0",
-    "description": "Next.js application",
+    "description": "www.ptcookie.net",
     "keywords": [
         "Next.js",
         "TailwindCSS"
@@ -12,7 +12,7 @@
         "email": "me@ptcookie.net",
         "url": "https://devlog.ptcookie.net/"
     },
-    "packageManager": "pnpm@10.10.0",
+    "packageManager": "pnpm@10.11.1",
     "type": "module",
     "scripts": {
         "prepare": "husky",
@@ -58,5 +58,8 @@
         "typescript": "^5.8.3",
         "vite-tsconfig-paths": "^5.1.4",
         "vitest": "^3.1.3"
+    },
+    "engines": {
+        "node": "^20.9.0 || ^22.11.0"
     }
 }
