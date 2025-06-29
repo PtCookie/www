@@ -1,4 +1,5 @@
 import * as React from "react";
+
 import packageJson from "@/package.json";
 
 export function Footer() {
