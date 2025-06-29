@@ -5,7 +5,8 @@ import { includeIgnoreFile } from "@eslint/compat";
 import globals from "globals";
 import tsEslint from "typescript-eslint";
 import pluginAstro from "eslint-plugin-astro";
-import pluginReact from "eslint-plugin-react";
+import reactHooks from "eslint-plugin-react-hooks";
+import reactRefresh from "eslint-plugin-react-refresh";
 
 export default tsEslint.config(
   includeIgnoreFile(resolve(import.meta.dirname, ".gitignore")),
@@ -18,7 +19,8 @@ export default tsEslint.config(
   pluginAstro.configs.recommended,
   {
     files: ["**/*.{jsx,tsx}"],
-    settings: { react: { version: "detect" } },
-    ...pluginReact.configs.flat.recommended,
+    ...reactHooks.configs["recommended-latest"],
+    ...reactRefresh.configs.recommended,
+    rules: { "react-refresh/only-export-components": "warn" },
   },
 );
