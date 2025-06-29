@@ -1,6 +1,8 @@
 import * as React from "react";
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono, Newsreader } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 import { ThemeContext } from "@/components/ThemeContext";
 import { Header } from "@/components/Header";
@@ -50,6 +52,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <main className="mx-auto flex w-full max-w-5/6 grow flex-col sm:px-8">{children}</main>
           <Footer />
         </ThemeContext>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
