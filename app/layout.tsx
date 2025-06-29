@@ -30,6 +30,11 @@ const jetBrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: { template: `%s | ${packageJson.name}`, default: packageJson.name },
   description: packageJson.description,
+  ...(process.env.NEXT_PUBLIC_BASE_URL
+    ? {
+        metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL),
+      }
+    : {}),
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
