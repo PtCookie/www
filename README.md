@@ -1,6 +1,6 @@
-# next-app
+# ptcookie.net
 
-Next.js application.
+Repository for www.ptcookie.net
 
 ## License
 
