@@ -52,7 +52,14 @@ export function Intro() {
   return (
     <div ref={containerRef} className="flex flex-col items-center justify-center gap-16">
       <div ref={coinRef} className="h-48 w-48 origin-center transform-3d sm:h-64 sm:w-64">
-        <Image src="/ptcookie.svg" alt="PtCookie" width={256} height={256} className="rounded-full shadow-2xl" />
+        <Image
+          src="/ptcookie.svg"
+          alt="PtCookie"
+          width={256}
+          height={256}
+          priority
+          className="rounded-full shadow-2xl"
+        />
       </div>
       <div className="font-mono text-4xl font-bold drop-shadow-lg text-shadow-lg sm:text-6xl">
         {text.split("").map((char, index) => (
