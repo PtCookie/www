@@ -1,0 +1,11 @@
+import * as React from "react";
+
+import { UnderConstruction } from "@/components/UnderConstruction";
+
+export default function About() {
+  return (
+    <div className="grid grow items-center justify-items-center">
+      <UnderConstruction />
+    </div>
+  );
+}
