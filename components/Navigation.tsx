@@ -11,12 +11,12 @@ import {
 import { LinkDropdown } from "@/components/LinkDropdown";
 import { cn } from "@/lib/utils";
 
-export function Navigation() {
-  interface MenuEntry {
-    name: string;
-    link: string;
-  }
+interface MenuEntry {
+  name: string;
+  link: string;
+}
 
+export function Navigation() {
   const menuEntry: MenuEntry[] = [
     { name: "Home", link: "/" },
     { name: "About", link: "/about" },
