@@ -46,7 +46,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       className={cn(inter.variable, newsreader.variable, jetBrainsMono.variable)}
       suppressHydrationWarning
     >
-      <body className={"flex min-h-screen flex-col antialiased"}>
+      <body className="flex min-h-screen flex-col antialiased">
         <ThemeContext attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <Header />
           <main className="mx-auto flex w-full max-w-5/6 grow flex-col sm:px-8">{children}</main>

@@ -15,7 +15,7 @@ export function Intro() {
 
   useGSAP(
     () => {
-      const mainTimeline = gsap.timeline({ repeat: -1 });
+      const mainTimeline = gsap.timeline({ repeat: -1, repeatDelay: 1 });
 
       const flipTimeline = gsap.timeline();
       const TypingTimeline = gsap.timeline();
