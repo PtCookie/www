@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { Navigation } from "@/components/Navigation";
 import { ModeToggle } from "@/components/ModeToggle";
+import { Hamburger } from "@/components/Hamburger";
 import packageJson from "@/package.json";
 
 export function Header() {
@@ -17,6 +18,9 @@ export function Header() {
         <div className="hidden items-center sm:flex">
           <Navigation />
           <ModeToggle />
+        </div>
+        <div className="flex items-center sm:hidden">
+          <Hamburger />
         </div>
       </div>
     </header>

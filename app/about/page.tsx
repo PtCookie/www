@@ -16,7 +16,7 @@ export default function About() {
             My name is Minsup Ju
           </h1>
           <h2 className="mb-8 max-w-4/5 font-sans text-xl leading-normal font-semibold sm:text-3xl">
-            I’ve been working on web development for 4 years.
+            I’ve been working on web development since 2019.
           </h2>
           <p className="text-md font-mono leading-normal font-semibold sm:max-w-4/5 sm:text-xl">
             I’ve been developing with the following...

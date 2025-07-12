@@ -10,18 +10,9 @@ import {
 } from "@/components/ui/navigation-menu";
 import { LinkDropdown } from "@/components/LinkDropdown";
 import { cn } from "@/lib/utils";
-
-interface MenuEntry {
-  name: string;
-  link: string;
-}
+import { menuEntry } from "@/lib/menuEntry";
 
 export function Navigation() {
-  const menuEntry: MenuEntry[] = [
-    { name: "Home", link: "/" },
-    { name: "About", link: "/about" },
-  ];
-
   return (
     <NavigationMenu viewport={false}>
       <NavigationMenuList>
