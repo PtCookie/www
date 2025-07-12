@@ -1,7 +1,7 @@
 {
     "name": "ptcookie.net",
-    "version": "0.1.0",
-    "description": "www.ptcookie.net",
+    "version": "0.2.0",
+    "description": "Repository for www.ptcookie.net",
     "keywords": [
         "Next.js",
         "TailwindCSS"
