@@ -5,6 +5,7 @@ export interface MenuEntry {
 
 export const menuEntry: MenuEntry[] = [
   { name: "Home", link: "/" },
+  { name: "Work", link: "/work" },
   { name: "About", link: "/about" },
 ];
 
