@@ -22,7 +22,7 @@ export default function About() {
             I’ve been developing with the following...
           </p>
           <div className="mt-8 grid grid-cols-2 items-center justify-center gap-8 sm:grid-cols-3">
-            <Link href="https://reactjs.org/">
+            <Link href="https://react.dev/">
               <Image src="/react.svg" alt="React.js" width={128} height={128} className="w-24 sm:w-32" />
             </Link>
             <Link href="https://graphql.org/">

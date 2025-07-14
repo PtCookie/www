@@ -9,7 +9,7 @@ import {
   NavigationMenuLink,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
-import { linkEntry } from "@/lib/menuEntry";
+import { linkEntry } from "@/lib/lists";
 
 export function LinkDropdown() {
   return (
