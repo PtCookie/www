@@ -9,8 +9,8 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import { LinkDropdown } from "@/components/LinkDropdown";
+import { menuEntry } from "@/lib/lists";
 import { cn } from "@/lib/utils";
-import { menuEntry } from "@/lib/menuEntry";
 
 export function Navigation() {
   return (

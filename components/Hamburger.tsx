@@ -7,7 +7,7 @@ import { MenuIcon, Moon, Sun } from "lucide-react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { linkEntry, menuEntry } from "@/lib/menuEntry";
+import { linkEntry, menuEntry } from "@/lib/lists";
 import { cn } from "@/lib/utils";
 
 export function Hamburger() {
