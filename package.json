@@ -1,6 +1,6 @@
 {
     "name": "devlog",
-    "version": "1.0.8",
+    "version": "1.0.9",
     "description": "DevLog of PtCookie built with Astro and shadcn/ui",
     "keywords": [
         "Astro",
