@@ -1,4 +1,5 @@
 ---
+import { compareDesc, parseISO } from "date-fns";
 import { getCollection } from "astro:content";
 
 import BaseLayout from "@/layouts/BaseLayout.astro";
@@ -12,7 +13,9 @@ export async function getStaticPaths() {
 }
 
 const { lang } = Astro.params;
-const posts = (await getCollection("post", ({ data }) => data.locale === lang)).slice(0, 3);
+const posts = (await getCollection("post", ({ data }) => data.locale === lang))
+  .sort((a, b) => compareDesc(parseISO(a.data.publishedAt), parseISO(b.data.publishedAt)))
+  .slice(0, 3);
 ---
 
 <BaseLayout lang={lang}>
