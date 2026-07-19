@@ -1,6 +1,13 @@
+"$schema" = "./node_modules/wrangler/config-schema.json"
 name = "devlog"
+main = "@astrojs/cloudflare/entrypoints/server"
 compatibility_date = "2025-06-29"
+compatibility_flags = [ "nodejs_compat", "global_fetch_strictly_public" ]
 
 [assets]
-directory = "./dist/"
+binding = "ASSETS"
+directory = "./dist"
 not_found_handling = "404-page"
+
+[observability]
+enabled = true
