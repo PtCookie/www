@@ -6,24 +6,18 @@ import type { Post } from "@/lib/schema.ts";
 import { PostCard } from "@/components/PostCard.tsx";
 
 const mockPost: Post = {
-  id: "1",
-  author: {
-    name: "author",
-    profilePicture: "/profile-image.jpg",
-  },
   publishedAt: new Date(2025, 2, 22).toISOString(),
   title: "Sample Post",
   subtitle: "Description of the post",
   brief: "This is a brief summary of the post.",
   slug: "sample-post",
   readTimeInMinutes: 10,
-  content: { markdown: "# Sample Post" },
   tags: [
     { name: "Tag One", slug: "tag1" },
     { name: "Tag Two", slug: "tag2" },
   ],
   coverImage: {
-    url: "/cover-image.jpg",
+    url: { src: "/cover-image.jpg", width: 100, height: 100, format: "jpg" },
     attribution: null,
     photographer: null,
   },

@@ -13,15 +13,6 @@ export default defineConfig({
     plugins: [tailwindcss()],
   },
 
-  image: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "**.hashnode.com",
-        pathname: "/**",
-      },
-    ],
-  },
   markdown: {
     shikiConfig: {
       themes: {

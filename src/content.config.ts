@@ -1,10 +1,17 @@
 import { defineCollection } from "astro:content";
+import { glob } from "astro/loaders";
 
-import { HashnodeLoader } from "@/lib/loader.ts";
 import { PostSchema } from "@/lib/schema.ts";
 
 const post = defineCollection({
-  loader: HashnodeLoader(),
+  loader: glob({
+    pattern: "**/*.md",
+    base: "./src/content/post",
+    // The default id generator uses frontmatter `slug` when present, which collides across locales
+    // (ko/en share the same slug per post). Derive the id from the file path instead, so each
+    // locale's copy of a post gets its own entry.
+    generateId: ({ entry }) => entry.replace(/\.md$/, ""),
+  }),
   schema: PostSchema,
 });
 

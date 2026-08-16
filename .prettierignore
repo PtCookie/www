@@ -1,4 +1,5 @@
 .agents/
-generated/
 pnpm-lock.yaml
 skills-lock.json
+# hand-restored Hashnode export — prettier would collapse code-block indentation back to flush-left
+src/content/

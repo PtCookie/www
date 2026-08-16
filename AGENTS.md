@@ -1,30 +1,31 @@
 # devlog
 
-Static Astro blog (https://devlog.ptcookie.net) that pulls posts from Hashnode at build time.
+Static Astro blog (https://devlog.ptcookie.net), content authored as local markdown.
 React islands + shadcn/ui + Tailwind v4, bilingual (ko/en).
 
 ## Commands
 
 ```bash
 pnpm dev                              # dev server on :4321
-pnpm build && pnpm preview            # production build (fetches Hashnode over the network)
+pnpm build && pnpm preview            # production build
 pnpm lint                             # eslint
 pnpm format                           # prettier --write .
 pnpm test                             # vitest watch (unit + 3 browsers)
 pnpm exec vitest run --project unit   # fast node-only pass
 pnpm test:coverage                    # unit + chromium only, with coverage
-pnpm codegen                          # regenerate generated/schema.graphql from the Hashnode API
 ```
 
-- `pnpm build` needs `.env` with `PUBLIC_HASHNODE_BASE_URL` and network access — there is no local content fallback.
 - Component tests need browsers: `pnpm exec playwright install`.
 
 ## Architecture
 
-- **Content pipeline**: Hashnode GraphQL → `src/lib/client.ts` (single `allPosts` query) → `src/lib/loader.ts`
-  (custom Astro `Loader`) → `post` collection in `src/content.config.ts`, validated by `src/lib/schema.ts`.
-  The loader queries once per locale and stores one entry per post per locale; the `locale` field is the discriminator,
-  so every `getCollection("post")` call must filter on it.
+- **Content pipeline**: posts are markdown files in `src/content/post/{ko,en}/*.md`, loaded by Astro's built-in
+  `glob` loader (`src/content.config.ts`) into the `post` collection, validated by `src/lib/schema.ts`. Locale is a
+  top-level directory (`ko`/`en`) and also a required `locale` frontmatter field acting as a discriminator, so every
+  `getCollection("post")` call must filter on it. Cover images live in `src/assets/covers/{ko,en}/*` and are
+  referenced from frontmatter via a relative `coverImage.url` path so Astro's `image()` schema helper can process
+  them through `astro:assets` (do not point `coverImage.url` at `public/` — it needs to resolve to an
+  `ImageMetadata`, not a plain URL string).
 - **Routing**: all pages live under `src/pages/[lang]/`, with `getStaticPaths()` mapping over `config.locales`
   (`src/config.ts`). `astro.config.mjs` sets `prefixDefaultLocale: true`, so `/` redirects to `/ko/`.
 - **UI**: `.astro` for static markup, `.tsx` React islands only where interaction is needed
@@ -65,7 +66,10 @@ pnpm codegen                          # regenerate generated/schema.graphql from
 - The pre-commit hook runs the **full** vitest suite across 3 browsers plus lint-staged, so commits are slow.
 - `src/pages/index.astro` is intentionally empty; Astro's i18n config generates the `/` → `/ko/` redirect
   (`public/_redirects` covers the host side).
-- `generated/schema.graphql` is produced by `pnpm codegen` — never edit it by hand.
+- `src/content/post/**` is excluded from `pnpm format` (see `.prettierignore`): these files were hand-restored from
+  a Hashnode export whose exporter had stripped all leading whitespace from body text, silently flattening code-block
+  indentation. Prettier doesn't touch markdown code fences today, but don't rely on that — the exclusion is
+  intentional, keep it.
 - In `astro.config.mjs`'s `markdown.shikiConfig.themes`, `light` is set to `catppuccin-macchiato` and `dark` to
   `catppuccin-latte` — this looks swapped but is intentional, chosen for code-block readability, not a bug.
 - `wrangler.toml` still points `main` at `@astrojs/cloudflare`, which is not installed; the build is fully static today.

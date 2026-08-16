@@ -1,54 +1,27 @@
 import { z } from "astro/zod";
+import type { SchemaContext } from "astro:content";
 
 export const TagSchema = z.object({
   name: z.string(),
   slug: z.string(),
 });
 
-export const PostSchema = z.object({
-  id: z.string(),
-  author: z.object({
-    name: z.string(),
-    profilePicture: z.string(),
-  }),
-  publishedAt: z.string(),
-  title: z.string(),
-  subtitle: z.string(),
-  brief: z.string(),
-  slug: z.string(),
-  readTimeInMinutes: z.number(),
-  content: z.object({
-    markdown: z.string(),
-  }),
-  tags: z.array(TagSchema),
-  coverImage: z.object({
-    url: z.string(),
-    attribution: z.string().nullable(),
-    photographer: z.string().nullable(),
-  }),
-  locale: z.string(),
-});
-
-export const PublicationSchema = z.object({
-  id: z.string(),
-  publication: z.object({
-    id: z.string(),
+export const PostSchema = ({ image }: SchemaContext) =>
+  z.object({
+    publishedAt: z.string(),
     title: z.string(),
-    posts: z.object({
-      pageInfo: z.object({
-        hasNextPage: z.boolean(),
-        endCursor: z.string(),
-      }),
-      edges: z.array(
-        z.object({
-          cursor: z.string(),
-          node: PostSchema,
-        }),
-      ),
+    subtitle: z.string(),
+    brief: z.string(),
+    slug: z.string(),
+    readTimeInMinutes: z.number(),
+    tags: z.array(TagSchema),
+    coverImage: z.object({
+      url: image(),
+      attribution: z.string().nullable(),
+      photographer: z.string().nullable(),
     }),
-  }),
-});
+    locale: z.string(),
+  });
 
 export type Tag = z.infer<typeof TagSchema>;
-export type Post = z.infer<typeof PostSchema>;
-export type Publication = z.infer<typeof PublicationSchema>;
+export type Post = z.infer<ReturnType<typeof PostSchema>>;

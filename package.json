@@ -17,7 +17,6 @@
     "type": "module",
     "scripts": {
         "prepare": "husky",
-        "codegen": "graphql-codegen --config codegen.ts",
         "dev": "astro dev",
         "build": "astro build",
         "preview": "astro preview",
@@ -39,7 +38,6 @@
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "date-fns": "^4.1.0",
-        "graphql-request": "^7.4.0",
         "gsap": "^3.13.0",
         "lucide-react": "^0.525.0",
         "react": "^19.2.8",
@@ -52,8 +50,6 @@
     "devDependencies": {
         "@eslint-react/eslint-plugin": "^5.18.0",
         "@eslint/js": "^10.0.1",
-        "@graphql-codegen/cli": "^7.2.0",
-        "@graphql-codegen/schema-ast": "^6.1.0",
         "@playwright/test": "^1.62.0",
         "@tailwindcss/vite": "^4.3.3",
         "@testing-library/jest-dom": "^6.9.1",
@@ -76,6 +72,7 @@
         "prettier-plugin-astro": "0.14.1",
         "prettier-plugin-tailwindcss": "0.8.1",
         "typescript-eslint": "^8.67.0",
+        "wrangler": "^4.123.0",
         "vitest": "^4.1.10"
     },
     "engines": {
