@@ -2,6 +2,7 @@
 import { Navigation } from "./Navigation.tsx";
 import { ModeToggle } from "./ModeToggle.tsx";
 import { LangToggle } from "./LangToggle.tsx";
+import { Hamburger } from "./Hamburger.tsx";
 import { config, type Locale } from "@/config.ts";
 
 interface Props {
@@ -9,19 +10,24 @@ interface Props {
 }
 
 const { lang } = Astro.props;
-const { title, menuEntry } = config;
-const localizedEntry = menuEntry.map((entry) => ({ ...entry, link: `/${lang}${entry.link}` }));
+const { title, menuEntry, linkEntry } = config;
+const localizedEntry = lang ? menuEntry.map((entry) => ({ ...entry, link: `/${lang}${entry.link}` })) : menuEntry;
 const currentUrl = Astro.url.pathname;
 ---
 
-<header class="mx-auto my-1.5 flex w-full max-w-3xl justify-between border-b-2 px-8 py-2 sm:my-6">
-  <div class="flex items-center">
-    <a class="font-mono text-xl leading-tight font-bold italic sm:text-3xl" href={`/${lang}`}>{title}</a>
-  </div>
-  <div class="flex items-center">
-    <Navigation menuEntry={lang ? localizedEntry : menuEntry} />
-    <ModeToggle lang={lang} client:load />
-    <LangToggle lang={lang} currentUrl={currentUrl} client:load />
+<header class="mx-auto my-1.5 flex w-full justify-center border-b-2 px-8 py-2 sm:my-6 sm:py-4">
+  <div class="flex w-full max-w-3xl items-center justify-between sm:max-w-5xl">
+    <div class="flex items-center">
+      <a class="font-serif text-xl font-bold sm:text-3xl sm:leading-tight" href={`/${lang}`}>{title}</a>
+    </div>
+    <div class="hidden items-center sm:flex">
+      <Navigation menuEntry={localizedEntry} linkEntry={linkEntry} client:load />
+      <ModeToggle lang={lang} client:load />
+      <LangToggle lang={lang} currentUrl={currentUrl} client:load />
+    </div>
+    <div class="flex items-center sm:hidden">
+      <Hamburger lang={lang} menuEntry={localizedEntry} linkEntry={linkEntry} currentUrl={currentUrl} client:load />
+    </div>
   </div>
 </header>
 
@@ -47,5 +53,12 @@ const currentUrl = Astro.url.pathname;
     if (localStorage.theme === "dark") {
       document.documentElement.classList.add("dark");
     }
+
+    // A Radix Sheet/Dialog left open during a ClientRouter swap can leave <body> inert
+    // (react-remove-scroll's overflow lock, Radix's pointer-events lock) if its own React
+    // cleanup never gets to run. Clear those out defensively after every page swap.
+    document.body.style.removeProperty("pointer-events");
+    document.body.style.removeProperty("overflow");
+    document.body.removeAttribute("data-scroll-locked");
   });
 </script>

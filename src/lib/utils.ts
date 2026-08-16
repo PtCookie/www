@@ -3,6 +3,7 @@ import { twMerge } from "tailwind-merge";
 
 import type { Tag } from "@/lib/schema.ts";
 import { translation, type Translation } from "@/i18n/translation.ts";
+import { timelineCopy, timelineEntry, type TimelineItem } from "@/i18n/timeline.ts";
 import type { Locale } from "@/config.ts";
 
 export function cn(...inputs: ClassValue[]): string {
@@ -42,4 +43,8 @@ export function range(start: number, stop?: number, step = 1): number[] {
 
 export function translate(lang: Locale, key: keyof Translation): string {
   return translation[lang][key];
+}
+
+export function getTimeline(lang: Locale): TimelineItem[] {
+  return timelineEntry.map(({ id, ...entry }) => ({ ...entry, ...timelineCopy[lang][id] }));
 }

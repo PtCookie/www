@@ -1,6 +1,6 @@
 # PtCookie.Net
 
-Personal blog of PtCookie.Net, built with Astro and shadcn/ui.
+Personal site of PtCookie.Net — portfolio (Home/Work/About) and blog, built with Astro and shadcn/ui.
 
 ## Tech stack
 
@@ -33,14 +33,12 @@ Personal blog of PtCookie.Net, built with Astro and shadcn/ui.
 - [Vitest](https://vitest.dev/)
 - [Testing Library](https://testing-library.com/)
 
-### Content Management System
+### Content
 
-- [Hashnode](https://hashnode.com/)
-
-#### GraphQL Client
-
-- [graphql-request](https://github.com/graffle-js/graffle)
-- [GraphQL Code Generator](https://github.com/dotansimha/graphql-code-generator)
+Blog posts are local markdown files under `src/content/post/{ko,en}/`, loaded via Astro's content
+collections — there is no external CMS. Posts were originally authored on
+[Hashnode](https://hashnode.com/) and migrated to local markdown; the GraphQL client that used to
+fetch them at build time has been removed.
 
 ## Development
 

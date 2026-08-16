@@ -1,0 +1,90 @@
+---
+import { Separator } from "@/components/ui/separator.tsx";
+import { getTimeline, translate } from "@/lib/utils.ts";
+import type { Locale } from "@/config.ts";
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const timeline = getTimeline(lang);
+---
+
+<div class="mx-auto max-w-4xl min-w-3/5 px-4 py-8">
+  <h2 class="mb-8 text-center font-sans text-3xl font-bold">{translate(lang, "page.professionalExperience")}</h2>
+  <div class="relative pl-8">
+    <Separator orientation="vertical" className="absolute top-0 left-4 w-0.5!" />
+    {
+      timeline.map((item) => (
+        <div class="mb-12 flex items-center">
+          <div class="timeline-point border-background bg-chart-5 z-10 ml-4 h-4 w-4 -translate-x-1/2 transform rounded-full border-4 shadow-md" />
+          <div class="flex-1 font-sans">
+            <div class="timeline-card bg-card rounded-lg border p-6 shadow-lg">
+              <div class="text-chart-4 mb-2 text-sm font-semibold">{item.period}</div>
+              <h3 class="text-primary mb-2 text-xl font-bold">{item.title}</h3>
+              <p class="text-secondary-foreground mb-4 font-serif">{item.description}</p>
+              <div class="mb-4 flex flex-wrap gap-2">
+                {item.technologies.map((tech) => (
+                  <span class="bg-sidebar-accent text-sidebar-accent-foreground rounded-full px-3 py-1 font-mono text-xs font-medium">
+                    {tech}
+                  </span>
+                ))}
+              </div>
+              {item.details.length > 0 && (
+                <ul class="text-primary space-y-1 text-sm">
+                  {item.details.map((detail) => (
+                    <li class="flex items-start">
+                      <span class="text-chart-5 mr-2">•</span>
+                      {detail}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
+      ))
+    }
+  </div>
+</div>
+
+<script>
+  import { gsap } from "gsap";
+
+  let ctx: gsap.Context | undefined;
+
+  document.addEventListener("astro:page-load", () => {
+    const container = document.querySelector<HTMLElement>(".timeline-card")?.closest(".relative");
+    if (!container) return;
+
+    ctx?.revert();
+    ctx = gsap.context(() => {
+      gsap.set(".timeline-card", { x: 300, opacity: 0 });
+      gsap.set(".timeline-point", { opacity: 0, scale: 0 });
+
+      const mainTimeline = gsap.timeline();
+      const cardTimeline = gsap.timeline();
+      const pointTimeline = gsap.timeline();
+
+      mainTimeline.add([cardTimeline, pointTimeline], 0);
+
+      cardTimeline.to(".timeline-card", {
+        x: 0,
+        opacity: 1,
+        duration: 0.8,
+        ease: "power2.out",
+        stagger: { each: 0.2 },
+      });
+      pointTimeline.to(".timeline-point", {
+        opacity: 1,
+        scale: 1,
+        duration: 0.8,
+        ease: "back.out(1.7)",
+        stagger: { each: 0.2 },
+      });
+    }, container);
+  });
+
+  document.addEventListener("astro:before-swap", () => ctx?.revert());
+</script>
