@@ -1,6 +1,6 @@
-# devlog
+# www.ptcookie.net
 
-Static Astro blog (https://devlog.ptcookie.net), content authored as local markdown.
+Static Astro blog (https://www.ptcookie.net), content authored as local markdown.
 React islands + shadcn/ui + Tailwind v4, bilingual (ko/en).
 
 ## Commands

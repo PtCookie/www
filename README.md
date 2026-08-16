@@ -1,6 +1,6 @@
-# PtCookie.DevLog
+# PtCookie.Net
 
-DevLog of PtCookie built with Astro and shadcn/ui.
+Personal blog of PtCookie.Net, built with Astro and shadcn/ui.
 
 ## Tech stack
 
@@ -71,6 +71,6 @@ pnpm run test
 
 ## License
 
-MIT &copy; [PtCookie](https://devlog.ptcookie.net/)
+MIT &copy; [PtCookie](https://www.ptcookie.net/)
 
 All fonts are under [SIL Open Font License v1.1](https://openfontlicense.org/).

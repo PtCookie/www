@@ -15,8 +15,8 @@ export interface Config {
 }
 
 export const config: Config = {
-  title: "DevLog",
-  description: "A DevLog of PtCookie",
+  title: "PtCookie.Net",
+  description: "Personal blog of PtCookie.Net",
   copyrightFrom: 2021,
   menuEntry: [
     { name: "Home", link: "/" },

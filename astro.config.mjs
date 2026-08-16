@@ -7,7 +7,7 @@ import og from "astro-og";
 
 // https://astro.build/config
 export default defineConfig({
-  site: "https://devlog.ptcookie.net/",
+  site: "https://www.ptcookie.net/",
   integrations: [react(), mdx(), og()],
   vite: {
     plugins: [tailwindcss()],

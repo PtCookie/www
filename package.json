@@ -1,7 +1,7 @@
 {
-    "name": "devlog",
+    "name": "www",
     "version": "1.0.12",
-    "description": "DevLog of PtCookie built with Astro and shadcn/ui",
+    "description": "www.ptcookie.net",
     "keywords": [
         "Astro",
         "React",
@@ -11,7 +11,7 @@
     "author": {
         "name": "Minsup Ju",
         "email": "me@ptcookie.net",
-        "url": "https://devlog.ptcookie.net/"
+        "url": "https://www.ptcookie.net/"
     },
     "packageManager": "pnpm@11.17.0",
     "type": "module",
