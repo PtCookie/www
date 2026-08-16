@@ -1,0 +1,10 @@
+{
+    "github-anthropics-claude-plugins-official": {
+        "url": "https://github.com/anthropics/claude-plugins-official",
+        "extensions": ["typescript-lsp"],
+        "source": {
+            "type": "git",
+            "url": "https://github.com/anthropics/claude-plugins-official"
+        }
+    }
+}
