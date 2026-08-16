@@ -10,6 +10,7 @@ export interface Config {
   description: string;
   copyrightFrom: number;
   menuEntry: MenuEntry[];
+  linkEntry: MenuEntry[];
   locales: Locale[];
   defaultLocale: Locale;
 }
@@ -20,9 +21,11 @@ export const config: Config = {
   copyrightFrom: 2021,
   menuEntry: [
     { name: "Home", link: "/" },
-    { name: "Posts", link: "/posts" },
-    { name: "Tags", link: "/tags" },
+    { name: "Work", link: "/work" },
+    { name: "About", link: "/about" },
+    { name: "Blog", link: "/posts" },
   ],
+  linkEntry: [{ name: "Git", link: "https://git.ptcookie.net/" }],
   locales: ["ko", "en"],
   defaultLocale: "ko",
 };

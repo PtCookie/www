@@ -1,5 +1,4 @@
 import * as React from "react";
-import { navigate } from "astro:transitions/client";
 import { Languages } from "lucide-react";
 
 import { Button } from "@/components/ui/button.tsx";
@@ -9,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu.tsx";
+import { switchLocale } from "@/lib/locale.ts";
 import { config, type Locale } from "@/config.ts";
 
 interface Props {
@@ -18,9 +18,7 @@ interface Props {
 
 export function LangToggle({ lang = config.defaultLocale, currentUrl }: Props) {
   async function handleClick(targetLocale: Locale) {
-    if (lang !== targetLocale) {
-      await navigate(currentUrl.replace(lang, targetLocale));
-    }
+    await switchLocale(lang, targetLocale, currentUrl);
   }
 
   return (

@@ -6,13 +6,25 @@ export interface Translation {
   "component.system": string;
   "component.readTime": string;
   "component.readMore": string;
-  "page.introduction": string;
+  "component.menu": string;
   "page.recentPosts": string;
   "page.viewAll": string;
   "page.allPosts": string;
   "page.readNext": string;
   "page.allTags": string;
   "page.posts": string;
+  "page.work": string;
+  "page.workDescription": string;
+  "page.professionalExperience": string;
+  "page.hobbyProjects": string;
+  "page.underConstruction": string;
+  "page.returnHome": string;
+  "page.about": string;
+  "page.aboutDescription": string;
+  "page.greeting": string;
+  "page.name": string;
+  "page.career": string;
+  "page.techIntro": string;
 }
 
 export const translation: Record<Locale, Translation> = {
@@ -22,13 +34,25 @@ export const translation: Record<Locale, Translation> = {
     "component.system": "시스템",
     "component.readTime": "분 소요",
     "component.readMore": "더 읽기",
-    "page.introduction": "개발하면서 나중에 찾아볼 만한 것들을 정리해놓은 블로그입니다",
+    "component.menu": "메뉴",
     "page.recentPosts": "최근 게시글",
     "page.viewAll": "전체 보기",
     "page.allPosts": "모든 게시글",
     "page.readNext": "다음 읽기",
     "page.allTags": "모든 태그",
     "page.posts": "게시글",
+    "page.work": "경력",
+    "page.workDescription": "개발 경력과 프로젝트",
+    "page.professionalExperience": "경력 사항",
+    "page.hobbyProjects": "사이드 프로젝트",
+    "page.underConstruction": "준비 중입니다",
+    "page.returnHome": "홈으로 돌아가기",
+    "page.about": "소개",
+    "page.aboutDescription": "자기소개",
+    "page.greeting": "안녕하세요!",
+    "page.name": "주민섭입니다",
+    "page.career": "2019년부터 웹 개발을 하고 있습니다.",
+    "page.techIntro": "다음 기술들을 사용하고 있습니다",
   },
   en: {
     "component.light": "Light",
@@ -36,12 +60,24 @@ export const translation: Record<Locale, Translation> = {
     "component.system": "System",
     "component.readTime": "min read",
     "component.readMore": "Read more",
-    "page.introduction": "Blog where organizes things to look up later development",
+    "component.menu": "Menu",
     "page.recentPosts": "Recent Posts",
     "page.viewAll": "View All",
     "page.allPosts": "All Posts",
     "page.readNext": "Read Next",
     "page.allTags": "All Tags",
     "page.posts": "posts",
+    "page.work": "Work",
+    "page.workDescription": "Professional experience and projects",
+    "page.professionalExperience": "Professional Experience",
+    "page.hobbyProjects": "Hobby Projects",
+    "page.underConstruction": "Under Construction",
+    "page.returnHome": "Return Home",
+    "page.about": "About",
+    "page.aboutDescription": "About Minsup Ju",
+    "page.greeting": "Hello!",
+    "page.name": "My name is Minsup Ju",
+    "page.career": "I've been working on web development since 2019.",
+    "page.techIntro": "I've been developing with the following...",
   },
 } as const;

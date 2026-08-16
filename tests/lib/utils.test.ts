@@ -1,7 +1,8 @@
 import { describe, expect, test } from "vitest";
 
 import type { Tag } from "@/lib/schema.ts";
-import { cn, getAllTags, range } from "@/lib/utils.ts";
+import { cn, getAllTags, getTimeline, range, translate } from "@/lib/utils.ts";
+import { timelineEntry } from "@/i18n/timeline.ts";
 
 describe("cn", () => {
   test("should concatenate multiple class strings into one", () => {
@@ -147,5 +148,54 @@ describe("range", () => {
     const result = range(3, 10, -1);
 
     expect(result).toEqual([]);
+  });
+});
+
+describe("translate", () => {
+  test("should return the Korean string for a given key", () => {
+    expect(translate("ko", "component.light")).toBe("라이트");
+  });
+
+  test("should return the English string for a given key", () => {
+    expect(translate("en", "component.light")).toBe("Light");
+  });
+});
+
+describe("getTimeline", () => {
+  test("should return an item for every timeline entry", () => {
+    const result = getTimeline("ko");
+
+    expect(result).toHaveLength(timelineEntry.length);
+  });
+
+  test("should merge locale-independent fields with localized copy", () => {
+    const result = getTimeline("en");
+
+    for (const item of result) {
+      expect(item.title.length).toBeGreaterThan(0);
+      expect(item.description.length).toBeGreaterThan(0);
+      expect(item.details.length).toBeGreaterThan(0);
+    }
+  });
+
+  test("should keep period and technologies identical across locales", () => {
+    const ko = getTimeline("ko");
+    const en = getTimeline("en");
+
+    ko.forEach((item, index) => {
+      expect(item.period).toBe(en[index].period);
+      expect(item.technologies).toEqual(en[index].technologies);
+    });
+  });
+
+  test("should resolve ids in the same order for every locale", () => {
+    const result = getTimeline("ko");
+
+    expect(result.map((item) => item.title)).toEqual([
+      "데스크톱 애플리케이션 개발",
+      "풀스택 개발",
+      "백엔드 개발",
+      "풀스택 개발",
+    ]);
   });
 });

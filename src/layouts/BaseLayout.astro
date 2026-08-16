@@ -11,12 +11,14 @@ interface Props {
   lang?: Locale;
   title?: string;
   description?: string;
+  ogType?: "website" | "article";
+  wide?: boolean;
 }
 
-const { lang } = Astro.props;
+const { lang, wide } = Astro.props;
 const title = [Astro.props.title, config.title].filter(Boolean).join(" | ");
 const description = Astro.props.description || config.description;
-const ogType = Astro.props.description ? "article" : "website";
+const ogType = Astro.props.ogType ?? (Astro.props.description ? "article" : "website");
 ---
 
 <!doctype html>
@@ -55,7 +57,7 @@ const ogType = Astro.props.description ? "article" : "website";
   </head>
   <body class="flex min-h-screen flex-col">
     <Header lang={lang} />
-    <main class="mx-auto flex w-full max-w-5/6 grow flex-col sm:max-w-3xl sm:px-8">
+    <main class:list={["mx-auto flex w-full max-w-5/6 grow flex-col sm:px-8", wide ? "sm:max-w-5xl" : "sm:max-w-3xl"]}>
       <slot />
     </main>
     <Footer />

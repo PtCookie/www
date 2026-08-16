@@ -8,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu.tsx";
+import { useTheme } from "@/hooks/useTheme.ts";
 import { translate } from "@/lib/utils.ts";
 import { config, type Locale } from "@/config.ts";
 
@@ -16,18 +17,7 @@ interface Props {
 }
 
 export function ModeToggle({ lang = config.defaultLocale }: Props) {
-  const [theme, setTheme] = React.useState<"light" | "dark" | "system">(() => {
-    if (typeof document !== "undefined") {
-      return document.documentElement.classList.contains("dark") ? "dark" : "light";
-    }
-    return "system";
-  });
-
-  React.useEffect(() => {
-    const isDark =
-      theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
-    document.documentElement.classList[isDark ? "add" : "remove"]("dark");
-  }, [theme]);
+  const { setTheme } = useTheme();
 
   return (
     <DropdownMenu>

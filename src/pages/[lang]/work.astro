@@ -1,0 +1,27 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Timeline from "@/components/Timeline.astro";
+import UnderConstruction from "@/components/UnderConstruction.astro";
+import { translate } from "@/lib/utils.ts";
+import { config } from "@/config.ts";
+
+export async function getStaticPaths() {
+  return config.locales.map((locale) => ({ params: { lang: locale } }));
+}
+
+const { lang } = Astro.params;
+---
+
+<BaseLayout
+  lang={lang}
+  title={translate(lang, "page.work")}
+  description={translate(lang, "page.workDescription")}
+  ogType="website"
+  wide
+>
+  <div class="flex grow flex-col items-center justify-items-center">
+    <Timeline lang={lang} />
+    <h2 class="mb-8 text-center font-sans text-3xl font-bold">{translate(lang, "page.hobbyProjects")}</h2>
+    <UnderConstruction lang={lang} class="py-32" />
+  </div>
+</BaseLayout>
