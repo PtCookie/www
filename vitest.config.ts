@@ -49,8 +49,8 @@ export default getViteConfig({
       exclude: [
         "src/**/*.astro", // exclude til container API is stable
         "src/*config.ts",
-        "src/lib/**",
-        "!src/lib/utils.ts",
+        "src/lib/!(utils).ts", // extglob, not a negated array entry — coverage-v8 passes `exclude` straight to
+        // picomatch's `ignore` option, and a "!"-prefixed entry there zeroes out the whole match, not just this file
         ...coverageConfigDefaults.exclude,
       ],
     },

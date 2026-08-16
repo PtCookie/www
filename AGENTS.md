@@ -52,6 +52,14 @@ pnpm codegen                          # regenerate generated/schema.graphql from
 
 ## Gotchas
 
+- `vitest.config.ts`'s `coverage.exclude` must never contain a `"!"`-prefixed entry: `@vitest/coverage-v8`
+  passes the whole array straight to picomatch's `ignore` option, and one negated entry zeroes out coverage
+  for *every* file (not just the one you meant to un-exclude), silently producing a 0/0 report. Use an
+  extglob instead, e.g. `"src/lib/!(utils).ts"` to exclude everything in `src/lib` except `utils.ts`.
+- Vitest's browser project (and anything that runs it — `pnpm test:coverage`, the pre-commit hook) needs to
+  bind a local port for Playwright's browser instances. In network-sandboxed tool runners this fails with
+  `EPERM: operation not permitted ::1:<port>` — disable the sandbox for that command rather than debugging it
+  as a code issue.
 - `vitest.config.ts` pre-bundles the `astro:transitions` virtual modules in `optimizeDeps`, and the browser project
   is explicitly named `component`. Both comments there explain why — don't strip them, browser tests turn flaky.
 - The pre-commit hook runs the **full** vitest suite across 3 browsers plus lint-staged, so commits are slow.
