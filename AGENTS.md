@@ -57,13 +57,15 @@ pnpm test:coverage                    # unit + chromium only, with coverage
   passes the whole array straight to picomatch's `ignore` option, and one negated entry zeroes out coverage
   for _every_ file (not just the one you meant to un-exclude), silently producing a 0/0 report. Use an
   extglob instead, e.g. `"src/lib/!(utils).ts"` to exclude everything in `src/lib` except `utils.ts`.
-- Vitest's browser project (and anything that runs it — `pnpm test:coverage`, the pre-commit hook) needs to
+- Vitest's browser project (and anything that runs it — `pnpm test:coverage`, the pre-push hook) needs to
   bind a local port for Playwright's browser instances. In network-sandboxed tool runners this fails with
   `EPERM: operation not permitted ::1:<port>` — disable the sandbox for that command rather than debugging it
   as a code issue.
 - `vitest.config.ts` pre-bundles the `astro:transitions` virtual modules in `optimizeDeps`, and the browser project
   is explicitly named `component`. Both comments there explain why — don't strip them, browser tests turn flaky.
-- The pre-commit hook runs the **full** vitest suite across 3 browsers plus lint-staged, so commits are slow.
+- Git hooks are managed by lefthook (`lefthook.yml`), installed via the `prepare` script. `pre-commit` runs
+  eslint + prettier on staged files in parallel; the **full** vitest suite across 3 browsers runs on `pre-push`,
+  so pushes are slow but commits stay fast.
 - `src/pages/index.astro` is intentionally empty; Astro's i18n config generates the `/` → `/ko/` redirect
   (`public/_redirects` covers the host side).
 - `src/content/post/**` is excluded from `pnpm format` (see `.prettierignore`): these files were hand-restored from
