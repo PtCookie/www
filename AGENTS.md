@@ -55,7 +55,7 @@ pnpm test:coverage                    # unit + chromium only, with coverage
 
 - `vitest.config.ts`'s `coverage.exclude` must never contain a `"!"`-prefixed entry: `@vitest/coverage-v8`
   passes the whole array straight to picomatch's `ignore` option, and one negated entry zeroes out coverage
-  for *every* file (not just the one you meant to un-exclude), silently producing a 0/0 report. Use an
+  for _every_ file (not just the one you meant to un-exclude), silently producing a 0/0 report. Use an
   extglob instead, e.g. `"src/lib/!(utils).ts"` to exclude everything in `src/lib` except `utils.ts`.
 - Vitest's browser project (and anything that runs it — `pnpm test:coverage`, the pre-commit hook) needs to
   bind a local port for Playwright's browser instances. In network-sandboxed tool runners this fails with
@@ -72,5 +72,4 @@ pnpm test:coverage                    # unit + chromium only, with coverage
   intentional, keep it.
 - In `astro.config.mjs`'s `markdown.shikiConfig.themes`, `light` is set to `catppuccin-macchiato` and `dark` to
   `catppuccin-latte` — this looks swapped but is intentional, chosen for code-block readability, not a bug.
-- `wrangler.toml` still points `main` at `@astrojs/cloudflare`, which is not installed; the build is fully static today.
 - Branches: work on `main`; `production` is a release branch that `main` gets merged into.
