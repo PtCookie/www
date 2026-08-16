@@ -66,6 +66,13 @@ pnpm test:coverage                    # unit + chromium only, with coverage
 - Coverage tracks `src/**` minus `.astro` files and `src/lib/*` except `utils.ts`.
 - Playwright e2e is configured (`playwright.config.ts`, `testDir: ./e2e`, baseURL `:4321`) but no specs exist yet.
 
+## Documentation
+
+Look up EmDash documentation via the `emdash-docs` MCP server when you need to
+verify an API, hook, config option, or pattern. Prefer the docs MCP over
+assumptions from training data -- the docs reflect the current published
+behaviour.
+
 ## Gotchas
 
 - `vitest.config.ts`'s `coverage.exclude` must never contain a `"!"`-prefixed entry: `@vitest/coverage-v8`

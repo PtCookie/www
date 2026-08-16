@@ -2,6 +2,9 @@
     "mcpServers": {
         "Astro docs": {
             "url": "https://mcp.docs.astro.build/mcp"
+        },
+        "emdash-docs": {
+            "url": "https://docs.emdashcms.com/mcp"
         }
     }
 }
