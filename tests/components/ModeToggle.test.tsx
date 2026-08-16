@@ -10,8 +10,13 @@ vi.stubGlobal(
   vi.fn().mockImplementation((query) => {
     return {
       matches: query === "(prefers-color-scheme: dark)",
+      media: query,
+      onchange: null,
       addListener: vi.fn(),
       removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
     };
   }),
 );

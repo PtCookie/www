@@ -9,6 +9,11 @@ node_modules/
 # test coverage
 coverage/
 
+# playwright
+test-results/
+playwright-report/
+blob-report/
+
 # logs
 npm-debug.log*
 yarn-debug.log*

@@ -1,2 +1,2 @@
-pnpm run test --no-coverage
+pnpm exec vitest run
 pnpm exec lint-staged
