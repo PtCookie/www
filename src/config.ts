@@ -9,8 +9,8 @@ export interface Config {
   title: string;
   description: string;
   copyrightFrom: number;
-  menuEntry: Array<MenuEntry>;
-  locales: Array<Locale>;
+  menuEntry: MenuEntry[];
+  locales: Locale[];
   defaultLocale: Locale;
 }
 

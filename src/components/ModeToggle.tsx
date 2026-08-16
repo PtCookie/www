@@ -16,12 +16,12 @@ interface Props {
 }
 
 export function ModeToggle({ lang = config.defaultLocale }: Props) {
-  const [theme, setThemeState] = React.useState<"light" | "dark" | "system">("system");
-
-  React.useEffect(() => {
-    const isDarkMode = document.documentElement.classList.contains("dark");
-    setThemeState(isDarkMode ? "dark" : "light");
-  }, []);
+  const [theme, setTheme] = React.useState<"light" | "dark" | "system">(() => {
+    if (typeof document !== "undefined") {
+      return document.documentElement.classList.contains("dark") ? "dark" : "light";
+    }
+    return "system";
+  });
 
   React.useEffect(() => {
     const isDark =
@@ -39,13 +39,13 @@ export function ModeToggle({ lang = config.defaultLocale }: Props) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem className="font-sans" onClick={() => setThemeState("light")}>
+        <DropdownMenuItem className="font-sans" onClick={() => setTheme("light")}>
           {translate(lang, "component.light")}
         </DropdownMenuItem>
-        <DropdownMenuItem className="font-sans" onClick={() => setThemeState("dark")}>
+        <DropdownMenuItem className="font-sans" onClick={() => setTheme("dark")}>
           {translate(lang, "component.dark")}
         </DropdownMenuItem>
-        <DropdownMenuItem className="font-sans" onClick={() => setThemeState("system")}>
+        <DropdownMenuItem className="font-sans" onClick={() => setTheme("system")}>
           {translate(lang, "component.system")}
         </DropdownMenuItem>
       </DropdownMenuContent>

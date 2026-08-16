@@ -15,7 +15,7 @@ export interface Translation {
   "page.posts": string;
 }
 
-export const translation: { [key in Locale]: Translation } = {
+export const translation: Record<Locale, Translation> = {
   ko: {
     "component.light": "라이트",
     "component.dark": "다크",

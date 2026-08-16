@@ -145,13 +145,13 @@ import Logo from "@/assets/logo.svg";
   function typeText(timeline: gsap.core.Timeline, element: Element, text: string, speed: number): void {
     let currentText = "";
 
-    for (let i = 0; i < text.length; i++) {
+    for (const char of text) {
       timeline.to(
         {},
         {
           duration: speed,
           onComplete: () => {
-            currentText += text[i];
+            currentText += char;
             (element as HTMLElement).innerText = currentText;
           },
         },
