@@ -1,2 +1,0 @@
-pnpm run test --no-coverage
-pnpm exec lint-staged

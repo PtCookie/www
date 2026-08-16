@@ -9,14 +9,14 @@ export interface Config {
   title: string;
   description: string;
   copyrightFrom: number;
-  menuEntry: Array<MenuEntry>;
-  locales: Array<Locale>;
+  menuEntry: MenuEntry[];
+  locales: Locale[];
   defaultLocale: Locale;
 }
 
 export const config: Config = {
-  title: "DevLog",
-  description: "A DevLog of PtCookie",
+  title: "PtCookie.Net",
+  description: "Personal blog of PtCookie.Net",
   copyrightFrom: 2021,
   menuEntry: [
     { name: "Home", link: "/" },

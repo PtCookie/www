@@ -21,7 +21,7 @@ export function PostCard({ post, lang = config.defaultLocale, disableImage = fal
         {!disableImage &&
           (children || (
             <img
-              src={post.coverImage.url}
+              src={post.coverImage.url.src}
               alt={post.title}
               className="h-full w-full overflow-hidden rounded-t-xl object-cover"
             />

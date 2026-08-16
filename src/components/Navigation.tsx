@@ -9,15 +9,15 @@ import {
 import type { MenuEntry } from "@/config.ts";
 
 interface Props {
-  menuEntry: Array<MenuEntry>;
+  menuEntry: MenuEntry[];
 }
 
 export function Navigation({ menuEntry }: Props) {
   return (
     <NavigationMenu>
       <NavigationMenuList>
-        {menuEntry.map((item, index) => (
-          <NavigationMenuItem key={index}>
+        {menuEntry.map((item) => (
+          <NavigationMenuItem key={item.link}>
             <NavigationMenuLink href={item.link} className={"font-sans text-base sm:text-lg"}>
               {item.name}
             </NavigationMenuLink>

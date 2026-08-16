@@ -1,26 +1,33 @@
 ---
 import { Image } from "astro:assets";
 import { getCollection, render } from "astro:content";
-import { format } from "date-fns";
+import { compareDesc, format, parseISO } from "date-fns";
 
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { badgeVariants } from "@/components/ui/badge.tsx";
 import { PostCard } from "@/components/PostCard.tsx";
 import { translate } from "@/lib/utils.ts";
-import type { Locale } from "@/config.ts";
+import { config } from "@/config.ts";
 
 export async function getStaticPaths() {
   const posts = await getCollection("post");
 
-  return posts.map((post, index) => {
-    return {
-      params: { lang: post.data.locale as Locale, slug: post.data.slug },
-      props: {
-        post,
-        prevPost: index + 1 < posts.length ? posts[index + 1] : null,
-        nextPost: index > 0 ? posts[index - 1] : null,
-      },
-    };
+  return config.locales.flatMap((locale) => {
+    const localePosts = posts
+      .filter((post) => post.data.locale === locale)
+      .sort((a, b) => compareDesc(parseISO(a.data.publishedAt), parseISO(b.data.publishedAt)));
+
+    return localePosts.map((post, index) => {
+      return {
+        params: { lang: locale, slug: post.data.slug },
+        props: {
+          post,
+          // Posts are sorted newest-first, so the "next" post to read is the one published before it.
+          prevPost: index + 1 < localePosts.length ? localePosts[index + 1] : null,
+          nextPost: index > 0 ? localePosts[index - 1] : null,
+        },
+      };
+    });
   });
 }
 
@@ -53,7 +60,7 @@ const { Content } = await render(post);
   {
     post.data.coverImage.url && (
       <figure class="relative mt-4 mb-8 sm:mt-6 sm:mb-10">
-        <Image src={post.data.coverImage.url} inferSize={true} alt={post.data.title} class="rounded-md" />
+        <Image src={post.data.coverImage.url} alt={post.data.title} class="rounded-md" />
         {post.data.coverImage.photographer && post.data.coverImage.attribution && (
           <figcaption class="bg-muted absolute right-2 bottom-2 rounded-sm px-2.5 py-1 text-xs italic sm:right-4 sm:bottom-4 sm:text-sm">
             Photo by&nbsp;

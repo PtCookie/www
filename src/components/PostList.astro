@@ -24,7 +24,6 @@ const { title, basePath, page, lang } = Astro.props;
       <PostCard post={post.data} lang={lang}>
         <Image
           src={post.data.coverImage.url}
-          inferSize={true}
           alt={post.data.title}
           class="h-full w-full overflow-hidden rounded-t-xl object-cover"
         />
