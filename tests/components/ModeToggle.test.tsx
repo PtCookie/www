@@ -40,7 +40,8 @@ describe("ModeToggle", () => {
     render(<ModeToggle lang="en" />);
 
     await user.click(screen.getByRole("button", { name: /toggle theme/i }));
-    await user.click(screen.getByText(/dark/i));
+    const item = await screen.findByText(/dark/i);
+    await user.click(item);
 
     expect(document.documentElement.classList.contains("dark")).toBe(true);
   });
@@ -51,13 +52,15 @@ describe("ModeToggle", () => {
 
     // Ensure dark mode is applied first
     await user.click(screen.getByRole("button", { name: /toggle theme/i }));
-    await user.click(screen.getByText(/dark/i));
+    const darkItem = await screen.findByText(/dark/i);
+    await user.click(darkItem);
 
     expect(document.documentElement.classList.contains("dark")).toBe(true);
 
     // Switch to light
     await user.click(screen.getByRole("button", { name: /toggle theme/i }));
-    await user.click(screen.getByText(/light/i));
+    const lightItem = await screen.findByText(/light/i);
+    await user.click(lightItem);
 
     expect(document.documentElement.classList.contains("dark")).toBe(false);
   });
@@ -67,7 +70,8 @@ describe("ModeToggle", () => {
     render(<ModeToggle lang="en" />);
 
     await user.click(screen.getByRole("button", { name: /toggle theme/i }));
-    await user.click(screen.getByText(/system/i));
+    const item = await screen.findByText(/system/i);
+    await user.click(item);
 
     expect(document.documentElement.classList.contains("dark")).toBe(true);
   });

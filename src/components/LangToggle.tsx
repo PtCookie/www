@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Languages } from "lucide-react";
+import { Translate } from "@phosphor-icons/react";
 
 import { Button } from "@/components/ui/button.tsx";
 import {
@@ -23,12 +23,14 @@ export function LangToggle({ lang = config.defaultLocale, currentUrl }: Props) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="noscript:hidden">
-          <Languages className="h-[1.2rem] w-[1.2rem]" />
-          <span className="sr-only">Toggle Locale</span>
-        </Button>
-      </DropdownMenuTrigger>
+      <DropdownMenuTrigger
+        render={
+          <Button variant="ghost" size="icon" className="noscript:hidden">
+            <Translate className="h-[1.2rem] w-[1.2rem]" />
+            <span className="sr-only">Toggle Locale</span>
+          </Button>
+        }
+      />
       <DropdownMenuContent align="end">
         <DropdownMenuItem className="font-sans" onClick={() => handleClick("ko")}>
           한글

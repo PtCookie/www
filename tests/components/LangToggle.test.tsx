@@ -26,7 +26,8 @@ describe("LangToggle", () => {
     render(<LangToggle lang="en" currentUrl="/en/page" />);
 
     await user.click(screen.getByRole("button", { name: "Toggle Locale" }));
-    await user.click(screen.getByText("한글"));
+    const item = await screen.findByText("한글");
+    await user.click(item);
 
     expect(navigate).toHaveBeenCalledWith("/ko/page");
   });
@@ -36,7 +37,8 @@ describe("LangToggle", () => {
     render(<LangToggle lang="ko" currentUrl="/ko/page" />);
 
     await user.click(screen.getByRole("button", { name: "Toggle Locale" }));
-    await user.click(screen.getByText("English"));
+    const item = await screen.findByText("English");
+    await user.click(item);
 
     expect(navigate).toHaveBeenCalledWith("/en/page");
   });
@@ -46,7 +48,8 @@ describe("LangToggle", () => {
     render(<LangToggle lang="en" currentUrl="/en/page" />);
 
     await user.click(screen.getByRole("button", { name: "Toggle Locale" }));
-    await user.click(screen.getByText("English"));
+    const item = await screen.findByText("English");
+    await user.click(item);
 
     expect(navigate).not.toHaveBeenCalled();
   });

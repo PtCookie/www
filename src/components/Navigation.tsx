@@ -21,7 +21,7 @@ interface Props {
 
 export function Navigation({ menuEntry, linkEntry = EMPTY_LINK_ENTRY }: Props) {
   return (
-    <NavigationMenu viewport={false}>
+    <NavigationMenu>
       <NavigationMenuList>
         {menuEntry.map((item) => (
           <NavigationMenuItem key={item.link}>

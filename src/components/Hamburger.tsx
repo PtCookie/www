@@ -1,5 +1,5 @@
 import * as React from "react";
-import { MenuIcon, Moon, Sun } from "lucide-react";
+import { List, Moon, Sun } from "@phosphor-icons/react";
 
 import { Button, buttonVariants } from "@/components/ui/button.tsx";
 import {
@@ -30,23 +30,29 @@ export function Hamburger({ lang = config.defaultLocale, menuEntry, linkEntry = 
 
   return (
     <Sheet>
-      <SheetTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <MenuIcon className="size-6" />
-          <span className="sr-only">Open menu</span>
-        </Button>
-      </SheetTrigger>
+      <SheetTrigger
+        render={
+          <Button variant="ghost" size="icon">
+            <List className="size-6" />
+            <span className="sr-only">Open menu</span>
+          </Button>
+        }
+      />
       <SheetContent className="max-w-xs">
         <SheetHeader>
           <SheetTitle>{translate(lang, "component.menu")}</SheetTitle>
         </SheetHeader>
         <div className="flex flex-col items-start gap-1.5 px-4">
           {menuEntry.map((item) => (
-            <SheetClose asChild key={item.link}>
-              <a href={item.link} className={buttonVariants({ variant: "ghost" })}>
-                {item.name}
-              </a>
-            </SheetClose>
+            <SheetClose
+              key={item.link}
+              nativeButton={false}
+              render={
+                <a href={item.link} className={buttonVariants({ variant: "ghost" })}>
+                  {item.name}
+                </a>
+              }
+            />
           ))}
           {linkEntry.length > 0 && (
             <>
