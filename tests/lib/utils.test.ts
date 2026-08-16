@@ -98,7 +98,7 @@ describe("getAllTags", () => {
   });
 
   test("should return an empty array when no posts are provided", () => {
-    const posts: Array<{ data: { tags: Array<Tag> } }> = [];
+    const posts: { data: { tags: Tag[] } }[] = [];
     const result = getAllTags(posts);
 
     expect(result).toEqual([]);

@@ -5,7 +5,7 @@ import { coverageConfigDefaults } from "vitest/config";
 export default getViteConfig({
   test: {
     environment: "jsdom",
-    setupFiles: "./test/setup.ts",
+    setupFiles: "./tests/setup.ts",
     coverage: {
       enabled: true,
       include: ["src/**"],
