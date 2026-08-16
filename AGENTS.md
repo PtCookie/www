@@ -80,6 +80,17 @@ pnpm test:coverage                    # unit + chromium only, with coverage
   fail in sandboxed/non-TTY tool runners with `ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY` or a lefthook
   `prepare` step `operation not permitted` error — set `CI=true` and disable the sandbox for that command
   rather than debugging it as a code issue.
+- Watch for these two signals that a sandboxed `pnpm add`/`remove`/`install` silently used the wrong store
+  instead of `~/Library/pnpm/store` (confirmed via `pnpm store path` returning a path under the project root,
+  and an actual write there failing with `[ERR_SQLITE_ERROR] unable to open database file`): a stray
+  `.pnpm-store/` directory in `git status`, or a later `pnpm install` anywhere failing with
+  `ERR_PNPM_UNEXPECTED_STORE` (dependencies linked from one store, pnpm now resolving another). Neither a
+  project `.npmrc` `store-dir` nor `--config.store-dir` fixes this — the sandbox denies the write outright
+  regardless of what store-dir is configured, so it's not something project files can route around.
+  `.claude/settings.local.json` sets `sandbox.filesystem.allowWrite: ["~/Library/pnpm/store"]` to let
+  sandboxed pnpm reach the real store, but sandbox config appears to load once at session start — a change
+  made mid-session may not take effect until the next session. If either signal shows up, disable the sandbox
+  for the pnpm command instead of debugging further.
 - `vitest.config.ts` pre-bundles the `astro:transitions` virtual modules in `optimizeDeps`, and the browser project
   is explicitly named `component`. Both comments there explain why — don't strip them, browser tests turn flaky.
 - Git hooks are managed by lefthook (`lefthook.yml`), installed via the `prepare` script. `pre-commit` runs

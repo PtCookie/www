@@ -8,6 +8,7 @@
             "Bash(pnpm format:*)",
             "Bash(pnpm test:*)",
             "Bash(pnpm exec astro:*)",
+            "Bash(lefthook:*)",
             "Bash(git log:*)",
             "Bash(git diff:*)",
             "Bash(git status)"
