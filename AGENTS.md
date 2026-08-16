@@ -61,6 +61,10 @@ pnpm test:coverage                    # unit + chromium only, with coverage
   bind a local port for Playwright's browser instances. In network-sandboxed tool runners this fails with
   `EPERM: operation not permitted ::1:<port>` — disable the sandbox for that command rather than debugging it
   as a code issue.
+- `pnpm install`/`pnpm build` (and hooks that trigger it, e.g. `pre-commit` after a `package.json` change) can
+  fail in sandboxed/non-TTY tool runners with `ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY` or a lefthook
+  `prepare` step `operation not permitted` error — set `CI=true` and disable the sandbox for that command
+  rather than debugging it as a code issue.
 - `vitest.config.ts` pre-bundles the `astro:transitions` virtual modules in `optimizeDeps`, and the browser project
   is explicitly named `component`. Both comments there explain why — don't strip them, browser tests turn flaky.
 - Git hooks are managed by lefthook (`lefthook.yml`), installed via the `prepare` script. `pre-commit` runs
@@ -75,3 +79,6 @@ pnpm test:coverage                    # unit + chromium only, with coverage
 - In `astro.config.mjs`'s `markdown.shikiConfig.themes`, `light` is set to `catppuccin-macchiato` and `dark` to
   `catppuccin-latte` — this looks swapped but is intentional, chosen for code-block readability, not a bug.
 - Branches: work on `main`; `production` is a release branch that `main` gets merged into.
+- Only `www.ptcookie.net` is registered as a Worker custom domain in `wrangler.jsonc`. The apex `ptcookie.net`
+  is a plain proxied CNAME plus a Cloudflare Redirect Rule (`ptcookie.net/*` → `www.ptcookie.net/${1}`, 301) —
+  Redirect Rules run before Workers routes at Cloudflare's edge, so apex doesn't need its own Worker route.
