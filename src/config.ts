@@ -23,7 +23,7 @@ export const config: Config = {
     { name: "Home", link: "/" },
     { name: "Work", link: "/work" },
     { name: "About", link: "/about" },
-    { name: "Blog", link: "/posts" },
+    { name: "Posts", link: "/posts" },
   ],
   linkEntry: [{ name: "Git", link: "https://git.ptcookie.net/" }],
   locales: ["ko", "en"],

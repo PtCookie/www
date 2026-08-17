@@ -30,7 +30,7 @@ const menuEntry = [
   { name: "Home", link: "/en" },
   { name: "Work", link: "/en/work" },
   { name: "About", link: "/en/about" },
-  { name: "Blog", link: "/en/posts" },
+  { name: "Posts", link: "/en/posts" },
 ];
 const linkEntry = [{ name: "Git", link: "https://git.ptcookie.net/" }];
 
