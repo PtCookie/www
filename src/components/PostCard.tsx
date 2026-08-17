@@ -25,7 +25,7 @@ export function PostCard({
 }: Props) {
   return (
     <Card className="w-full max-w-2xl">
-      <CardHeader className={cn("-mt-6 p-0", !disableImage && "h-48")}>
+      <CardHeader className={cn("-mt-6 block overflow-hidden p-0", !disableImage && "h-48")}>
         {!disableImage &&
           (children || (
             <img

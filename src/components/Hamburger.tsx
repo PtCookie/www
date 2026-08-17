@@ -85,14 +85,14 @@ export function Hamburger({ lang = config.defaultLocale, menuEntry, linkEntry = 
                 className="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-[transform,opacity] dark:scale-100 dark:rotate-0"
               />
             </div>
+            <Button variant="ghost" aria-current={theme === "system"} onClick={() => setTheme("system")}>
+              {translate(lang, "component.system")}
+            </Button>
             <Button variant="ghost" aria-current={theme === "light"} onClick={() => setTheme("light")}>
               {translate(lang, "component.light")}
             </Button>
             <Button variant="ghost" aria-current={theme === "dark"} onClick={() => setTheme("dark")}>
               {translate(lang, "component.dark")}
-            </Button>
-            <Button variant="ghost" aria-current={theme === "system"} onClick={() => setTheme("system")}>
-              {translate(lang, "component.system")}
             </Button>
           </div>
           <div className="flex items-center" role="group" aria-label={translate(lang, "component.localeGroup")}>

@@ -28,7 +28,12 @@ describe("PostCard", () => {
   test("renders correctly with all content", () => {
     render(<PostCard post={mockPost} lang="en" />);
 
-    expect(screen.getByRole("img")).toBeInTheDocument();
+    const img = screen.getByRole("img");
+    const header = screen.getByTestId("card-header");
+
+    expect(img).toBeInTheDocument();
+    expect(header).toContainElement(img);
+    expect(header).toHaveClass("overflow-hidden");
     expect(screen.getByAltText("Sample Post")).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 2, name: /sample post/i })).toBeInTheDocument();
     expect(screen.getByText("March 22, 2025")).toBeInTheDocument();

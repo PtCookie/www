@@ -37,14 +37,14 @@ export function ModeToggle({ lang = config.defaultLocale }: Props) {
         }
       />
       <DropdownMenuContent align="end">
+        <DropdownMenuItem className="font-sans" onClick={() => setTheme("system")}>
+          {translate(lang, "component.system")}
+        </DropdownMenuItem>
         <DropdownMenuItem className="font-sans" onClick={() => setTheme("light")}>
           {translate(lang, "component.light")}
         </DropdownMenuItem>
         <DropdownMenuItem className="font-sans" onClick={() => setTheme("dark")}>
           {translate(lang, "component.dark")}
-        </DropdownMenuItem>
-        <DropdownMenuItem className="font-sans" onClick={() => setTheme("system")}>
-          {translate(lang, "component.system")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
