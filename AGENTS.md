@@ -105,7 +105,18 @@ behaviour.
   Without the guard, `vitest.config.ts`'s `getViteConfig` drags the adapter's Vite plugin into every vitest run,
   and the Cloudflare plugin's worker-environment validation rejects the `resolve.external` Node-builtins list
   Vitest's own SSR test environment sets — `vitest` crashes on startup (no tests even run). Keep the guard if you
-  touch either config.
+  touch either config. `output` carries the identical `process.env.VITEST ? "static" : "server"` guard for the
+  same reason — an SSR `output` with no adapter throws `AdapterSupportOutputMismatch`, so the two must flip
+  together. The `emdash()` integration in `integrations` is guarded the same way: it needs server output and a
+  database connection at config-eval time, neither available under Vitest's SSR test environment.
+- `emdash()`'s `database`/`storage` config uses Cloudflare D1/R2 bindings (`d1({binding:"DB"})`,
+  `r2({binding:"MEDIA"})`) in **both** dev and prod, not EmDash's suggested local dev driver
+  (`sqlite({url:"file:./data.db"})` + `local()` filesystem storage, which needs `better-sqlite3`). `astro dev`
+  here runs the real Cloudflare Vite plugin (workerd), which has no Node filesystem and cannot load native N-API
+  addons — `better-sqlite3` crashes dev with `Internal server error: module is not defined` the moment EmDash's
+  middleware touches it. D1/R2 bindings are emulated locally by the Vite plugin without any native code, so one
+  config works unchanged in both environments; `wrangler.jsonc`'s `d1_databases[0].database_id` is a
+  local-only placeholder until a real one is provisioned before deploying.
 - Git hooks are managed by lefthook (`lefthook.yml`), installed via the `prepare` script. `pre-commit` runs
   eslint + prettier on staged files in parallel; the **full** vitest suite across 3 browsers runs on `pre-push`,
   so pushes are slow but commits stay fast.
@@ -115,14 +126,25 @@ behaviour.
   this route, it would just duplicate the adapter-generated line. Astro's configured `redirects` always lose to a
   real page file at the same path, so don't add an `index.astro` back at the root without removing or updating the
   `redirects` entry.
-- `astro.config.mjs`'s `i18n` block must never set `routing.prefixDefaultLocale: true` (or `routing: "manual"`
-  without reimplementing the equivalent) and must never set `fallback`. Pages are generated manually under
-  `src/pages/[lang]/` via `getStaticPaths()`, not Astro's automatic locale-folder convention, so neither option is
-  needed for routing to work — but both have real side effects if set: `prefixDefaultLocale: true` forces every
-  route, including ones injected by integrations, to carry a locale prefix, which 404s an admin UI mounted at a
-  fixed unprefixed path (this blocks adding EmDash CMS's `/_emdash/admin`, see emdash-cms/emdash#369). A `fallback`
-  entry (e.g. `{ en: "ko" }`) makes Astro auto-generate extra build output nesting a non-default-locale prefix on
-  top of our own already-prefixed routes (verified: it produced `/en/en/posts/*` alongside the real `/en/posts/*`).
+- `astro.config.mjs`'s `i18n` block must never set `routing.prefixDefaultLocale: true` and must never set
+  `fallback`. Pages are generated manually under `src/pages/[lang]/` via `getStaticPaths()`, not Astro's automatic
+  locale-folder convention, so neither option is needed for routing to work — but both have real side effects if
+  set: `prefixDefaultLocale: true` forces every route, including ones injected by integrations, to carry a locale
+  prefix, which 404s an admin UI mounted at a fixed unprefixed path (this blocks EmDash CMS's `/_emdash/admin`, see
+  emdash-cms/emdash#369). A `fallback` entry (e.g. `{ en: "ko" }`) makes Astro auto-generate extra build output
+  nesting a non-default-locale prefix on top of our own already-prefixed routes (verified: it produced
+  `/en/en/posts/*` alongside the real `/en/posts/*`).
+- `astro.config.mjs`'s `i18n` block **does** set `routing: "manual"` — this is required, not forbidden, once
+  `output` leaves `"static"` (as it does for any non-Vitest run since EmDash needs SSR). With default routing,
+  Astro's built-in i18n middleware 404s SSR requests to the default locale's prefixed path (`/ko/*`); this is
+  invisible on a fully static build because prerendered pages are served as files and never reach that middleware,
+  but reproduces reliably via `astro build && astro preview` (`astro dev` doesn't honor `prerender` at request
+  time, so it won't show this). `prefixDefaultLocale: true` can't fix it either — see the gotcha above,
+  `/_emdash/admin` 404s. `routing: "manual"` disables Astro's automatic locale handling outright and requires a
+  `src/middleware.ts`; here that file is a trivial pass-through (`defineMiddleware((_, next) => next())`) because
+  every locale-aware page already resolves `lang` itself via `getStaticPaths` params and never relied on Astro's
+  locale detection/redirect logic. Don't remove `routing: "manual"` or `src/middleware.ts` without re-verifying
+  `/ko/*` SSR routes via an actual `astro preview`, not just `astro dev`.
 - `src/content/post/**` is excluded from `pnpm format` (see `.prettierignore`): these files were hand-restored from
   a Hashnode export whose exporter had stripped all leading whitespace from body text, silently flattening code-block
   indentation. Prettier doesn't touch markdown code fences today, but don't rely on that — the exclusion is
@@ -133,10 +155,17 @@ behaviour.
 - Only `www.ptcookie.net` is registered as a Worker custom domain in `wrangler.jsonc`. The apex `ptcookie.net`
   is a plain proxied CNAME plus a Cloudflare Redirect Rule (`ptcookie.net/*` → `www.ptcookie.net/${1}`, 301) —
   Redirect Rules run before Workers routes at Cloudflare's edge, so apex doesn't need its own Worker route.
-- `astro build` output is split into `dist/client` (assets) and `dist/server` (worker code, currently empty)
-  now that `@astrojs/cloudflare` is the adapter — `output` itself still stays `"static"` for now. `wrangler.jsonc`'s
-  `assets.directory` points at `dist/client`, not `dist` — see the comment there. `wrangler deploy --dry-run`
-  validates the merged config against the real bindings without actually deploying.
+- `astro build` output is split into `dist/client` (assets) and `dist/server` (worker code) now that
+  `@astrojs/cloudflare` is the adapter and `output` is `"server"` (except under Vitest, see above).
+  `wrangler.jsonc`'s `assets.directory` points at `dist/client`, not `dist` — see the comment there.
+  `wrangler deploy --dry-run` validates the merged config against the real bindings without actually deploying.
+  The adapter writes its actual merged Wrangler config to `dist/server/wrangler.json` (pointed to by
+  `.wrangler/deploy/config.json`) — read that file, not just `wrangler.jsonc`, to see what a deploy really gets;
+  it auto-fills `main` (`entry.mjs`) and a few bindings (e.g. `images.binding`, `kv_namespaces` for sessions) that
+  aren't declared in `wrangler.jsonc`. `assets.binding` is the one binding that is **not** auto-filled here: the
+  adapter only generates it automatically when there's no custom `wrangler.jsonc` at all, and this project already
+  has one (`routes`/`custom_domain`), so it must stay declared explicitly or Worker-served static/prerendered
+  output breaks.
 - `astro-og` (the `og()` integration in `astro.config.mjs`) is a **dev-toolbar app only** — it doesn't generate
   OG images at build time despite the name. Per-page Open Graph data comes entirely from `BaseLayout`'s
   `title`/`description`/`ogType` props.
