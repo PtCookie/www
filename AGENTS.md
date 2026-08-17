@@ -227,7 +227,11 @@ behaviour.
   `astro:page-load`, and **must** call `gsap.context(fn, el).revert()` on `astro:before-swap` — without it, a
   `ClientRouter` navigation back to the same page starts another timeline on top of whatever's still running
   instead of replacing it. `Intro.astro`'s coin/text timeline is `repeat: -1`, so skipping `revert()` there
-  specifically leaks one more infinite timeline per visit.
+  specifically leaks one more infinite timeline per visit. Additionally, GSAP 3.15 deprecated `yoyoEase` in favour
+  of `easeReverse`. When `repeat` is defined inside a `stagger` object, top-level `yoyo` and `yoyoEase` / `easeReverse`
+  are no longer inherited by the per-target sub-tweens on 3.15, causing staggered targets to repeat without yoyo and
+  remain stuck at their animated offset (e.g. `y: -30`). `repeat`, `yoyo`, and `easeReverse` must all live inside
+  the same `stagger` configuration object (`src/lib/intro-animation.ts`, guarded by `tests/lib/intro-animation.test.ts`).
 - A Radix `Sheet`/`Dialog` left open during a `ClientRouter` swap can leave `<body>` inert (`overflow: hidden`,
   `pointer-events: none`) if its own React cleanup effect doesn't get to run before the DOM is replaced.
   `Header.astro`'s `astro:after-swap` listener clears those defensively — don't remove it, and wrap any new
