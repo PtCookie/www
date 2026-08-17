@@ -11,10 +11,35 @@
       "custom_domain": true,
     },
   ],
-  // @astrojs/cloudflare splits build output into dist/client (assets) and dist/server (worker code,
-  // empty for now since output stays "static" — no route has opted out of prerendering yet).
   "assets": {
     "directory": "./dist/client",
     "not_found_handling": "404-page",
+    // output:"server" routes every request through the User Worker first; it needs this binding to
+    // serve prerendered/static output itself via env.ASSETS.fetch(). Not auto-injected here: the
+    // adapter only generates this automatically when there is no custom wrangler.jsonc at all — this
+    // project already has one (routes/custom_domain), so it must be declared explicitly. Confirmed
+    // by reading the merged config the adapter writes to dist/server/wrangler.json after a build.
+    "binding": "ASSETS",
+  },
+  // database_id is a local-only placeholder — the Cloudflare Vite plugin's local D1 emulation only
+  // needs the binding shape, not a real database. Before deploying, replace it with a provisioned id
+  // from `wrangler d1 create www-emdash` (R2 is auto-provisioned on first `wrangler deploy`).
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "www-emdash",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+    },
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      "bucket_name": "www-emdash-media",
+    },
+  ],
+  // Auto-provisioned by @astrojs/cloudflare whenever imageService resolves to "cloudflare-binding"
+  // (the default) — declared explicitly to keep the intent visible in version control.
+  "images": {
+    "binding": "IMAGES",
   },
 }
