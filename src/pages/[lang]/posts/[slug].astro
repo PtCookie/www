@@ -1,4 +1,8 @@
 ---
+// Phase 4 flips this to SSR (getEmDashEntry) — kept static for now so Phase 1 introduces the EmDash
+// runtime without changing any existing route's behavior. Note for Phase 4: under output:"server"
+// without this flag, this route 500s (getStaticPaths()-supplied props like `post` never populate).
+export const prerender = true;
 import { Image } from "astro:assets";
 import { getCollection, render } from "astro:content";
 import { compareDesc, parseISO } from "date-fns";

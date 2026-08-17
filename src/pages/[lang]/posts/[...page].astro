@@ -1,4 +1,7 @@
 ---
+// Phase 4 flips this to SSR (getEmDashCollection) — kept static for now so Phase 1 introduces the
+// EmDash runtime without changing any existing route's behavior.
+export const prerender = true;
 import type { GetStaticPathsOptions } from "astro";
 import { compareDesc, parseISO } from "date-fns";
 import { getCollection } from "astro:content";

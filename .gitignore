@@ -37,6 +37,10 @@ pnpm-debug.log*
 !.dev.vars.example
 !.env.example
 
+# emdash generated types (local dev DB/media live in D1/R2, emulated under .wrangler above)
+.emdash/types.ts
+emdash-env.d.ts
+
 # claude code local settings
 .claude/settings.local.json
 
