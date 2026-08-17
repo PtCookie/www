@@ -11,8 +11,10 @@
       "custom_domain": true,
     },
   ],
+  // @astrojs/cloudflare splits build output into dist/client (assets) and dist/server (worker code,
+  // empty for now since output stays "static" — no route has opted out of prerendering yet).
   "assets": {
-    "directory": "./dist",
+    "directory": "./dist/client",
     "not_found_handling": "404-page",
   },
 }

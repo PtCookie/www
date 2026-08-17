@@ -27,7 +27,8 @@ pnpm test:coverage                    # unit + chromium only, with coverage
   them through `astro:assets` (do not point `coverImage.url` at `public/` — it needs to resolve to an
   `ImageMetadata`, not a plain URL string).
 - **Routing**: all pages live under `src/pages/[lang]/`, with `getStaticPaths()` mapping over `config.locales`
-  (`src/config.ts`). `astro.config.mjs` sets `prefixDefaultLocale: true`, so `/` redirects to `/ko/`. `work.astro`
+  (`src/config.ts`). `astro.config.mjs`'s top-level `redirects` sends `/` to `/ko/`; `i18n.routing` is deliberately
+  left unset (default `prefixDefaultLocale: false`) — see the gotcha below. `work.astro`
   and `about.astro` sit alongside the blog routes; they (and `index.astro`) pass `wide` to `BaseLayout` for a
   `sm:max-w-5xl` container, matching the header's inner width — every other route (posts, tags, 404) stays at the
   narrower `sm:max-w-3xl` that keeps article `prose` readable.
@@ -100,11 +101,28 @@ behaviour.
   for the pnpm command instead of debugging further.
 - `vitest.config.ts` pre-bundles the `astro:transitions` virtual modules in `optimizeDeps`, and the browser project
   is explicitly named `component`. Both comments there explain why — don't strip them, browser tests turn flaky.
+- `astro.config.mjs`'s Cloudflare adapter is gated: `adapter: process.env.VITEST ? undefined : cloudflare()`.
+  Without the guard, `vitest.config.ts`'s `getViteConfig` drags the adapter's Vite plugin into every vitest run,
+  and the Cloudflare plugin's worker-environment validation rejects the `resolve.external` Node-builtins list
+  Vitest's own SSR test environment sets — `vitest` crashes on startup (no tests even run). Keep the guard if you
+  touch either config.
 - Git hooks are managed by lefthook (`lefthook.yml`), installed via the `prepare` script. `pre-commit` runs
   eslint + prettier on staged files in parallel; the **full** vitest suite across 3 browsers runs on `pre-push`,
   so pushes are slow but commits stay fast.
-- `src/pages/index.astro` is intentionally empty; Astro's i18n config generates the `/` → `/ko/` redirect
-  (`public/_redirects` covers the host side).
+- There is no `src/pages/index.astro` and no `public/_redirects`. `/` → `/ko/` comes solely from
+  `astro.config.mjs`'s top-level `redirects` entry. With the Cloudflare adapter installed, this compiles into a
+  native `dist/client/_redirects` rule (301) at build time — don't add a separate `public/_redirects` back for
+  this route, it would just duplicate the adapter-generated line. Astro's configured `redirects` always lose to a
+  real page file at the same path, so don't add an `index.astro` back at the root without removing or updating the
+  `redirects` entry.
+- `astro.config.mjs`'s `i18n` block must never set `routing.prefixDefaultLocale: true` (or `routing: "manual"`
+  without reimplementing the equivalent) and must never set `fallback`. Pages are generated manually under
+  `src/pages/[lang]/` via `getStaticPaths()`, not Astro's automatic locale-folder convention, so neither option is
+  needed for routing to work — but both have real side effects if set: `prefixDefaultLocale: true` forces every
+  route, including ones injected by integrations, to carry a locale prefix, which 404s an admin UI mounted at a
+  fixed unprefixed path (this blocks adding EmDash CMS's `/_emdash/admin`, see emdash-cms/emdash#369). A `fallback`
+  entry (e.g. `{ en: "ko" }`) makes Astro auto-generate extra build output nesting a non-default-locale prefix on
+  top of our own already-prefixed routes (verified: it produced `/en/en/posts/*` alongside the real `/en/posts/*`).
 - `src/content/post/**` is excluded from `pnpm format` (see `.prettierignore`): these files were hand-restored from
   a Hashnode export whose exporter had stripped all leading whitespace from body text, silently flattening code-block
   indentation. Prettier doesn't touch markdown code fences today, but don't rely on that — the exclusion is
@@ -115,6 +133,10 @@ behaviour.
 - Only `www.ptcookie.net` is registered as a Worker custom domain in `wrangler.jsonc`. The apex `ptcookie.net`
   is a plain proxied CNAME plus a Cloudflare Redirect Rule (`ptcookie.net/*` → `www.ptcookie.net/${1}`, 301) —
   Redirect Rules run before Workers routes at Cloudflare's edge, so apex doesn't need its own Worker route.
+- `astro build` output is split into `dist/client` (assets) and `dist/server` (worker code, currently empty)
+  now that `@astrojs/cloudflare` is the adapter — `output` itself still stays `"static"` for now. `wrangler.jsonc`'s
+  `assets.directory` points at `dist/client`, not `dist` — see the comment there. `wrangler deploy --dry-run`
+  validates the merged config against the real bindings without actually deploying.
 - `astro-og` (the `og()` integration in `astro.config.mjs`) is a **dev-toolbar app only** — it doesn't generate
   OG images at build time despite the name. Per-page Open Graph data comes entirely from `BaseLayout`'s
   `title`/`description`/`ogType` props.
