@@ -39,7 +39,7 @@ export default defineConfig({
             // middleware touched it. D1/R2 bindings are emulated locally by the Vite plugin without
             // any native code, so the same config works unchanged in both environments.
             database: d1({ binding: "DB" }),
-            storage: r2({ binding: "MEDIA" }),
+            storage: r2({ binding: "MEDIA", publicUrl: "https://blog-assets.ptcookie.net" }),
           }),
         ]),
   ],

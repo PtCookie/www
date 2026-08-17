@@ -115,8 +115,9 @@ behaviour.
   here runs the real Cloudflare Vite plugin (workerd), which has no Node filesystem and cannot load native N-API
   addons — `better-sqlite3` crashes dev with `Internal server error: module is not defined` the moment EmDash's
   middleware touches it. D1/R2 bindings are emulated locally by the Vite plugin without any native code, so one
-  config works unchanged in both environments; `wrangler.jsonc`'s `d1_databases[0].database_id` is a
-  local-only placeholder until a real one is provisioned before deploying.
+  config works unchanged in both environments; `wrangler.jsonc`'s `d1_databases[0].database_id` is the
+  real provisioned production database (`www-db`), used for both local D1 emulation and the deployed
+  Worker — not a placeholder.
 - EmDash 0.33.0 has no `emdash.config.ts` / `defineCollection` API — the content model is defined entirely by
   `.emdash/seed.json` (schema: `node_modules/emdash/src/seed/types.ts`), which the integration inlines into a
   virtual module at build time (workerd has no filesystem to read it from at runtime). **It is applied exactly
@@ -137,6 +138,31 @@ behaviour.
   seeded via `seed.json` are created correctly with proper per-locale `translationGroup` linking — only the
   taxonomy definition's own display label is wrong, which is admin-UI cosmetic only (the public site reads term
   `slug`/`label`, never the definition's label).
+- `src/content/post/{ko,en}/*.md` and `src/assets/covers/{ko,en}/*` are migrated into EmDash D1/R2 by
+  `scripts/migrate-content.mjs` (`node scripts/migrate-content.mjs [--url <base>] [--dry-run] [--force]`), not
+  `emdash content create`. EmDash's own `markdownToPortableText` (`emdash/client`) — which `EmDashClient.create()`
+  runs automatically over any `portableText` field given a string — is a line-by-line parser: a paragraph wrapped
+  across multiple source lines becomes one block per line, a code fence quoted inside a `>` blockquote leaks its
+  fence markers into the quoted text as literal characters, and only `_em_` is recognized, not `*em*` (this repo's
+  posts rely on all three). `scripts/lib/markdown-to-portable-text.mjs` walks a real markdown AST
+  (`mdast-util-from-markdown`, CommonMark only — the corpus has no tables/strikethrough/task-lists) instead, and
+  the migration script passes the resulting Portable Text array directly rather than a markdown string, since
+  `convertDataForWrite` only runs the built-in converter on string values and leaves arrays untouched. The script
+  is idempotent (skips a `(collection, slug, locale)` that already exists; `--force` updates instead) so re-running
+  it against a partially- or fully-migrated instance, local or production, is safe.
+  - Content is created as `draft` regardless of what `status` is passed to the create API (`contentCreateBody`'s
+    schema only accepts `status: "draft"`) — the migration script calls `client.publish()` right after each
+    `create()`, same as the `emdash content create` CLI command does unless `--draft` is passed.
+  - For an `en` translation created via `translationOf`, don't also pass `taxonomies` expecting it to attach
+    en-locale term rows: `copyEntryTerms` (run for any `translationOf` create) copies the ko source's
+    `content_taxonomies` pivot rows verbatim, and `setTermsForEntry`'s diff (what an explicit `taxonomies` would
+    additionally trigger) compares group membership through `taxonomies.translation_group`, not the literal
+    stored `taxonomy_id` — a ko-locale term row and its en-locale sibling share one `translation_group`, so
+    re-passing the same slugs is a same-group no-op. This is intentional, not a gap: term _reads_
+    (`getAllTermsForEntries`, used by `getEmDashCollection`/`getEmDashEntry`) re-join the pivot's `taxonomy_id`
+    through `translation_group` filtered by the requesting entry's own locale, so a ko-locale pivot row on an en
+    entry still resolves to the en-locale term at read time. Verified against the local DB after migration: all
+    32 `content_taxonomies` rows resolve to a same-locale term when re-joined through `translation_group`.
 - Content EmDash generates its own public URLs for (sitemap routes, hreflang, admin "view on site" links) resolves
   the default-locale segment via `i18n.routing.prefixDefaultLocale`, which is only meaningful when `routing` is an
   object. This project's `routing: "manual"` (see the i18n gotcha below) makes that check read `undefined`, so
