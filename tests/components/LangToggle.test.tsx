@@ -36,7 +36,7 @@ describe("LangToggle", () => {
     const user = userEvent.setup();
     render(<LangToggle lang="ko" currentUrl="/ko/page" />);
 
-    await user.click(screen.getByRole("button", { name: "Toggle Locale" }));
+    await user.click(screen.getByRole("button", { name: "언어 전환" }));
     const item = await screen.findByText("English");
     await user.click(item);
 

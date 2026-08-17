@@ -19,6 +19,7 @@ const { lang } = Astro.params;
   ogType="website"
   wide
 >
+  <h1 class="sr-only">{translate(lang, "page.work")}</h1>
   <div class="flex grow flex-col items-center justify-items-center">
     <Timeline lang={lang} />
     <h2 class="mb-8 text-center font-sans text-3xl font-bold">{translate(lang, "page.hobbyProjects")}</h2>

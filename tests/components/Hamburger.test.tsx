@@ -81,6 +81,21 @@ describe("Hamburger", () => {
     expect(document.documentElement.classList.contains("dark")).toBe(false);
   });
 
+  test("marks the active theme button with aria-current, including System", async () => {
+    const user = userEvent.setup();
+    render(<Hamburger lang="en" menuEntry={menuEntry} currentUrl="/en/work" />);
+
+    await user.click(screen.getByRole("button", { name: /open menu/i }));
+    expect(screen.getByText(/system/i).closest("button")).toHaveAttribute("aria-current", "true");
+
+    await user.click(screen.getByText(/dark/i));
+    expect(screen.getByText(/dark/i).closest("button")).toHaveAttribute("aria-current", "true");
+    expect(screen.getByText(/system/i).closest("button")).toHaveAttribute("aria-current", "false");
+
+    await user.click(screen.getByText(/system/i));
+    expect(screen.getByText(/system/i).closest("button")).toHaveAttribute("aria-current", "true");
+  });
+
   test("navigates to the English version when English is selected", async () => {
     const user = userEvent.setup();
     render(<Hamburger lang="ko" menuEntry={menuEntry} currentUrl="/ko/work" />);

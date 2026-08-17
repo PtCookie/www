@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 
 import type { Tag } from "@/lib/schema.ts";
-import { cn, getAllTags, getTimeline, range, translate } from "@/lib/utils.ts";
+import { cn, formatDate, getAllTags, getTimeline, range, translate } from "@/lib/utils.ts";
 import { timelineEntry } from "@/i18n/timeline.ts";
 
 describe("cn", () => {
@@ -158,6 +158,21 @@ describe("translate", () => {
 
   test("should return the English string for a given key", () => {
     expect(translate("en", "component.light")).toBe("Light");
+  });
+});
+
+describe("formatDate", () => {
+  // All post frontmatter uses a +09:00 offset (see src/content/post/**), so formatDate pins its
+  // rendering to Asia/Seoul — assert against a midnight-KST timestamp to guard the boundary case
+  // a UTC-pinned formatter would get wrong (rolling back to the previous calendar day).
+  const midnightKst = "2025-08-05T00:00:00+09:00";
+
+  test("should format the date in Korean long form", () => {
+    expect(formatDate("ko", midnightKst)).toBe("2025년 8월 5일");
+  });
+
+  test("should format the date in English long form", () => {
+    expect(formatDate("en", midnightKst)).toBe("August 5, 2025");
   });
 });
 

@@ -1,12 +1,12 @@
 ---
 import { Image } from "astro:assets";
 import { getCollection, render } from "astro:content";
-import { compareDesc, format, parseISO } from "date-fns";
+import { compareDesc, parseISO } from "date-fns";
 
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { badgeVariants } from "@/components/ui/badge.tsx";
 import { PostCard } from "@/components/PostCard.tsx";
-import { translate } from "@/lib/utils.ts";
+import { formatDate, translate } from "@/lib/utils.ts";
 import { config } from "@/config.ts";
 
 export async function getStaticPaths() {
@@ -38,9 +38,11 @@ const { Content } = await render(post);
 
 <BaseLayout lang={lang} title={post.data.title} description={post.data.subtitle}>
   <h1 class="my-4 text-3xl font-extrabold sm:my-8 sm:text-5xl">{post.data.title}</h1>
-  <h3 class="mb-3 text-xl font-semibold sm:mb-4 sm:text-2xl">{post.data.subtitle}</h3>
-  <div class="text-muted-foreground mb-2 flex justify-between font-sans text-xs sm:text-sm">
-    <p>{format(post.data.publishedAt, "yyyy-MM-dd")}</p>
+  <p class="mb-3 text-xl font-semibold sm:mb-4 sm:text-2xl">{post.data.subtitle}</p>
+  <div class="text-muted-foreground mb-2 flex justify-between font-sans text-xs tabular-nums sm:text-sm">
+    <p>
+      <time datetime={post.data.publishedAt}>{formatDate(lang, post.data.publishedAt)}</time>
+    </p>
     <p>{post.data.readTimeInMinutes}{translate(lang, "component.readTime")}</p>
   </div>
   <div class="flex flex-wrap justify-end gap-2">
@@ -60,11 +62,17 @@ const { Content } = await render(post);
   {
     post.data.coverImage.url && (
       <figure class="relative mt-4 mb-8 sm:mt-6 sm:mb-10">
-        <Image src={post.data.coverImage.url} alt={post.data.title} class="rounded-md" />
+        <Image
+          src={post.data.coverImage.url}
+          alt={post.data.title}
+          loading="eager"
+          fetchpriority="high"
+          class="rounded-md"
+        />
         {post.data.coverImage.photographer && post.data.coverImage.attribution && (
           <figcaption class="bg-muted absolute right-2 bottom-2 rounded-sm px-2.5 py-1 text-xs italic sm:right-4 sm:bottom-4 sm:text-sm">
             Photo by&nbsp;
-            <a href={post.data.coverImage.attribution} class="underline">
+            <a href={post.data.coverImage.attribution} target="_blank" rel="noreferrer" class="underline">
               {post.data.coverImage.photographer}
             </a>
           </figcaption>
@@ -99,10 +107,10 @@ const { Content } = await render(post);
   {
     (prevPost || nextPost) && (
       <Fragment>
-        <h3 class="text-center text-lg font-medium sm:mb-4 sm:text-xl">{translate(lang, "page.readNext")}</h3>
+        <h2 class="text-center text-lg font-medium sm:mb-4 sm:text-xl">{translate(lang, "page.readNext")}</h2>
         <div class="my-4 grid flex-1 place-items-center content-center gap-8">
-          {nextPost && <PostCard post={nextPost.data} lang={lang} disableImage />}
-          {prevPost && <PostCard post={prevPost.data} lang={lang} disableImage />}
+          {nextPost && <PostCard post={nextPost.data} lang={lang} disableImage={true} headingLevel="h3" />}
+          {prevPost && <PostCard post={prevPost.data} lang={lang} disableImage={true} headingLevel="h3" />}
         </div>
       </Fragment>
     )

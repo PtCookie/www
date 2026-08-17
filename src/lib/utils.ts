@@ -45,6 +45,21 @@ export function translate(lang: Locale, key: keyof Translation): string {
   return translation[lang][key];
 }
 
+const DATE_LOCALE: Record<Locale, string> = { ko: "ko-KR", en: "en-US" };
+
+// Post frontmatter always carries a +09:00 offset (src/content/post/**), so the timezone is
+// pinned to Asia/Seoul rather than the build machine's local time — this is a build-time-only
+// render (PostCard/[slug].astro are never hydrated), and pinning keeps the rendered calendar
+// date stable and correct regardless of where the static build runs.
+export function formatDate(lang: Locale, iso: string): string {
+  return new Intl.DateTimeFormat(DATE_LOCALE[lang], {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZone: "Asia/Seoul",
+  }).format(new Date(iso));
+}
+
 export function getTimeline(lang: Locale): TimelineItem[] {
   return timelineEntry.map(({ id, ...entry }) => ({ ...entry, ...timelineCopy[lang][id] }));
 }

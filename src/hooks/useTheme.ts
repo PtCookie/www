@@ -1,23 +1,14 @@
 import * as React from "react";
 
-export type Theme = "light" | "dark" | "system";
+import { readTheme, setTheme as setThemeStore, subscribeTheme, type Theme } from "@/lib/theme.ts";
 
-// Owns the `dark` class toggle on `<html>`. Not next-themes — this project doesn't use it.
-// Header.astro's inline script (FOUC-free init + MutationObserver) persists whatever this
-// hook writes to `localStorage`, so any consumer that flips the class stays in sync for free.
+export type { Theme };
+
+// Thin `useSyncExternalStore` wrapper around src/lib/theme.ts. `<html data-theme>` (via
+// readTheme/subscribeTheme) is the actual store, so every consumer of this hook (ModeToggle,
+// Hamburger) stays in sync with each other and with BaseLayout.astro's inline head script — no
+// island re-asserts a stale value on mount or on an astro:after-swap navigation.
 export function useTheme(): { theme: Theme; setTheme: (theme: Theme) => void } {
-  const [theme, setTheme] = React.useState<Theme>(() => {
-    if (typeof document === "undefined") {
-      return "system";
-    }
-    return document.documentElement.classList.contains("dark") ? "dark" : "light";
-  });
-
-  React.useEffect(() => {
-    const isDark =
-      theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
-    document.documentElement.classList[isDark ? "add" : "remove"]("dark");
-  }, [theme]);
-
-  return { theme, setTheme };
+  const theme = React.useSyncExternalStore(subscribeTheme, readTheme, () => "system" as Theme);
+  return { theme, setTheme: setThemeStore };
 }

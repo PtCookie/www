@@ -7,6 +7,11 @@ export interface Translation {
   "component.readTime": string;
   "component.readMore": string;
   "component.menu": string;
+  "component.skipToContent": string;
+  "component.toggleTheme": string;
+  "component.toggleLocale": string;
+  "component.themeGroup": string;
+  "component.localeGroup": string;
   "page.recentPosts": string;
   "page.viewAll": string;
   "page.allPosts": string;
@@ -35,6 +40,11 @@ export const translation: Record<Locale, Translation> = {
     "component.readTime": "분 소요",
     "component.readMore": "더 읽기",
     "component.menu": "메뉴",
+    "component.skipToContent": "본문으로 건너뛰기",
+    "component.toggleTheme": "테마 전환",
+    "component.toggleLocale": "언어 전환",
+    "component.themeGroup": "테마 선택",
+    "component.localeGroup": "언어 선택",
     "page.recentPosts": "최근 게시글",
     "page.viewAll": "전체 보기",
     "page.allPosts": "모든 게시글",
@@ -58,9 +68,14 @@ export const translation: Record<Locale, Translation> = {
     "component.light": "Light",
     "component.dark": "Dark",
     "component.system": "System",
-    "component.readTime": "min read",
+    "component.readTime": " min read",
     "component.readMore": "Read more",
     "component.menu": "Menu",
+    "component.skipToContent": "Skip to content",
+    "component.toggleTheme": "Toggle theme",
+    "component.toggleLocale": "Toggle Locale",
+    "component.themeGroup": "Theme selection",
+    "component.localeGroup": "Language selection",
     "page.recentPosts": "Recent Posts",
     "page.viewAll": "View All",
     "page.allPosts": "All Posts",
@@ -77,7 +92,7 @@ export const translation: Record<Locale, Translation> = {
     "page.aboutDescription": "About Minsup Ju",
     "page.greeting": "Hello!",
     "page.name": "My name is Minsup Ju",
-    "page.career": "I've been working on web development since 2019.",
-    "page.techIntro": "I've been developing with the following...",
+    "page.career": "I’ve been working on web development since 2019.",
+    "page.techIntro": "I’ve been developing with the following…",
   },
 } as const;

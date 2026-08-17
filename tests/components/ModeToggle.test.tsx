@@ -23,19 +23,20 @@ vi.stubGlobal(
 
 describe("ModeToggle", () => {
   test("renders the toggle button with expected accessibility label", () => {
-    render(<ModeToggle />);
+    render(<ModeToggle lang="en" />);
 
     expect(screen.getByRole("button", { name: /toggle theme/i })).toBeInTheDocument();
   });
 
-  test("sets initial theme based on document's dark mode class", () => {
+  test("sets initial theme based on document's data-theme attribute", () => {
+    document.documentElement.dataset.theme = "dark";
     document.documentElement.classList.add("dark");
-    render(<ModeToggle />);
+    render(<ModeToggle lang="en" />);
 
     expect(document.documentElement.classList.contains("dark")).toBe(true);
   });
 
-  test("applies dark class to document when Dark is selected", async () => {
+  test("applies dark class and persists the choice when Dark is selected", async () => {
     const user = userEvent.setup();
     render(<ModeToggle lang="en" />);
 
@@ -44,6 +45,20 @@ describe("ModeToggle", () => {
     await user.click(item);
 
     expect(document.documentElement.classList.contains("dark")).toBe(true);
+    expect(document.documentElement.dataset.theme).toBe("dark");
+    expect(localStorage.getItem("theme")).toBe("dark");
+  });
+
+  test("persists the literal 'system' preference when System is selected", async () => {
+    const user = userEvent.setup();
+    render(<ModeToggle lang="en" />);
+
+    await user.click(screen.getByRole("button", { name: /toggle theme/i }));
+    const item = await screen.findByText(/system/i);
+    await user.click(item);
+
+    expect(document.documentElement.dataset.theme).toBe("system");
+    expect(localStorage.getItem("theme")).toBe("system");
   });
 
   test("removes dark class from document when Light is selected", async () => {
