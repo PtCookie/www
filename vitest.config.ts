@@ -45,7 +45,7 @@ export default getViteConfig({
       },
     ],
     coverage: {
-      include: ["src/**"],
+      include: ["src/**/*.{ts,tsx,astro}"],
       exclude: [
         "src/**/*.astro", // exclude til container API is stable
         "src/*config.ts",
