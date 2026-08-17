@@ -117,6 +117,34 @@ behaviour.
   middleware touches it. D1/R2 bindings are emulated locally by the Vite plugin without any native code, so one
   config works unchanged in both environments; `wrangler.jsonc`'s `d1_databases[0].database_id` is a
   local-only placeholder until a real one is provisioned before deploying.
+- EmDash 0.33.0 has no `emdash.config.ts` / `defineCollection` API — the content model is defined entirely by
+  `.emdash/seed.json` (schema: `node_modules/emdash/src/seed/types.ts`), which the integration inlines into a
+  virtual module at build time (workerd has no filesystem to read it from at runtime). **It is applied exactly
+  once**, on the first request against an empty database with setup not yet completed — editing `seed.json` and
+  redeploying does nothing to an already-bootstrapped site. Evolving a live site's schema goes through the admin
+  panel or `emdash schema` CLI instead, and `emdash export-seed` is the way back into version control afterward.
+  Resetting local state to re-apply an edited seed means deleting `.wrangler/state/v3/{d1,r2}` — this also
+  discards the local passkey and any local content, so it's a real decision, not a cache clear. `.emdash/seed.json`
+  is committed; `.emdash/types.ts` and `.emdash/schema.json` (both written by `emdash types`) are gitignored.
+- Two EmDash-managed taxonomy definitions, `category` (hierarchical) and `tag` (flat), are seeded unconditionally
+  by a core database migration (`node_modules/emdash/src/database/migrations/006_taxonomy_defs.ts`) on every fresh
+  install, **before** `seed.json` is applied — independent of whether `seed.json` declares them. Taxonomy
+  definition `name` is globally unique, so a `seed.json` taxonomy named `tag` collides with the migration's row and
+  is silently skipped (its custom `label`/`labelSingular` never take effect; the migration's English "Tags"/"Tag"
+  wins). This project doesn't use categories, so the `category` definition is inert cruft that shows up empty in
+  the admin sidebar — there is no API/CLI in 0.33.0 to rename or delete a taxonomy _definition_ (only terms have
+  update/delete endpoints), so it can't be cleaned up. None of this affects the terms themselves: `tag` terms
+  seeded via `seed.json` are created correctly with proper per-locale `translationGroup` linking — only the
+  taxonomy definition's own display label is wrong, which is admin-UI cosmetic only (the public site reads term
+  `slug`/`label`, never the definition's label).
+- Content EmDash generates its own public URLs for (sitemap routes, hreflang, admin "view on site" links) resolves
+  the default-locale segment via `i18n.routing.prefixDefaultLocale`, which is only meaningful when `routing` is an
+  object. This project's `routing: "manual"` (see the i18n gotcha below) makes that check read `undefined`, so
+  EmDash would emit ko URLs _without_ the `/ko/` prefix our own `src/pages/[lang]/` routes actually serve at —
+  i.e. EmDash's self-generated URLs disagree with reality for the default locale. Our public routes are unaffected
+  (they're built directly by `getStaticPaths()`, never through EmDash's URL helpers), so the fix is simply not to
+  rely on EmDash's own URL generation (`urlPattern` on collections, its sitemap route, preview links) until this is
+  addressed — don't set `urlPattern` expecting it to match `/[lang]/posts/*`.
 - Git hooks are managed by lefthook (`lefthook.yml`), installed via the `prepare` script. `pre-commit` runs
   eslint + prettier on staged files in parallel; the **full** vitest suite across 3 browsers runs on `pre-push`,
   so pushes are slow but commits stay fast.
