@@ -1,0 +1,141 @@
+{
+    "$schema": "https://emdashcms.com/seed.schema.json",
+    "version": "1",
+    "defaultLocale": "ko",
+    "meta": {
+        "name": "ptcookie.net",
+        "description": "Bilingual blog content model for www.ptcookie.net"
+    },
+    "settings": {
+        "title": "PtCookie.Net",
+        "tagline": "Personal blog of PtCookie.Net"
+    },
+    "collections": [
+        {
+            "slug": "posts",
+            "label": "Posts",
+            "labelSingular": "Post",
+            "description": "Blog posts, one row per locale (translations link via the admin's Translations panel).",
+            "icon": "file-text",
+            "supports": ["drafts", "revisions", "search"],
+            "fields": [
+                {
+                    "slug": "title",
+                    "label": "Title",
+                    "type": "string",
+                    "required": true,
+                    "searchable": true
+                },
+                {
+                    "slug": "subtitle",
+                    "label": "Subtitle",
+                    "type": "string",
+                    "required": true,
+                    "searchable": true
+                },
+                {
+                    "slug": "excerpt",
+                    "label": "Excerpt",
+                    "type": "text",
+                    "required": true
+                },
+                {
+                    "slug": "content",
+                    "label": "Content",
+                    "type": "portableText",
+                    "required": true,
+                    "searchable": true
+                },
+                {
+                    "slug": "cover_image",
+                    "label": "Cover Image",
+                    "type": "image"
+                },
+                {
+                    "slug": "cover_attribution",
+                    "label": "Cover Attribution URL",
+                    "type": "url"
+                },
+                {
+                    "slug": "cover_photographer",
+                    "label": "Cover Photographer",
+                    "type": "string"
+                }
+            ]
+        }
+    ],
+    "taxonomies": [
+        {
+            "id": "tax:tag:ko",
+            "name": "tag",
+            "label": "태그",
+            "labelSingular": "태그",
+            "hierarchical": false,
+            "collections": ["posts"],
+            "locale": "ko",
+            "terms": [
+                { "id": "term:tag:typescript:ko", "slug": "typescript", "label": "typescript" },
+                { "id": "term:tag:shell:ko", "slug": "shell", "label": "shell" },
+                { "id": "term:tag:reactjs:ko", "slug": "reactjs", "label": "reactjs" },
+                { "id": "term:tag:nodejs:ko", "slug": "nodejs", "label": "nodejs" },
+                { "id": "term:tag:nextjs:ko", "slug": "nextjs", "label": "nextjs" },
+                { "id": "term:tag:electron:ko", "slug": "electron", "label": "electron" },
+                { "id": "term:tag:css:ko", "slug": "css", "label": "css" }
+            ]
+        },
+        {
+            "id": "tax:tag:en",
+            "name": "tag",
+            "label": "Tags",
+            "labelSingular": "Tag",
+            "hierarchical": false,
+            "collections": ["posts"],
+            "locale": "en",
+            "translationOf": "tax:tag:ko",
+            "terms": [
+                {
+                    "id": "term:tag:typescript:en",
+                    "slug": "typescript",
+                    "label": "typescript",
+                    "translationOf": "term:tag:typescript:ko"
+                },
+                {
+                    "id": "term:tag:shell:en",
+                    "slug": "shell",
+                    "label": "shell",
+                    "translationOf": "term:tag:shell:ko"
+                },
+                {
+                    "id": "term:tag:reactjs:en",
+                    "slug": "reactjs",
+                    "label": "reactjs",
+                    "translationOf": "term:tag:reactjs:ko"
+                },
+                {
+                    "id": "term:tag:nodejs:en",
+                    "slug": "nodejs",
+                    "label": "nodejs",
+                    "translationOf": "term:tag:nodejs:ko"
+                },
+                {
+                    "id": "term:tag:nextjs:en",
+                    "slug": "nextjs",
+                    "label": "nextjs",
+                    "translationOf": "term:tag:nextjs:ko"
+                },
+                {
+                    "id": "term:tag:electron:en",
+                    "slug": "electron",
+                    "label": "electron",
+                    "translationOf": "term:tag:electron:ko"
+                },
+                {
+                    "id": "term:tag:css:en",
+                    "slug": "css",
+                    "label": "css",
+                    "translationOf": "term:tag:css:ko"
+                }
+            ]
+        }
+    ]
+}
