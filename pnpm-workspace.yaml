@@ -3,6 +3,10 @@
 # builds native bindings. Without these, pnpm 11+ aborts the install with
 # ERR_PNPM_IGNORED_BUILDS.
 allowBuilds:
+  # Transitive dep of some emdash dependency (kysely's sqlite adapter, most likely) — the project
+  # never uses emdash's local-sqlite driver (see astro.config.mjs comment, D1/R2 used everywhere
+  # instead), so its native build script is denied rather than run.
+  better-sqlite3: false
   esbuild: true
   lefthook: true
   sharp: true
