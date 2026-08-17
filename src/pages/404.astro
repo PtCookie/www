@@ -1,0 +1,11 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { buttonVariants } from "@/components/ui/button.tsx";
+---
+
+<BaseLayout title="Not found">
+  <div class="flex grow flex-col items-center justify-center gap-8">
+    <p class="text-2xl">Page not found</p>
+    <a href="/" class={buttonVariants()}> Go home </a>
+  </div>
+</BaseLayout>

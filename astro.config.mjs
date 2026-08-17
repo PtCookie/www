@@ -1,28 +1,27 @@
 // @ts-check
 import { defineConfig } from "astro/config";
 import tailwindcss from "@tailwindcss/vite";
-import react from "@astrojs/react";
-import mdx from "@astrojs/mdx";
-import og from "astro-og";
 import cloudflare from "@astrojs/cloudflare";
+import react from "@astrojs/react";
+import og from "astro-og";
 
 // https://astro.build/config
 export default defineConfig({
   site: "https://www.ptcookie.net/",
+  // With the Cloudflare adapter present, this compiles straight into dist/client/_redirects (a native
+  // 301) instead of an HTML meta-refresh page — no separate public/_redirects needed.
+  redirects: {
+    "/": "/ko/",
+  },
   // `output` stays at the default "static" — nothing needs on-demand rendering yet. The adapter is
   // added ahead of that need so the Cloudflare Workers build/deploy path is validated independently.
   // Skipped under Vitest: vitest.config.ts pulls this whole config in via `getViteConfig`, and the
   // Cloudflare Vite plugin's worker-environment validation rejects the `resolve.external` Node-builtins
   // list that Vitest's own SSR test environment sets, which crashes `vitest` before any test runs.
   adapter: process.env.VITEST ? undefined : cloudflare(),
-  integrations: [react(), mdx(), og()],
+  integrations: [react(), og()],
   vite: {
     plugins: [tailwindcss()],
-  },
-  // With the Cloudflare adapter present, this compiles straight into dist/client/_redirects (a native
-  // 301) instead of an HTML meta-refresh page — no separate public/_redirects needed.
-  redirects: {
-    "/": "/ko/",
   },
   markdown: {
     shikiConfig: {
