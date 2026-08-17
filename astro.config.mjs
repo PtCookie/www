@@ -24,7 +24,6 @@ export default defineConfig({
   redirects: {
     "/": "/ko/",
   },
-
   markdown: {
     shikiConfig: {
       themes: {
