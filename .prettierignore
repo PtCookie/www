@@ -4,6 +4,7 @@
 
 pnpm-lock.yaml
 skills-lock.json
+worker-configuration.d.ts
 
 # hand-restored Hashnode export — prettier would collapse code-block indentation back to flush-left
 src/content/
