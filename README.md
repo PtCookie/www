@@ -35,10 +35,10 @@ Personal site of PtCookie.Net — portfolio (Home/Work/About) and blog, built wi
 
 ### Content
 
-Blog posts are local markdown files under `src/content/post/{ko,en}/`, loaded via Astro's content
-collections — there is no external CMS. Posts were originally authored on
-[Hashnode](https://hashnode.com/) and migrated to local markdown; the GraphQL client that used to
-fetch them at build time has been removed.
+Blog posts are managed in [EmDash](https://emdashcms.com/), a CMS built into the Astro app itself
+(admin UI at `/_emdash/admin`), backed by Cloudflare D1 (content) and R2 (media). Posts were
+originally authored on [Hashnode](https://hashnode.com/), migrated to local markdown, and then
+migrated again into EmDash — see AGENTS.md for the content model and query layer.
 
 ## Development
 

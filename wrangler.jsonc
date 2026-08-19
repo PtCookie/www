@@ -1,20 +1,67 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "www",
-  "compatibility_date": "2026-08-15",
-  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
-  "workers_dev": false,
-  "preview_urls": true,
-  "routes": [
-    {
-      "pattern": "www.ptcookie.net",
-      "custom_domain": true,
-    },
-  ],
-  // @astrojs/cloudflare splits build output into dist/client (assets) and dist/server (worker code,
-  // empty for now since output stays "static" — no route has opted out of prerendering yet).
-  "assets": {
-    "directory": "./dist/client",
-    "not_found_handling": "404-page",
-  },
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "www",
+	"compatibility_date": "2026-08-15",
+	"compatibility_flags": [
+		"nodejs_compat",
+		"global_fetch_strictly_public"
+	],
+	"workers_dev": false,
+	"preview_urls": true,
+	"routes": [
+		{
+			"pattern": "www.ptcookie.net",
+			"custom_domain": true
+		}
+	],
+	"assets": {
+		// output:"server" routes every request through the User Worker first; it needs this binding to
+		// serve prerendered/static output itself via env.ASSETS.fetch(). Not auto-injected here: the
+		// adapter only generates this automatically when there is no custom wrangler.jsonc at all — this
+		// project already has one (routes/custom_domain), so it must be declared explicitly. Confirmed
+		// by reading the merged config the adapter writes to dist/server/wrangler.json after a build.
+		"binding": "ASSETS",
+		"directory": "./dist/client",
+		"not_found_handling": "404-page",
+		// Was `["/_emdash/*"]` through Phase 3, when that was the only SSR surface — everything else
+		// was prerendered, so routing those requests through the Worker first would've been pure
+		// overhead. Phase 4 moved the post/tag/locale-index routes to SSR too (see AGENTS.md's EmDash
+		// gotchas), and they don't exist as files under dist/client, so the assets layer's own
+		// not_found_handling ("404-page") was intercepting them before the Worker ever saw the
+		// request. `true` restores what the binding comment above already assumed: the Worker runs
+		// first for every request and calls env.ASSETS.fetch() itself for prerendered/static output
+		// (confirmed in dist/server/entry.mjs) — about/work/404 and built assets still resolve there.
+		"run_worker_first": true
+
+	},
+	// database_id is the real provisioned production database (`wrangler d1 create www-db`), not a
+	// placeholder — it's used both for local D1 emulation and the deployed Worker. R2 is
+	// auto-provisioned on first `wrangler deploy`.
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "www-db",
+			"database_id": "390a9d3e-66d6-4178-8181-dd822a643159"
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "MEDIA",
+			"bucket_name": "www-media"
+		}
+	],
+	// Auto-provisioned by @astrojs/cloudflare whenever imageService resolves to "cloudflare-binding"
+	// (the default) — declared explicitly to keep the intent visible in version control.
+	"images": {
+		"binding": "IMAGES"
+	},
+	"observability": {
+		"logs": {
+			"enabled": true,
+			"invocation_logs": true
+		},
+		"traces": {
+			"enabled": true
+		}
+	}
 }

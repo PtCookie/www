@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import type { Tag } from "@/lib/schema.ts";
+import type { Tag } from "@/lib/post.ts";
 import { cn, formatDate, getAllTags, getTimeline, range, translate } from "@/lib/utils.ts";
 import { timelineEntry } from "@/i18n/timeline.ts";
 

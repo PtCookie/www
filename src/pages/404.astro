@@ -1,4 +1,10 @@
 ---
+// Not prerendered (unlike the other purely static pages): Astro.rewrite("/404"), used by every
+// SSR post/tag route to render a real 404 for a bad slug/page/locale, can't target a prerendered
+// route at runtime — the component is compiled straight to an HTML file during build and isn't
+// retrievable as a live component instance afterward ("Unexpectedly unable to find a component
+// instance for route /404"). Astro's built-in "no route matched" handling still finds this file
+// automatically by its reserved filename regardless of prerender status.
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { buttonVariants } from "@/components/ui/button.tsx";
 ---

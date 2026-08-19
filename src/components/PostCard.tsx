@@ -2,12 +2,12 @@ import * as React from "react";
 
 import { badgeVariants } from "@/components/ui/badge.tsx";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card.tsx";
-import type { Post } from "@/lib/schema.ts";
+import type { PostView } from "@/lib/post.ts";
 import { cn, formatDate, translate } from "@/lib/utils.ts";
 import { config, type Locale } from "@/config.ts";
 
 interface Props {
-  post: Post;
+  post: PostView;
   lang?: Locale;
   disableImage?: boolean;
   // Cards are reused inline within a page that already has its own <h1>/<h2> — callers pass the
@@ -27,17 +27,18 @@ export function PostCard({
     <Card className="w-full max-w-2xl">
       <CardHeader className={cn("-mt-6 block overflow-hidden p-0", !disableImage && "h-48")}>
         {!disableImage &&
-          (children || (
-            <img
-              src={post.coverImage.url.src}
-              alt={post.title}
-              width={post.coverImage.url.width}
-              height={post.coverImage.url.height}
-              loading="lazy"
-              decoding="async"
-              className="h-full w-full overflow-hidden rounded-t-xl object-cover"
-            />
-          ))}
+          (children ||
+            (post.coverImage.image && (
+              <img
+                src={post.coverImage.image.src}
+                alt={post.title}
+                width={post.coverImage.image.width}
+                height={post.coverImage.image.height}
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full overflow-hidden rounded-t-xl object-cover"
+              />
+            )))}
       </CardHeader>
       <CardContent>
         <div className="space-y-2">

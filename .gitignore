@@ -37,6 +37,12 @@ pnpm-debug.log*
 !.dev.vars.example
 !.env.example
 
+# emdash generated types (local dev DB/media live in D1/R2, emulated under .wrangler above)
+# .emdash/seed.json is NOT ignored — it's the committed source of truth for the content model.
+.emdash/types.ts
+.emdash/schema.json
+emdash-env.d.ts
+
 # claude code local settings
 .claude/settings.local.json
 

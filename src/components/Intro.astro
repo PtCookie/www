@@ -18,6 +18,7 @@ const text = "PtCookie.Net";
 
 <script>
   import { gsap } from "gsap";
+  import { buildIntroTimeline } from "@/lib/intro-animation.ts";
 
   let ctx: gsap.Context | undefined;
 
@@ -36,28 +37,7 @@ const text = "PtCookie.Net";
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     ctx = gsap.context(() => {
-      const mainTimeline = gsap.timeline({ repeat: -1, repeatDelay: 1 });
-
-      const flipTimeline = gsap.timeline();
-      const typingTimeline = gsap.timeline();
-
-      mainTimeline.add([flipTimeline, typingTimeline], 0);
-
-      flipTimeline
-        .set("#intro-coin", { rotationY: 0 })
-        .to("#intro-coin", { rotationY: 180, duration: 1.75, ease: "power2.in" })
-        .to("#intro-coin", { rotationY: 360, duration: 1.25, ease: "power2.out" });
-
-      typingTimeline.to(".char", {
-        y: -30,
-        ease: "power2.out",
-        stagger: {
-          each: 0.15,
-          repeat: 1,
-        },
-        yoyo: true,
-        yoyoEase: "bounce.out",
-      });
+      buildIntroTimeline(gsap, { coin: "#intro-coin", chars: ".char" });
     }, container);
   });
 
