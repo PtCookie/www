@@ -36,29 +36,38 @@
 		// same `/*` rule but with zero exceptions, and @cloudflare/vite-plugin applies that rule inside
 		// `astro dev` too — as a *pre*-middleware registered before Vite's own internal ones. With no
 		// exclusions, `/*` catches Vite's own dev-only asset URLs (`/@vite/client`, `/@id/*`,
-		// `/@react-refresh`, `/@fs/*`, `/node_modules/*`) and routes them into the simulated Worker
-		// before Vite's real middleware ever gets a chance to serve them, so they all 404 — this is what
-		// caused the EmDash admin SPA to hang forever on its own "Loading EmDash..." boot screen (React
-		// never mounted because `/@react-refresh`, which every React component module imports in dev,
-		// 404'd). None of these prefixes exist as real production request paths, so excluding them here
-		// is a no-op for the deployed Worker. `/_astro/*` is the one exclusion that also matters in
+		// `/@react-refresh`, `/@fs/*`, `/node_modules/*`, `/src/*`) and routes them into the simulated
+		// Worker before Vite's real middleware ever gets a chance to serve them, so they all 404 — this
+		// is what caused the EmDash admin SPA to hang forever on its own "Loading EmDash..." boot screen
+		// (React never mounted because `/@react-refresh`, which every React component module imports in
+		// dev, 404'd). None of these prefixes exist as real production request paths, so excluding them
+		// here is a no-op for the deployed Worker. `/_astro/*` is the one exclusion that also matters in
 		// production: those are prebuilt, immutable static chunks (see the Cache-Control comment in
 		// _headers), so asset-first (the default without this rule) is strictly better than paying for a
 		// Worker invocation on every JS/CSS chunk request.
 		//
 		// `/@fs/*` is excluded on general principle (Vite's prefix for serving files outside the project
-		// root) but is NOT a fix for a separate, still-open bug: client:* islands on the public site
-		// (Navigation, ModeToggle, LangToggle, Hamburger) fail to hydrate under `astro dev` because the
-		// SSR-rendered `<astro-island component-url="...">` itself omits the `/@fs/` prefix Vite needs
-		// (confirmed via the raw HTML — the browser is asked to fetch a bare absolute filesystem path,
-		// which 404s no matter what `run_worker_first` allows through). That looks like an Astro/Vite-side
-		// issue unrelated to this file; follow up separately.
+		// root), and it's also where src/lib/dev-island-url.ts's dev-only Vite plugin sends its rewritten
+		// requests: an upstream Astro bug (see that file's doc comment) makes `astro dev` emit
+		// `<astro-island component-url="...">` as a bare absolute filesystem path instead of a `/@fs/...`
+		// URL, which the plugin corrects by rewriting the request before this rule (or the Cloudflare
+		// plugin's own pre-middleware) ever sees it.
+		//
+		// `/src/*` was added while chasing that same island-hydration bug: fixing `component-url` alone
+		// wasn't enough, because @vitejs/plugin-react's React Fast Refresh preamble injects its own
+		// self-import of the module under Vite's *root-relative* id (`import * as
+		// __vite_react_currentExports from "/src/components/Navigation.tsx"`), not the `/@fs/...` id
+		// used elsewhere in the same module. Without this exclusion that self-import 404'd the same way
+		// `component-url` used to — root-relative `/src/*` requests were never reaching Vite's static
+		// middleware at all, since `/src/*` wasn't in this list either. Confirmed via the dev server's
+		// network log: the exact same request 404s with this line absent and 200s with it present.
 		"run_worker_first": [
 			"/*",
 			"!/@vite/*",
 			"!/@id/*",
 			"!/@react-refresh",
 			"!/@fs/*",
+			"!/src/*",
 			"!/node_modules/*",
 			"!/_astro/*"
 		]

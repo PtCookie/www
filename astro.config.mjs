@@ -8,6 +8,7 @@ import emdash from "emdash/astro";
 import { d1, r2 } from "@emdash-cms/cloudflare";
 
 import { shikiThemes } from "./src/lib/shiki.ts";
+import { devIslandUrlPlugin } from "./src/lib/dev-island-url.ts";
 
 // https://astro.build/config
 export default defineConfig({
@@ -63,7 +64,12 @@ export default defineConfig({
         ]),
   ],
   vite: {
-    plugins: [tailwindcss()],
+    // devIslandUrlPlugin works around an astro dev-mode island hydration bug — see its own doc
+    // comment in src/lib/dev-island-url.ts for the root cause. Skipped under Vitest for the same
+    // reason as the adapter/output/emdash guards above: it's dev-server-only behavior with nothing
+    // for a unit/browser test run to exercise, and vitest's SSR test environment also reports
+    // `command: "serve"`, so leaving it unguarded would let it register a middleware there too.
+    plugins: [tailwindcss(), ...(process.env.VITEST ? [] : [devIslandUrlPlugin()])],
   },
   markdown: {
     shikiConfig: {

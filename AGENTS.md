@@ -190,14 +190,48 @@ build` always evaluates this config with `NODE_ENV=production`.
 key from _mf_objects"`) and copy objects across with `wrangler r2 object get <old-bucket>/<key> --local
 --file=...` + `wrangler r2 object put <new-bucket>/<key> --local --file=...` — purely local state, no git or
     production impact.
-- **Open issue, not yet root-caused**: under `astro dev`, every `client:*` island on the public site (`Navigation`,
-  `ModeToggle`, `LangToggle`, `Hamburger`) fails to hydrate. The SSR-rendered `<astro-island component-url="...">`
-  itself omits Vite's `/@fs/` prefix (confirmed via the raw HTML response — `component-url` is a bare absolute
-  filesystem path like `/Users/.../src/components/Navigation.tsx`), so the browser's dynamic import 404s
-  regardless of `run_worker_first` config. Looks like an Astro/Vite-side issue in how island component URLs are
-  generated in dev, not something in this project's own routing. `astro preview`/production are unaffected (this
-  is dev-only SSR, no astro-island client-URL generation there — prerendered/SSR'd HTML ships real bundled
-  scripts).
+- **Root-caused and worked around**: under `astro dev`, every `client:*` island on the public site (`Navigation`,
+  `ModeToggle`, `LangToggle`, `Hamburger`) used to fail to hydrate, because the SSR-rendered
+  `<astro-island component-url="...">` omitted Vite's `/@fs/` prefix (`component-url` was a bare absolute
+  filesystem path like `/Users/.../src/components/Navigation.tsx`), so the browser's dynamic import 404'd
+  regardless of `run_worker_first` config. This is an upstream Astro 7 bug (still present in astro@7.2.3, the
+  latest as of this writing — confirmed against the published tarball, not just the installed 7.2.2), not
+  something in this project's own routing: `client:component-path` is compiled to an absolute FS path
+  (`astro/dist/core/compile/compile.js`'s use of `core/viteUtils.js`'s `resolvePath()`), and
+  `runtime/server/hydration.js` turns that into `component-url` via a pipeline-supplied `resolve()`. The
+  _correct_ resolver (`RunnablePipeline` → `createResolve()` → `resolveIdToUrl()` in `core/viteUtils.js`) strips
+  the project root or prepends `/@fs` for an absolute path, but it's only wired up when Astro's `ssr` Vite
+  environment is a `RunnableDevEnvironment` — and `@astrojs/cloudflare` replaces that environment with
+  `@cloudflare/vite-plugin`'s `CloudflareDevEnvironment`, which doesn't extend `RunnableDevEnvironment`. Astro's
+  `isRunnableDevEnvironment()` check then fails, so rendering falls back to the _non-runnable_ dev pipeline
+  (`core/app/dev/pipeline.js`, moved to `core/environment/dev-nonrunnable.js` in 7.2.3), whose `resolve()` is a
+  naive `specifier.startsWith("/") ? specifier : "/@id/" + specifier` — an absolute FS path starts with `/`, so
+  it passes through completely unresolved. `renderer-url` (a bare specifier like `@astrojs/react/client.js`)
+  isn't affected, which is why only `component-url` — and therefore only island hydration — breaks.
+  `src/lib/dev-island-url.ts`'s `devIslandUrlPlugin()` (wired into `astro.config.mjs`'s `vite.plugins`, dev-only
+  via `apply: "serve"` + a `VITEST` guard) works around this — not by changing what `component-url` says in the
+  HTML (that's still the bare absolute path; nothing in the SSR render path can rewrite it without patching
+  Astro itself), but by intercepting the _browser's subsequent request_ for that exact URL — the custom element
+  literally does `import(this.getAttribute("component-url"))`
+  (`astro/dist/runtime/server/astro-island.js`), so the browser issues a same-origin GET for the bare path
+  verbatim. The plugin rewrites that request to `/@fs/...` before `@cloudflare/vite-plugin`'s own pre-middleware
+  can route it into the simulated Worker — it has to sit at the front of `server.middlewares.stack` (via
+  `unshift`, not `use()`) to run before that pre-middleware, since plugin registration order isn't reliable here
+  (the Cloudflare plugin manipulates the stack directly too). See that file's doc comment for the full trace and
+  removal condition. `astro preview`/production are unaffected (this is dev-only SSR, no astro-island client-URL
+  generation there — prerendered/SSR'd HTML ships real bundled scripts under `/_astro/*`).
+  - Fixing `component-url` alone wasn't sufficient: `wrangler.jsonc`'s `assets.run_worker_first` exclusion list
+    also needed `!/src/*` added. `@vitejs/plugin-react`'s React Fast Refresh preamble injects its own self-import
+    of each component module under Vite's _root-relative_ id (e.g. `import * as __vite_react_currentExports
+from "/src/components/Navigation.tsx"`), separate from the `/@fs/...` id used for `import.meta.hot`'s own
+    context in the same emitted file. That request was falling into the same trap as the unpatched
+    `component-url` — not because of the Astro bug above, but because `/src/*` simply wasn't in the
+    `run_worker_first` exception list, so `@cloudflare/vite-plugin`'s pre-middleware routed it into the
+    simulated Worker (which 404s anything that isn't a real route or `env.ASSETS` file) before Vite's own
+    static/transform middleware ever got a chance to serve it. Confirmed by toggling the exclusion and diffing
+    the response code for the exact same request. No `dev-island-url.ts` change was needed for this half — it's
+    purely a `wrangler.jsonc` routing gap, and like the other dev-only exclusions there, `/src/*` never exists as
+    a real production request path.
 - Git hooks are managed by lefthook (`lefthook.yml`), installed via the `prepare` script. `pre-commit` runs
   eslint + prettier on staged files in parallel; the **full** vitest suite across 3 browsers runs on `pre-push`,
   so pushes are slow but commits stay fast.
