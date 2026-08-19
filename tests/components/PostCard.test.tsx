@@ -2,10 +2,10 @@ import * as React from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
 
-import type { Post } from "@/lib/schema.ts";
+import type { PostView } from "@/lib/post.ts";
 import { PostCard } from "@/components/PostCard.tsx";
 
-const mockPost: Post = {
+const mockPost: PostView = {
   publishedAt: new Date(2025, 2, 22).toISOString(),
   title: "Sample Post",
   subtitle: "Description of the post",
@@ -17,11 +17,10 @@ const mockPost: Post = {
     { name: "Tag Two", slug: "tag2" },
   ],
   coverImage: {
-    url: { src: "/cover-image.jpg", width: 100, height: 100, format: "jpg" },
+    image: { id: "media_1", src: "/cover-image.jpg", width: 100, height: 100 },
     attribution: null,
     photographer: null,
   },
-  locale: "en",
 };
 
 describe("PostCard", () => {

@@ -1,37 +1,30 @@
 ---
-export const prerender = true;
-import type { GetStaticPathsOptions } from "astro";
-import { compareDesc, parseISO } from "date-fns";
-import { getCollection } from "astro:content";
-
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import PostList from "@/components/PostList.astro";
-import { getAllTags } from "@/lib/utils.ts";
-import { config } from "@/config.ts";
+import { paginate } from "@/lib/pagination.ts";
+import { toPostView } from "@/lib/post.ts";
+import { getAllPublishedPosts } from "@/lib/posts.ts";
+import { isLocale } from "@/config.ts";
 
-export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
-  const posts = await getCollection("post");
-  const allTags = getAllTags(posts, true);
-
-  return config.locales.flatMap((locale) => {
-    return allTags.flatMap((tag) => {
-      const filteredPosts = posts
-        .filter((post) => post.data.locale === locale && post.data.tags.some((t) => t.name === tag.name))
-        .sort((a, b) => compareDesc(parseISO(a.data.publishedAt), parseISO(b.data.publishedAt)));
-
-      return paginate(filteredPosts, {
-        params: { lang: locale, slug: tag.slug },
-        props: { tag },
-        pageSize: 3,
-      });
-    });
-  });
+const { lang, slug, page: pageParam } = Astro.params;
+if (!isLocale(lang) || !slug) {
+  Astro.response.status = 404;
+  return Astro.rewrite("/404");
 }
 
-const { tag, page } = Astro.props;
-const { lang } = Astro.params;
+const PAGE_SIZE = 3;
+const pageNumber = pageParam === undefined ? 1 : /^\d+$/.test(pageParam) ? Number(pageParam) : NaN;
+
+const taggedPosts = (await getAllPublishedPosts(lang, slug)).map(toPostView);
+const tagName = taggedPosts[0]?.tags.find((tag) => tag.slug === slug)?.name;
+const page = tagName ? paginate(taggedPosts, pageNumber, PAGE_SIZE, `/${lang}/tags/${slug}`) : null;
+
+if (!page) {
+  Astro.response.status = 404;
+  return Astro.rewrite("/404");
+}
 ---
 
-<BaseLayout lang={lang} title={tag.name}>
-  <PostList title={tag.name} basePath={`/${lang}/tags/${tag.slug}`} page={page} lang={lang} />
+<BaseLayout lang={lang} title={tagName}>
+  <PostList title={tagName} basePath={`/${lang}/tags/${slug}`} page={page} lang={lang} />
 </BaseLayout>

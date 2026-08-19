@@ -1,18 +1,18 @@
 ---
-export const prerender = true;
-import { getCollection } from "astro:content";
-
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { badgeVariants } from "@/components/ui/badge.tsx";
 import { getAllTags, translate } from "@/lib/utils.ts";
-import { config } from "@/config.ts";
-
-export async function getStaticPaths() {
-  return config.locales.map((locale) => ({ params: { lang: locale } }));
-}
+import { toPostView } from "@/lib/post.ts";
+import { getAllPublishedPosts } from "@/lib/posts.ts";
+import { isLocale } from "@/config.ts";
 
 const { lang } = Astro.params;
-const posts = await getCollection("post", ({ data }) => data.locale === lang);
+if (!isLocale(lang)) {
+  Astro.response.status = 404;
+  return Astro.rewrite("/404");
+}
+
+const posts = (await getAllPublishedPosts(lang)).map((entry) => ({ data: toPostView(entry) }));
 const allTags = getAllTags(posts, true);
 ---
 

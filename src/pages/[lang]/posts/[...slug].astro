@@ -1,0 +1,156 @@
+---
+// Combined list + detail route. SSR (live EmDash collection) can't use getStaticPaths, and
+// Astro's route priority always prefers a named param over a rest param — so a separate
+// `[slug].astro` would win over `[...page].astro` for every numeric page ("/ko/posts/2" would
+// 404 as a post lookup instead of listing page 2). One rest-param route disambiguates by hand
+// instead:
+//   no slug            -> list, page 1
+//   slug is all digits -> list, page N          (a post whose real slug is only digits can
+//                                                  never be reached this way — none of the
+//                                                  migrated posts are, but a future one must
+//                                                  avoid an all-digit slug)
+//   anything else       -> post detail
+import { Image, PortableText } from "emdash/ui";
+
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import PostList from "@/components/PostList.astro";
+import Code from "@/components/portable-text/Code.astro";
+import { badgeVariants } from "@/components/ui/badge.tsx";
+import { PostCard } from "@/components/PostCard.tsx";
+import { formatDate, translate } from "@/lib/utils.ts";
+import { paginate, type PagedItems } from "@/lib/pagination.ts";
+import { toPostView, type PostEntry, type PostView } from "@/lib/post.ts";
+import { getAllPublishedPosts, getPublishedPostBySlug } from "@/lib/posts.ts";
+import { isLocale } from "@/config.ts";
+
+const { lang, slug } = Astro.params;
+if (!isLocale(lang)) {
+  Astro.response.status = 404;
+  return Astro.rewrite("/404");
+}
+
+const PAGE_SIZE = 3;
+const isNumericSlug = slug !== undefined && /^\d+$/.test(slug);
+
+// Discriminated union instead of separate nullable `let`s: the two branches below are mutually
+// exclusive, but TypeScript can't see that once the values are read back out in the template
+// section, so a plain "either could be null" typing would force non-null assertions everywhere
+// down there (forbidden by this project's eslint config). Narrowing on `result.kind` avoids it.
+type Result =
+  | { kind: "list"; page: PagedItems<PostView> }
+  | { kind: "detail"; post: PostEntry; postView: PostView; prevPost: PostView | null; nextPost: PostView | null };
+
+let result: Result;
+
+if (slug === undefined || isNumericSlug) {
+  const allPosts = (await getAllPublishedPosts(lang)).map(toPostView);
+  const page = paginate(allPosts, isNumericSlug ? Number(slug) : 1, PAGE_SIZE, `/${lang}/posts`);
+
+  if (!page) {
+    Astro.response.status = 404;
+    return Astro.rewrite("/404");
+  }
+  result = { kind: "list", page };
+} else {
+  const post = await getPublishedPostBySlug(lang, slug);
+
+  if (!post) {
+    Astro.response.status = 404;
+    return Astro.rewrite("/404");
+  }
+
+  // Posts are sorted newest-first, so the "next" post to read is the one published before it.
+  const allEntries = await getAllPublishedPosts(lang);
+  const index = allEntries.findIndex((entry) => entry.id === post.id);
+  const prevPost = index + 1 < allEntries.length ? toPostView(allEntries[index + 1]) : null;
+  const nextPost = index > 0 ? toPostView(allEntries[index - 1]) : null;
+
+  result = { kind: "detail", post, postView: toPostView(post), prevPost, nextPost };
+}
+---
+
+<BaseLayout
+  lang={lang}
+  title={result.kind === "list" ? translate(lang, "page.allPosts") : result.postView.title}
+  description={result.kind === "detail" ? result.postView.subtitle : undefined}
+>
+  {
+    result.kind === "list" ? (
+      <PostList title={translate(lang, "page.allPosts")} basePath={`/${lang}/posts`} page={result.page} lang={lang} />
+    ) : (
+      <Fragment>
+        <h1 class="my-4 text-3xl font-extrabold sm:my-8 sm:text-5xl">{result.postView.title}</h1>
+        <p class="mb-3 text-xl font-semibold sm:mb-4 sm:text-2xl">{result.postView.subtitle}</p>
+        <div class="text-muted-foreground mb-2 flex justify-between font-sans text-xs tabular-nums sm:text-sm">
+          <p>
+            <time datetime={result.postView.publishedAt}>{formatDate(lang, result.postView.publishedAt)}</time>
+          </p>
+          <p>
+            {result.postView.readTimeInMinutes}
+            {translate(lang, "component.readTime")}
+          </p>
+        </div>
+        <div class="flex flex-wrap justify-end gap-2">
+          {result.postView.tags.map((tag) => (
+            <a
+              href={`/${lang}/tags/${tag.slug}`}
+              data-testid="badge"
+              class:list={[badgeVariants({ variant: "secondary" }), "font-mono"]}
+            >
+              #{tag.name}
+            </a>
+          ))}
+        </div>
+
+        {result.postView.coverImage.image && (
+          <figure class="relative mt-4 mb-8 sm:mt-6 sm:mb-10">
+            <Image image={result.postView.coverImage.image} alt={result.postView.title} priority class="rounded-md" />
+            {result.postView.coverImage.photographer && result.postView.coverImage.attribution && (
+              <figcaption class="bg-muted absolute right-2 bottom-2 rounded-sm px-2.5 py-1 text-xs italic sm:right-4 sm:bottom-4 sm:text-sm">
+                Photo by&nbsp;
+                <a href={result.postView.coverImage.attribution} target="_blank" rel="noreferrer" class="underline">
+                  {result.postView.coverImage.photographer}
+                </a>
+              </figcaption>
+            )}
+          </figure>
+        )}
+
+        <article
+          class:list={[
+            "prose sm:prose-lg dark:prose-invert prose-p:font-serif max-w-none",
+            // Pre-EmDash this was `post.data.coverImage.url || "my-8"`, passing the truthy
+            // ImageMetadata object itself into class:list — which spreads each of its own
+            // enumerable keys in as a class name (confirmed in the pre-migration build output:
+            // `class="... src width height format"`). Coerce to a boolean instead.
+            result.postView.coverImage.image ? undefined : "my-8",
+          ]}
+        >
+          <PortableText value={result.post.data.content} components={{ type: { code: Code } }} />
+        </article>
+
+        <div class="my-6 flex flex-wrap justify-start gap-2 sm:my-8">
+          {result.postView.tags.map((tag) => (
+            <a
+              href={`/${lang}/tags/${tag.slug}`}
+              data-testid="badge"
+              class:list={[badgeVariants({ variant: "secondary" }), "font-mono"]}
+            >
+              #{tag.name}
+            </a>
+          ))}
+        </div>
+
+        {(result.prevPost || result.nextPost) && (
+          <Fragment>
+            <h2 class="text-center text-lg font-medium sm:mb-4 sm:text-xl">{translate(lang, "page.readNext")}</h2>
+            <div class="my-4 grid flex-1 place-items-center content-center gap-8">
+              {result.nextPost && <PostCard post={result.nextPost} lang={lang} disableImage={true} headingLevel="h3" />}
+              {result.prevPost && <PostCard post={result.prevPost} lang={lang} disableImage={true} headingLevel="h3" />}
+            </div>
+          </Fragment>
+        )}
+      </Fragment>
+    )
+  }
+</BaseLayout>

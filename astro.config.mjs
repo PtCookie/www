@@ -7,6 +7,8 @@ import og from "astro-og";
 import emdash from "emdash/astro";
 import { d1, r2 } from "@emdash-cms/cloudflare";
 
+import { shikiThemes } from "./src/lib/shiki.ts";
+
 // https://astro.build/config
 export default defineConfig({
   site: "https://www.ptcookie.net/",
@@ -48,10 +50,9 @@ export default defineConfig({
   },
   markdown: {
     shikiConfig: {
-      themes: {
-        light: "catppuccin-macchiato",
-        dark: "catppuccin-latte",
-      },
+      // See src/lib/shiki.ts — shared with the Portable Text code block component so both
+      // pipelines produce identical highlighting output.
+      themes: shikiThemes,
       wrap: true,
     },
   },

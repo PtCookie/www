@@ -1,0 +1,22 @@
+---
+/**
+ * Portable Text "code" block renderer, passed to <PortableText components={{ type: { code } }}>
+ * to override emdash/ui's default (unhighlighted, hardcoded-dark) Code.astro. Renders through the
+ * same Shiki setup as the old build-time markdown code fences — see src/lib/highlighter.ts.
+ */
+import { highlightCode } from "@/lib/highlighter.ts";
+
+export interface Props {
+  node: {
+    _type: "code";
+    _key: string;
+    code: string;
+    language?: string;
+  };
+}
+
+const { node } = Astro.props;
+const html = node?.code ? await highlightCode(node.code, node.language) : null;
+---
+
+{html && <Fragment set:html={html} />}

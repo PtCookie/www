@@ -23,9 +23,16 @@
 		"binding": "ASSETS",
 		"directory": "./dist/client",
 		"not_found_handling": "404-page",
-		"run_worker_first": [
-			"/_emdash/*"
-		]
+		// Was `["/_emdash/*"]` through Phase 3, when that was the only SSR surface — everything else
+		// was prerendered, so routing those requests through the Worker first would've been pure
+		// overhead. Phase 4 moved the post/tag/locale-index routes to SSR too (see AGENTS.md's EmDash
+		// gotchas), and they don't exist as files under dist/client, so the assets layer's own
+		// not_found_handling ("404-page") was intercepting them before the Worker ever saw the
+		// request. `true` restores what the binding comment above already assumed: the Worker runs
+		// first for every request and calls env.ASSETS.fetch() itself for prerendered/static output
+		// (confirmed in dist/server/entry.mjs) — about/work/404 and built assets still resolve there.
+		"run_worker_first": true
+
 	},
 	// database_id is the real provisioned production database (`wrangler d1 create www-db`), not a
 	// placeholder — it's used both for local D1 emulation and the deployed Worker. R2 is

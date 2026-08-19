@@ -1,7 +1,8 @@
 # www.ptcookie.net
 
-Static Astro site (https://www.ptcookie.net): portfolio (Home/Work/About) plus a blog, content
-authored as local markdown. React islands + shadcn/ui + Tailwind v4, bilingual (ko/en).
+Astro site (https://www.ptcookie.net) on Cloudflare Workers: a static portfolio (Home/Work/About)
+plus a blog backed by EmDash, an Astro-native CMS running in-app with an admin UI at
+`/_emdash/admin`. React islands + shadcn/ui + Tailwind v4, bilingual (ko/en).
 
 ## Commands
 
@@ -19,19 +20,28 @@ pnpm test:coverage                    # unit + chromium only, with coverage
 
 ## Architecture
 
-- **Content pipeline**: posts are markdown files in `src/content/post/{ko,en}/*.md`, loaded by Astro's built-in
-  `glob` loader (`src/content.config.ts`) into the `post` collection, validated by `src/lib/schema.ts`. Locale is a
-  top-level directory (`ko`/`en`) and also a required `locale` frontmatter field acting as a discriminator, so every
-  `getCollection("post")` call must filter on it. Cover images live in `src/assets/covers/{ko,en}/*` and are
-  referenced from frontmatter via a relative `coverImage.url` path so Astro's `image()` schema helper can process
-  them through `astro:assets` (do not point `coverImage.url` at `public/` — it needs to resolve to an
-  `ImageMetadata`, not a plain URL string).
-- **Routing**: all pages live under `src/pages/[lang]/`, with `getStaticPaths()` mapping over `config.locales`
-  (`src/config.ts`). `astro.config.mjs`'s top-level `redirects` sends `/` to `/ko/`; `i18n.routing` is deliberately
-  left unset (default `prefixDefaultLocale: false`) — see the gotcha below. `work.astro`
-  and `about.astro` sit alongside the blog routes; they (and `index.astro`) pass `wide` to `BaseLayout` for a
-  `sm:max-w-5xl` container, matching the header's inner width — every other route (posts, tags, 404) stays at the
-  narrower `sm:max-w-3xl` that keeps article `prose` readable.
+- **Content pipeline**: posts live in EmDash's `posts` collection (Cloudflare D1, media in R2), defined by
+  `.emdash/seed.json` and queried at request time via `getEmDashCollection`/`getEmDashEntry` (from `emdash`) —
+  wrapped by `src/lib/posts.ts` (`getAllPublishedPosts`, `getPublishedPostBySlug`). `src/lib/post.ts` hand-declares
+  `PostData` (the collection's `data` shape — kept in sync with `.emdash/seed.json` by hand, since the generated
+  `.emdash/types.ts`/`emdash-env.d.ts` are gitignored) and `toPostView()`, which flattens a query result into the
+  `PostView` shape `PostCard`/`PostList` render (title/subtitle/brief/slug/publishedAt/readTimeInMinutes/tags/
+  coverImage). Read time isn't stored — EmDash's content model has no such field — so `getReadTimeInMinutes()`
+  estimates it from the Portable Text body. Body content renders via `emdash/ui`'s `<PortableText>`, with the
+  `code` block type overridden by `src/components/portable-text/Code.astro` (Shiki syntax highlighting matching
+  the site's Catppuccin dual theme — see `src/lib/highlighter.ts`); cover images render via `emdash/ui`'s
+  `<Image>`, not `astro:assets`. `src/live.config.ts` (`emdashLoader`) and `src/middleware.ts` wire the runtime in;
+  `src/content.config.ts` (file-based collections) no longer exists, along with the markdown corpus and one-time
+  migration script that preceded this (see the git history gotcha below).
+- **Routing**: portfolio pages (`work.astro`, `about.astro`, `index.astro` is EmDash-backed and SSR, see below) and
+  `404.astro` live under `src/pages/[lang]/` (404 at the root); blog routes read `lang`/`slug`/`page`/`tag` straight
+  from `Astro.params` at request time and validate with `isLocale()` (`src/config.ts`) instead of using
+  `getStaticPaths()`, since EmDash is a live collection. `src/pages/[lang]/posts/[...slug].astro` combines the post
+  list and post detail into one rest-param route on purpose — see its own top-of-file comment for why a separate
+  `[slug].astro` can't coexist with numbered list pages under SSR. `astro.config.mjs`'s top-level `redirects` sends
+  `/` to `/ko/`; `i18n.routing` is deliberately left unset (default `prefixDefaultLocale: false`) — see the gotcha
+  below. `work.astro` and `about.astro` sit alongside the blog routes; they (and `index.astro`) pass `wide` to
+  `BaseLayout` for a `sm:max-w-5xl` container, matching the header's inner width — every other route (posts, tags, 404) stays at the narrower `sm:max-w-3xl` that keeps article `prose` readable.
 - **UI**: `.astro` for static markup, `.tsx` React islands only where interaction is needed
   (`ModeToggle`, `LangToggle`, `Navigation`, `Hamburger`, `Pagination`, `PostCard`). `Navigation` is hydrated
   (`client:load`) because its `Link` dropdown needs a Radix trigger — it used to be static SSR-only markup, so
@@ -138,39 +148,24 @@ behaviour.
   seeded via `seed.json` are created correctly with proper per-locale `translationGroup` linking — only the
   taxonomy definition's own display label is wrong, which is admin-UI cosmetic only (the public site reads term
   `slug`/`label`, never the definition's label).
-- `src/content/post/{ko,en}/*.md` and `src/assets/covers/{ko,en}/*` are migrated into EmDash D1/R2 by
-  `scripts/migrate-content.mjs` (`node scripts/migrate-content.mjs [--url <base>] [--dry-run] [--force]`), not
-  `emdash content create`. EmDash's own `markdownToPortableText` (`emdash/client`) — which `EmDashClient.create()`
-  runs automatically over any `portableText` field given a string — is a line-by-line parser: a paragraph wrapped
-  across multiple source lines becomes one block per line, a code fence quoted inside a `>` blockquote leaks its
-  fence markers into the quoted text as literal characters, and only `_em_` is recognized, not `*em*` (this repo's
-  posts rely on all three). `scripts/lib/markdown-to-portable-text.mjs` walks a real markdown AST
-  (`mdast-util-from-markdown`, CommonMark only — the corpus has no tables/strikethrough/task-lists) instead, and
-  the migration script passes the resulting Portable Text array directly rather than a markdown string, since
-  `convertDataForWrite` only runs the built-in converter on string values and leaves arrays untouched. The script
-  is idempotent (skips a `(collection, slug, locale)` that already exists; `--force` updates instead) so re-running
-  it against a partially- or fully-migrated instance, local or production, is safe.
-  - Content is created as `draft` regardless of what `status` is passed to the create API (`contentCreateBody`'s
-    schema only accepts `status: "draft"`) — the migration script calls `client.publish()` right after each
-    `create()`, same as the `emdash content create` CLI command does unless `--draft` is passed.
-  - For an `en` translation created via `translationOf`, don't also pass `taxonomies` expecting it to attach
-    en-locale term rows: `copyEntryTerms` (run for any `translationOf` create) copies the ko source's
-    `content_taxonomies` pivot rows verbatim, and `setTermsForEntry`'s diff (what an explicit `taxonomies` would
-    additionally trigger) compares group membership through `taxonomies.translation_group`, not the literal
-    stored `taxonomy_id` — a ko-locale term row and its en-locale sibling share one `translation_group`, so
-    re-passing the same slugs is a same-group no-op. This is intentional, not a gap: term _reads_
-    (`getAllTermsForEntries`, used by `getEmDashCollection`/`getEmDashEntry`) re-join the pivot's `taxonomy_id`
-    through `translation_group` filtered by the requesting entry's own locale, so a ko-locale pivot row on an en
-    entry still resolves to the en-locale term at read time. Verified against the local DB after migration: all
-    32 `content_taxonomies` rows resolve to a same-locale term when re-joined through `translation_group`.
+- The markdown corpus (`src/content/post/{ko,en}/*.md`, `src/assets/covers/{ko,en}/*`) was migrated into EmDash
+  D1/R2 by a one-time script (`scripts/migrate-content.mjs` + `scripts/lib/markdown-to-portable-text.mjs`, both
+  removed once the migration was verified — see the `feat: migrate blog content into EmDash` commit for the full
+  implementation and rationale, including why it walked a real markdown AST instead of using EmDash's own
+  line-by-line `markdownToPortableText`). Content now lives only in D1/R2; edit it through `/_emdash/admin`.
+  - One thing from that migration still matters going forward: for an `en` translation created via
+    `translationOf`, don't pass `taxonomies` expecting it to attach en-locale term rows — `copyEntryTerms` already
+    copies the ko source's pivot rows, and term _reads_ re-join them through `translation_group` filtered by the
+    entry's own locale, so a ko-locale pivot row on an en entry still resolves to the en-locale term. Passing
+    `taxonomies` again is a same-group no-op, not a bug.
 - Content EmDash generates its own public URLs for (sitemap routes, hreflang, admin "view on site" links) resolves
   the default-locale segment via `i18n.routing.prefixDefaultLocale`, which is only meaningful when `routing` is an
   object. This project's `routing: "manual"` (see the i18n gotcha below) makes that check read `undefined`, so
   EmDash would emit ko URLs _without_ the `/ko/` prefix our own `src/pages/[lang]/` routes actually serve at —
   i.e. EmDash's self-generated URLs disagree with reality for the default locale. Our public routes are unaffected
-  (they're built directly by `getStaticPaths()`, never through EmDash's URL helpers), so the fix is simply not to
-  rely on EmDash's own URL generation (`urlPattern` on collections, its sitemap route, preview links) until this is
-  addressed — don't set `urlPattern` expecting it to match `/[lang]/posts/*`.
+  (they're defined directly under `src/pages/[lang]/`, never through EmDash's URL helpers), so the fix is simply
+  not to rely on EmDash's own URL generation (`urlPattern` on collections, its sitemap route, preview links) until
+  this is addressed — don't set `urlPattern` expecting it to match `/[lang]/posts/*`.
 - Git hooks are managed by lefthook (`lefthook.yml`), installed via the `prepare` script. `pre-commit` runs
   eslint + prettier on staged files in parallel; the **full** vitest suite across 3 browsers runs on `pre-push`,
   so pushes are slow but commits stay fast.
@@ -181,8 +176,9 @@ behaviour.
   real page file at the same path, so don't add an `index.astro` back at the root without removing or updating the
   `redirects` entry.
 - `astro.config.mjs`'s `i18n` block must never set `routing.prefixDefaultLocale: true` and must never set
-  `fallback`. Pages are generated manually under `src/pages/[lang]/` via `getStaticPaths()`, not Astro's automatic
-  locale-folder convention, so neither option is needed for routing to work — but both have real side effects if
+  `fallback`. Pages are generated manually under `src/pages/[lang]/` (via `getStaticPaths()` for the static routes,
+  or `Astro.params` for the SSR ones), not Astro's automatic locale-folder convention, so neither option is needed
+  for routing to work — but both have real side effects if
   set: `prefixDefaultLocale: true` forces every route, including ones injected by integrations, to carry a locale
   prefix, which 404s an admin UI mounted at a fixed unprefixed path (this blocks EmDash CMS's `/_emdash/admin`, see
   emdash-cms/emdash#369). A `fallback` entry (e.g. `{ en: "ko" }`) makes Astro auto-generate extra build output
@@ -196,15 +192,14 @@ behaviour.
   time, so it won't show this). `prefixDefaultLocale: true` can't fix it either — see the gotcha above,
   `/_emdash/admin` 404s. `routing: "manual"` disables Astro's automatic locale handling outright and requires a
   `src/middleware.ts`; here that file is a trivial pass-through (`defineMiddleware((_, next) => next())`) because
-  every locale-aware page already resolves `lang` itself via `getStaticPaths` params and never relied on Astro's
-  locale detection/redirect logic. Don't remove `routing: "manual"` or `src/middleware.ts` without re-verifying
-  `/ko/*` SSR routes via an actual `astro preview`, not just `astro dev`.
-- `src/content/post/**` is excluded from `pnpm format` (see `.prettierignore`): these files were hand-restored from
-  a Hashnode export whose exporter had stripped all leading whitespace from body text, silently flattening code-block
-  indentation. Prettier doesn't touch markdown code fences today, but don't rely on that — the exclusion is
-  intentional, keep it.
-- In `astro.config.mjs`'s `markdown.shikiConfig.themes`, `light` is set to `catppuccin-macchiato` and `dark` to
-  `catppuccin-latte` — this looks swapped but is intentional, chosen for code-block readability, not a bug.
+  every locale-aware page already resolves `lang` itself — via `getStaticPaths` params on the static routes
+  (`work.astro`, `about.astro`), or via `Astro.params` + `isLocale()` on the SSR ones (posts/tags/index) — and
+  never relied on Astro's locale detection/redirect logic. Don't remove `routing: "manual"` or `src/middleware.ts`
+  without re-verifying `/ko/*` SSR routes via an actual `astro preview`, not just `astro dev`.
+- `src/lib/shiki.ts`'s `shikiThemes` (`light: catppuccin-macchiato`, `dark: catppuccin-latte`) looks swapped but is
+  intentional, chosen for code-block readability, not a bug. It's shared between `astro.config.mjs`'s
+  `markdown.shikiConfig.themes` and `src/lib/highlighter.ts`'s Portable Text code highlighting — keep both on the
+  same constant rather than letting them drift, since the whole point is that they render identically.
 - Branches: work on `main`; `production` is a release branch that `main` gets merged into.
 - Only `www.ptcookie.net` is registered as a Worker custom domain in `wrangler.jsonc`. The apex `ptcookie.net`
   is a plain proxied CNAME plus a Cloudflare Redirect Rule (`ptcookie.net/*` → `www.ptcookie.net/${1}`, 301) —
@@ -220,6 +215,36 @@ behaviour.
   adapter only generates it automatically when there's no custom `wrangler.jsonc` at all, and this project already
   has one (`routes`/`custom_domain`), so it must stay declared explicitly or Worker-served static/prerendered
   output breaks.
+- `wrangler.jsonc`'s `assets.run_worker_first` is `true`, not scoped to `["/_emdash/*"]` like it was before the
+  post/tag/locale-index routes became SSR (Phase 4 of the EmDash migration). With a scoped array, any path not
+  listed is handled by Cloudflare's static-assets layer _before_ the Worker ever runs — and since SSR routes don't
+  exist as files under `dist/client`, that layer's own `not_found_handling: "404-page"` intercepted them and
+  returned 404 without the Worker (and its D1 query) ever being invoked. This is easy to miss locally: `astro dev`
+  doesn't reproduce it at all (no Cloudflare assets layer in the loop), and even `astro build && astro preview`
+  looks identical for routes that stayed static. It only shows up by actually requesting an SSR route — e.g.
+  `/ko/posts` — through `astro preview` and checking the status code, not just that the build succeeded. `true`
+  matches what the `binding` comment directly above it already assumed ("routes every request through the User
+  Worker first"); `dist/server/entry.mjs` confirms the Worker's own routing falls back to `env.ASSETS.fetch()` for
+  prerendered/static paths, so this doesn't bypass CDN-served assets, just re-orders who checks first.
+- `src/pages/404.astro` is **not** prerendered, unlike the other purely static pages (`work.astro`, `about.astro`).
+  Every SSR post/tag route reaches a bad slug/page-number/locale by calling `Astro.rewrite("/404")` — rewriting an
+  on-demand route to a _prerendered_ one fails at runtime (`Unexpectedly unable to find a component instance for
+route /404`), because the prerendered component was compiled straight to a static HTML file during build and
+  isn't retrievable as a live component instance afterward. Astro's own "no route matched" fallback still finds
+  this file automatically by its reserved filename regardless of prerender status, so on-demand is strictly more
+  capable here, not a tradeoff.
+- `src/lib/highlighter.ts` imports Shiki's language grammars one at a time from `@shikijs/langs/*` (plus
+  `@shikijs/core`, `@shikijs/engine-oniguruma`, `@shikijs/themes`) instead of using the top-level `shiki` package's
+  `createHighlighter`. That convenience API bundles every language reachable through its internal
+  `loadLanguage()` dynamic-import table — since the bundler can't know at build time which ones a Worker will
+  actually request, it includes all of them. For this project's 8-language corpus that was the difference between
+  a ~4.6 MB and ~3.0 MB gzipped Worker (confirmed via `wrangler deploy --dry-run`), which matters because the
+  _free_ Workers plan caps compressed script size at 3 MB (paid: 10 MB) — worth checking again if a future post
+  needs a language outside `src/lib/highlighter.ts`'s explicit import list. `shiki/onig.wasm` (the actual regex
+  engine binary) still comes from the top-level `shiki` package, which the fine-grained subpackages don't
+  otherwise expose a wasm build of; keep it as a dependency for that import alone. The corpus's markdown fences
+  spell the shell language `sh`, but the grammar itself registers as `shellscript` — `LANG_ALIAS` in
+  `highlighter.ts` maps it by hand, since fine-grained mode doesn't carry the full bundle's alias table.
 - `astro-og` (the `og()` integration in `astro.config.mjs`) is a **dev-toolbar app only** — it doesn't generate
   OG images at build time despite the name. Per-page Open Graph data comes entirely from `BaseLayout`'s
   `title`/`description`/`ogType` props.

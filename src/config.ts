@@ -5,6 +5,13 @@ export interface MenuEntry {
 
 export type Locale = "ko" | "en";
 
+// SSR routes (post/tag pages) resolve `lang` from the URL at request time instead of via
+// getStaticPaths params, so they need a runtime check instead of the compile-time guarantee
+// getStaticPaths gave them.
+export function isLocale(value: string | undefined): value is Locale {
+  return value === "ko" || value === "en";
+}
+
 export interface Config {
   title: string;
   description: string;
