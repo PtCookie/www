@@ -1,4 +1,5 @@
 ---
+export const prerender = true;
 import { Image } from "astro:assets";
 
 import BaseLayout from "@/layouts/BaseLayout.astro";
@@ -31,7 +32,7 @@ const techEntry = [
   wide
 >
   <div class="grid grow items-center justify-items-center">
-    <div class="flex flex-col items-center justify-center gap-12 py-12 text-center sm:flex-row sm:py-0">
+    <div class="flex flex-col items-center justify-between gap-12 py-12 text-center sm:flex-row sm:py-0">
       <div class="flex max-w-2/5 flex-col items-center justify-center overflow-hidden rounded-full sm:rounded-4xl">
         {
           /*
@@ -53,7 +54,7 @@ const techEntry = [
       <div class="flex flex-col items-center justify-center gap-8 text-center">
         <h1 class="max-w-3/5 font-sans text-4xl leading-tight font-black sm:max-w-full sm:text-6xl">
           {translate(lang, "page.greeting")}
-          <br class="" />
+          <br />
           {translate(lang, "page.name")}
         </h1>
         <h2 class="mb-8 max-w-4/5 font-sans text-xl leading-normal font-semibold sm:text-3xl">
@@ -66,7 +67,15 @@ const techEntry = [
           {
             techEntry.map((tech) => (
               <a href={tech.href} target="_blank" rel="noreferrer">
-                <img src={tech.src} alt={tech.name} width={128} height={128} class="w-24 sm:w-32" />
+                <img
+                  src={tech.src}
+                  alt={tech.name}
+                  width={128}
+                  height={128}
+                  loading="lazy"
+                  decoding="async"
+                  class="w-24 sm:w-32"
+                />
               </a>
             ))
           }

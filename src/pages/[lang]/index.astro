@@ -1,28 +1,29 @@
 ---
-import { compareDesc, parseISO } from "date-fns";
-import { getCollection } from "astro:content";
-
-import BaseLayout from "@/layouts/BaseLayout.astro";
+// SSR (not prerendered): reads the live EmDash "posts" collection, so it can't be built ahead of
+// time the way the rest of the portfolio pages (work/about) are.
 import Intro from "@/components/Intro.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
 import { PostCard } from "@/components/PostCard.tsx";
 import { translate } from "@/lib/utils.ts";
-import { config } from "@/config.ts";
-
-export async function getStaticPaths() {
-  return config.locales.map((locale) => ({ params: { lang: locale } }));
-}
+import { toPostView } from "@/lib/post.ts";
+import { getAllPublishedPosts } from "@/lib/posts.ts";
+import { config, isLocale } from "@/config.ts";
 
 const { lang } = Astro.params;
-const posts = (await getCollection("post", ({ data }) => data.locale === lang))
-  .sort((a, b) => compareDesc(parseISO(a.data.publishedAt), parseISO(b.data.publishedAt)))
-  .slice(0, 3);
+if (!isLocale(lang)) {
+  Astro.response.status = 404;
+  return Astro.rewrite("/404");
+}
+
+const posts = (await getAllPublishedPosts(lang)).slice(0, 3).map(toPostView);
 ---
 
 <BaseLayout lang={lang} wide>
+  <h1 class="sr-only">{config.title}</h1>
   <div class="grid flex-1 place-items-center content-start gap-8 py-8">
     <Intro />
-    <h3 class="text-center text-2xl font-medium sm:text-3xl">{translate(lang, "page.recentPosts")}</h3>
-    {posts.map((post) => <PostCard post={post.data} lang={lang} disableImage={true} />)}
+    <h2 class="text-center text-2xl font-medium sm:text-3xl">{translate(lang, "page.recentPosts")}</h2>
+    {posts.map((post) => <PostCard post={post} lang={lang} disableImage={true} headingLevel="h3" />)}
     <a href={`/${lang}/posts`} class="text-primary font-sans text-lg font-medium hover:underline sm:text-xl">
       {translate(lang, "page.viewAll")}
     </a>

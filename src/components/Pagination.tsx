@@ -29,7 +29,12 @@ export function Pagination({ total, currentPage, basePath, display = 3, prev, ne
     <UIPagination>
       <PaginationContent>
         <PaginationItem>
-          <PaginationPrevious href={prev} className={prev ? undefined : "opacity-50"} />
+          <PaginationPrevious
+            href={prev}
+            aria-disabled={prev ? undefined : true}
+            tabIndex={prev ? undefined : -1}
+            className={prev ? undefined : "pointer-events-none opacity-50"}
+          />
         </PaginationItem>
         {minPage > 1 && (
           <PaginationItem>
@@ -49,7 +54,12 @@ export function Pagination({ total, currentPage, basePath, display = 3, prev, ne
           </PaginationItem>
         )}
         <PaginationItem>
-          <PaginationNext href={next} className={next ? undefined : "opacity-50"} />
+          <PaginationNext
+            href={next}
+            aria-disabled={next ? undefined : true}
+            tabIndex={next ? undefined : -1}
+            className={next ? undefined : "pointer-events-none opacity-50"}
+          />
         </PaginationItem>
       </PaginationContent>
     </UIPagination>

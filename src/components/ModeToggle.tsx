@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Moon, Sun } from "lucide-react";
+import { MoonIcon, SunIcon } from "@phosphor-icons/react";
 
 import { Button } from "@/components/ui/button.tsx";
 import {
@@ -21,22 +21,30 @@ export function ModeToggle({ lang = config.defaultLocale }: Props) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="noscript:hidden">
-          <Sun className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
-          <Moon className="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
-          <span className="sr-only">Toggle theme</span>
-        </Button>
-      </DropdownMenuTrigger>
+      <DropdownMenuTrigger
+        render={
+          <Button variant="ghost" size="icon" data-js-only>
+            <SunIcon
+              aria-hidden="true"
+              className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-[transform,opacity] dark:scale-0 dark:-rotate-90"
+            />
+            <MoonIcon
+              aria-hidden="true"
+              className="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-[transform,opacity] dark:scale-100 dark:rotate-0"
+            />
+            <span className="sr-only">{translate(lang, "component.toggleTheme")}</span>
+          </Button>
+        }
+      />
       <DropdownMenuContent align="end">
+        <DropdownMenuItem className="font-sans" onClick={() => setTheme("system")}>
+          {translate(lang, "component.system")}
+        </DropdownMenuItem>
         <DropdownMenuItem className="font-sans" onClick={() => setTheme("light")}>
           {translate(lang, "component.light")}
         </DropdownMenuItem>
         <DropdownMenuItem className="font-sans" onClick={() => setTheme("dark")}>
           {translate(lang, "component.dark")}
-        </DropdownMenuItem>
-        <DropdownMenuItem className="font-sans" onClick={() => setTheme("system")}>
-          {translate(lang, "component.system")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

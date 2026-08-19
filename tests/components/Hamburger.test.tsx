@@ -30,7 +30,7 @@ const menuEntry = [
   { name: "Home", link: "/en" },
   { name: "Work", link: "/en/work" },
   { name: "About", link: "/en/about" },
-  { name: "Blog", link: "/en/posts" },
+  { name: "Posts", link: "/en/posts" },
 ];
 const linkEntry = [{ name: "Git", link: "https://git.ptcookie.net/" }];
 
@@ -79,6 +79,21 @@ describe("Hamburger", () => {
 
     await user.click(screen.getByText(/light/i));
     expect(document.documentElement.classList.contains("dark")).toBe(false);
+  });
+
+  test("marks the active theme button with aria-current, including System", async () => {
+    const user = userEvent.setup();
+    render(<Hamburger lang="en" menuEntry={menuEntry} currentUrl="/en/work" />);
+
+    await user.click(screen.getByRole("button", { name: /open menu/i }));
+    expect(screen.getByText(/system/i).closest("button")).toHaveAttribute("aria-current", "true");
+
+    await user.click(screen.getByText(/dark/i));
+    expect(screen.getByText(/dark/i).closest("button")).toHaveAttribute("aria-current", "true");
+    expect(screen.getByText(/system/i).closest("button")).toHaveAttribute("aria-current", "false");
+
+    await user.click(screen.getByText(/system/i));
+    expect(screen.getByText(/system/i).closest("button")).toHaveAttribute("aria-current", "true");
   });
 
   test("navigates to the English version when English is selected", async () => {

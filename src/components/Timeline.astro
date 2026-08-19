@@ -14,7 +14,7 @@ const timeline = getTimeline(lang);
 <div class="mx-auto max-w-4xl min-w-3/5 px-4 py-8">
   <h2 class="mb-8 text-center font-sans text-3xl font-bold">{translate(lang, "page.professionalExperience")}</h2>
   <div class="relative pl-8">
-    <Separator orientation="vertical" className="absolute top-0 left-4 w-0.5!" />
+    <Separator orientation="vertical" className="absolute top-0 left-4 h-full w-0.5!" />
     {
       timeline.map((item) => (
         <div class="mb-12 flex items-center">
@@ -22,8 +22,8 @@ const timeline = getTimeline(lang);
           <div class="flex-1 font-sans">
             <div class="timeline-card bg-card rounded-lg border p-6 shadow-lg">
               <div class="text-chart-4 mb-2 text-sm font-semibold">{item.period}</div>
-              <h3 class="text-primary mb-2 text-xl font-bold">{item.title}</h3>
-              <p class="text-secondary-foreground mb-4 font-serif">{item.description}</p>
+              <h3 class="text-primary mb-2 text-xl font-bold break-words">{item.title}</h3>
+              <p class="text-secondary-foreground mb-4 font-serif break-words">{item.description}</p>
               <div class="mb-4 flex flex-wrap gap-2">
                 {item.technologies.map((tech) => (
                   <span class="bg-sidebar-accent text-sidebar-accent-foreground rounded-full px-3 py-1 font-mono text-xs font-medium">
@@ -35,7 +35,9 @@ const timeline = getTimeline(lang);
                 <ul class="text-primary space-y-1 text-sm">
                   {item.details.map((detail) => (
                     <li class="flex items-start">
-                      <span class="text-chart-5 mr-2">•</span>
+                      <span class="text-chart-5 mr-2" aria-hidden="true">
+                        •
+                      </span>
                       {detail}
                     </li>
                   ))}
@@ -59,6 +61,11 @@ const timeline = getTimeline(lang);
     if (!container) return;
 
     ctx?.revert();
+
+    // Respect the user's motion preference: leave cards and points in their default (fully
+    // visible, untransformed) markup state instead of animating them in.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
     ctx = gsap.context(() => {
       gsap.set(".timeline-card", { x: 300, opacity: 0 });
       gsap.set(".timeline-point", { opacity: 0, scale: 0 });
