@@ -7,7 +7,8 @@ export type TimelineId = "desktopApp" | "fullstackNode" | "backendPython" | "ful
 
 export interface TimelineEntry {
   id: TimelineId;
-  period: string;
+  periodStart: number;
+  periodEnd: number | "present";
   technologies: string[];
 }
 
@@ -17,28 +18,45 @@ export interface TimelineCopy {
   details: string[];
 }
 
-export interface TimelineItem extends Omit<TimelineEntry, "id">, TimelineCopy {}
+export interface TimelineItem extends Omit<TimelineEntry, "id" | "periodStart" | "periodEnd">, TimelineCopy {
+  period: string;
+}
+
+// Resolves an entry's periodStart/periodEnd into a display string. Deliberately not called at
+// module load time (see timelineEntry below) — must run per-render via getTimeline() instead.
+export function formatPeriod(start: number, end: number | "present"): string {
+  const resolvedEnd = end === "present" ? new Date().getFullYear() : end;
+  return start === resolvedEnd ? `${start}` : `${start} ~ ${resolvedEnd}`;
+}
 
 // Period and technologies are proper nouns / dates — not locale-dependent.
+// periodEnd is a raw start/end year pair, not a formatted string: under the Cloudflare Workers
+// adapter, `new Date()` calls made at module top-level (like this array literal) run in global
+// scope, where Workers clamps the clock to the Unix epoch. formatPeriod() must be called from a
+// per-render context (getTimeline()) instead, the same way Footer.astro's copyright year is.
 export const timelineEntry: TimelineEntry[] = [
   {
     id: "desktopApp",
-    period: `2022 ~ ${new Date().getFullYear()}`,
+    periodStart: 2022,
+    periodEnd: "present",
     technologies: ["Electron", "React.js", "Windows", "Ubuntu"],
   },
   {
     id: "fullstackNode",
-    period: `2022 ~ ${new Date().getFullYear()}`,
+    periodStart: 2022,
+    periodEnd: "present",
     technologies: ["Next.js", "Ant Design", "GraphQL", "Express.js", "MongoDB"],
   },
   {
     id: "backendPython",
-    period: "2021",
+    periodStart: 2021,
+    periodEnd: 2021,
     technologies: ["Flask", "Python"],
   },
   {
     id: "fullstackPhp",
-    period: "2019 ~ 2021",
+    periodStart: 2019,
+    periodEnd: 2021,
     technologies: ["React.js", "Laravel"],
   },
 ];
