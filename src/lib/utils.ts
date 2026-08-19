@@ -3,7 +3,7 @@ import { twMerge } from "tailwind-merge";
 
 import type { Tag } from "@/lib/post.ts";
 import { translation, type Translation } from "@/i18n/translation.ts";
-import { timelineCopy, timelineEntry, type TimelineItem } from "@/i18n/timeline.ts";
+import { formatPeriod, timelineCopy, timelineEntry, type TimelineItem } from "@/i18n/timeline.ts";
 import type { Locale } from "@/config.ts";
 
 export function cn(...inputs: ClassValue[]): string {
@@ -64,5 +64,9 @@ export function formatDate(lang: Locale, iso: string): string {
 }
 
 export function getTimeline(lang: Locale): TimelineItem[] {
-  return timelineEntry.map(({ id, ...entry }) => ({ ...entry, ...timelineCopy[lang][id] }));
+  return timelineEntry.map(({ id, periodStart, periodEnd, ...entry }) => ({
+    ...entry,
+    period: formatPeriod(periodStart, periodEnd),
+    ...timelineCopy[lang][id],
+  }));
 }

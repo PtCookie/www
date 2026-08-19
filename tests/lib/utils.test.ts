@@ -1,8 +1,8 @@
-import { describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 
 import type { Tag } from "@/lib/post.ts";
 import { cn, formatDate, getAllTags, getTimeline, range, translate } from "@/lib/utils.ts";
-import { timelineEntry } from "@/i18n/timeline.ts";
+import { formatPeriod, timelineEntry } from "@/i18n/timeline.ts";
 
 describe("cn", () => {
   test("should concatenate multiple class strings into one", () => {
@@ -212,5 +212,26 @@ describe("getTimeline", () => {
       "백엔드 개발",
       "풀스택 개발",
     ]);
+  });
+});
+
+describe("formatPeriod", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  test("should format a closed range", () => {
+    expect(formatPeriod(2019, 2021)).toBe("2019 ~ 2021");
+  });
+
+  test("should format a single year when start and end match", () => {
+    expect(formatPeriod(2021, 2021)).toBe("2021");
+  });
+
+  test("should resolve 'present' to the current year", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-20T00:00:00+09:00"));
+
+    expect(formatPeriod(2022, "present")).toBe("2022 ~ 2026");
   });
 });
