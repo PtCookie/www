@@ -28,11 +28,40 @@
 		// overhead. Phase 4 moved the post/tag/locale-index routes to SSR too (see AGENTS.md's EmDash
 		// gotchas), and they don't exist as files under dist/client, so the assets layer's own
 		// not_found_handling ("404-page") was intercepting them before the Worker ever saw the
-		// request. `true` restores what the binding comment above already assumed: the Worker runs
-		// first for every request and calls env.ASSETS.fetch() itself for prerendered/static output
-		// (confirmed in dist/server/entry.mjs) — about/work/404 and built assets still resolve there.
-		"run_worker_first": true
-
+		// request. `/*` restores what the binding comment above already assumed: the Worker runs first
+		// for every request and calls env.ASSETS.fetch() itself for prerendered/static output (confirmed
+		// in dist/server/entry.mjs) — about/work/404 and built assets still resolve there.
+		//
+		// Most exclusions here are dev-only: plain `true` (the boolean shortcut) resolves to the exact
+		// same `/*` rule but with zero exceptions, and @cloudflare/vite-plugin applies that rule inside
+		// `astro dev` too — as a *pre*-middleware registered before Vite's own internal ones. With no
+		// exclusions, `/*` catches Vite's own dev-only asset URLs (`/@vite/client`, `/@id/*`,
+		// `/@react-refresh`, `/@fs/*`, `/node_modules/*`) and routes them into the simulated Worker
+		// before Vite's real middleware ever gets a chance to serve them, so they all 404 — this is what
+		// caused the EmDash admin SPA to hang forever on its own "Loading EmDash..." boot screen (React
+		// never mounted because `/@react-refresh`, which every React component module imports in dev,
+		// 404'd). None of these prefixes exist as real production request paths, so excluding them here
+		// is a no-op for the deployed Worker. `/_astro/*` is the one exclusion that also matters in
+		// production: those are prebuilt, immutable static chunks (see the Cache-Control comment in
+		// _headers), so asset-first (the default without this rule) is strictly better than paying for a
+		// Worker invocation on every JS/CSS chunk request.
+		//
+		// `/@fs/*` is excluded on general principle (Vite's prefix for serving files outside the project
+		// root) but is NOT a fix for a separate, still-open bug: client:* islands on the public site
+		// (Navigation, ModeToggle, LangToggle, Hamburger) fail to hydrate under `astro dev` because the
+		// SSR-rendered `<astro-island component-url="...">` itself omits the `/@fs/` prefix Vite needs
+		// (confirmed via the raw HTML — the browser is asked to fetch a bare absolute filesystem path,
+		// which 404s no matter what `run_worker_first` allows through). That looks like an Astro/Vite-side
+		// issue unrelated to this file; follow up separately.
+		"run_worker_first": [
+			"/*",
+			"!/@vite/*",
+			"!/@id/*",
+			"!/@react-refresh",
+			"!/@fs/*",
+			"!/node_modules/*",
+			"!/_astro/*"
+		]
 	},
 	// database_id is the real provisioned production database (`wrangler d1 create www-db`), not a
 	// placeholder — it's used both for local D1 emulation and the deployed Worker. R2 is

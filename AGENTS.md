@@ -166,6 +166,38 @@ behaviour.
   (they're defined directly under `src/pages/[lang]/`, never through EmDash's URL helpers), so the fix is simply
   not to rely on EmDash's own URL generation (`urlPattern` on collections, its sitemap route, preview links) until
   this is addressed — don't set `urlPattern` expecting it to match `/[lang]/posts/*`.
+- `astro.config.mjs`'s `r2({...})` storage config only sets `publicUrl` (the real `blog-assets.ptcookie.net`
+  custom domain) when `NODE_ENV !== "development"` — i.e. never under `astro dev`, always under `astro
+build`/`preview` (Astro sets `NODE_ENV` per-command, so this is a reliable signal, same idea as the `VITEST`
+  guards elsewhere in this file). Cover images render via `emdash/ui`'s `<Image>`, which hands the resolved public
+  URL to Astro's `getImage()` (Cloudflare Images binding) — that binding does a real HTTP fetch to transform the
+  image. Local R2 emulation (what `astro dev` reads from) isn't reachable from the public internet, so under dev
+  that fetch 404s for anything only ever migrated locally, and Sharp crashes trying to parse the 404 HTML as image
+  bytes, taking down the whole page's SSR. With `publicUrl` unset, EmDash's `R2Storage.getPublicUrl()`
+  (`node_modules/@emdash-cms/cloudflare/src/storage/r2.ts`) falls back to its own same-origin proxy
+  (`/_emdash/api/media/file/<key>`), which reads through the R2 _binding_ directly — no network fetch, no crash.
+  This config change alone is enough going forward: a cover image's public URL isn't baked into its D1 row at
+  upload time, it's recomputed from current config on every read (confirmed against the actual local D1 rows —
+  none of them carry a `src` field). `astro preview` and the real deployed Worker are unaffected, since `astro
+build` always evaluates this config with `NODE_ENV=production`.
+  - Fixing this surfaced an unrelated, already-existing local-only data problem: `wrangler.jsonc`'s R2
+    `bucket_name` was renamed from `www-emdash-media` to `www-media` at some point (see its git history), but
+    the one-time local content migration had already run against the old name, so all 14 locally migrated media
+    objects sat in a local-only bucket the current config no longer references — the currently-configured local
+    `www-media` bucket was empty. Not something a fresh clone hits (a fresh local D1/R2 bootstrap wouldn't have
+    this split), but if local cover images 404 through the proxy route on an existing checkout, check for stray
+    populated buckets under `.wrangler/state/v3/r2/miniflare-R2BucketObject/*.sqlite` (`sqlite3 <file> "select
+key from _mf_objects"`) and copy objects across with `wrangler r2 object get <old-bucket>/<key> --local
+--file=...` + `wrangler r2 object put <new-bucket>/<key> --local --file=...` — purely local state, no git or
+    production impact.
+- **Open issue, not yet root-caused**: under `astro dev`, every `client:*` island on the public site (`Navigation`,
+  `ModeToggle`, `LangToggle`, `Hamburger`) fails to hydrate. The SSR-rendered `<astro-island component-url="...">`
+  itself omits Vite's `/@fs/` prefix (confirmed via the raw HTML response — `component-url` is a bare absolute
+  filesystem path like `/Users/.../src/components/Navigation.tsx`), so the browser's dynamic import 404s
+  regardless of `run_worker_first` config. Looks like an Astro/Vite-side issue in how island component URLs are
+  generated in dev, not something in this project's own routing. `astro preview`/production are unaffected (this
+  is dev-only SSR, no astro-island client-URL generation there — prerendered/SSR'd HTML ships real bundled
+  scripts).
 - Git hooks are managed by lefthook (`lefthook.yml`), installed via the `prepare` script. `pre-commit` runs
   eslint + prettier on staged files in parallel; the **full** vitest suite across 3 browsers runs on `pre-push`,
   so pushes are slow but commits stay fast.

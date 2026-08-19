@@ -41,7 +41,24 @@ export default defineConfig({
             // middleware touched it. D1/R2 bindings are emulated locally by the Vite plugin without
             // any native code, so the same config works unchanged in both environments.
             database: d1({ binding: "DB" }),
-            storage: r2({ binding: "MEDIA", publicUrl: "https://blog-assets.ptcookie.net" }),
+            storage: r2({
+              binding: "MEDIA",
+              // Local R2 emulation (astro dev) isn't reachable from the public internet, so when
+              // EmDashImage.astro hands a cover image's public URL to Astro's getImage() (Cloudflare
+              // Images binding), the binding's real HTTP fetch against blog-assets.ptcookie.net 404s
+              // for anything only ever migrated locally — Sharp then crashes trying to parse the 404
+              // HTML as image bytes, and the whole page's SSR fails. Omitting publicUrl makes EmDash's
+              // R2Storage.getPublicUrl() fall back to its own same-origin proxy
+              // (/_emdash/api/media/file/<key>, node_modules/@emdash-cms/cloudflare/src/storage/r2.ts),
+              // which reads through the R2 *binding* directly — no network fetch, so no crash. cover
+              // images aren't baked with an absolute src at upload time (confirmed against the actual
+              // local D1 rows), so this is a config-only fix; no data migration needed.
+              //
+              // `astro build` always evaluates this config with NODE_ENV=production (Astro sets it
+              // per-command), so `astro preview` and the real deployed Worker always get the real
+              // public URL unchanged — this only affects `astro dev`.
+              publicUrl: process.env.NODE_ENV === "development" ? undefined : "https://blog-assets.ptcookie.net",
+            }),
           }),
         ]),
   ],
