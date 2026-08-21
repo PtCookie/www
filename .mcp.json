@@ -11,6 +11,10 @@
         "emdash-docs": {
             "type": "http",
             "url": "https://docs.emdashcms.com/mcp"
+        },
+        "playwright": {
+            "command": "npx",
+            "args": ["@playwright/mcp@latest"]
         }
     }
 }

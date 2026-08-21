@@ -45,6 +45,3 @@ emdash-env.d.ts
 
 # claude code local settings
 .claude/settings.local.json
-
-# junie local files
-.junie/plans
