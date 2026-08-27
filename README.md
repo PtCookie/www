@@ -11,8 +11,8 @@ Personal site of PtCookie.Net — portfolio (Home/Work/About) and blog, built wi
 
 #### UI Components
 
-- [shadcn/ui](https://ui.shadcn.com/)
-- [Lucide Icons](https://lucide.dev/icons/) - Icons
+- [shadcn/ui](https://ui.shadcn.com/) - built on [Base UI](https://base-ui.com/) primitives
+- [Phosphor Icons](https://phosphoricons.com/) - Icons
 
 ### Styling
 
@@ -32,6 +32,7 @@ Personal site of PtCookie.Net — portfolio (Home/Work/About) and blog, built wi
 
 - [Vitest](https://vitest.dev/)
 - [Testing Library](https://testing-library.com/)
+- [Playwright](https://playwright.dev/) - browser runner for component tests, e2e configured
 
 ### Content
 
@@ -40,13 +41,21 @@ Blog posts are managed in [EmDash](https://emdashcms.com/), a CMS built into the
 originally authored on [Hashnode](https://hashnode.com/), migrated to local markdown, and then
 migrated again into EmDash — see AGENTS.md for the content model and query layer.
 
+### Deployment
+
+Deployed to [Cloudflare Workers](https://workers.cloudflare.com/) via
+[Wrangler](https://developers.cloudflare.com/workers/wrangler/), using the
+[`@astrojs/cloudflare`](https://docs.astro.build/en/guides/integrations-guide/cloudflare/) SSR
+adapter, with [D1](https://developers.cloudflare.com/d1/) and
+[R2](https://developers.cloudflare.com/r2/) bindings for content and media.
+
 ## Development
 
 ### Prerequisites
 
 ```plaintext
-node: "^18.17.1 || ^20.9.0 || ^22.11.0"
-packageManager: "pnpm@10.10.0"
+node: "^22.12.0 || ^24.11.0"
+packageManager: "pnpm@11.17.0"
 ```
 
 ### Development build
