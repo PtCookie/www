@@ -98,6 +98,12 @@ behaviour.
   fail in sandboxed/non-TTY tool runners with `ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY` or a lefthook
   `prepare` step `operation not permitted` error — set `CI=true` and disable the sandbox for that command
   rather than debugging it as a code issue.
+- `astro build`'s "prerendering static routes" step spins up miniflare, which writes a dev-registry file to
+  `~/Library/Preferences/.wrangler/registry/prerender`. In sandboxed tool runners that's `EPERM: operation not
+  permitted` (followed by an unhandled `ECONNRESET` from the torn-down websocket) — the Vite builds themselves
+  all succeed first, so it's not a code failure. `WRANGLER_REGISTRY_PATH` does **not** redirect it. `wrangler`'s
+  own logging hits the same wall separately; there `WRANGLER_LOG_PATH=$TMPDIR/...` *does* work. Run `pnpm build`
+  outside the sandbox.
 - Watch for these two signals that a sandboxed `pnpm add`/`remove`/`install` silently used the wrong store
   instead of `~/Library/pnpm/store` (confirmed via `pnpm store path` returning a path under the project root,
   and an actual write there failing with `[ERR_SQLITE_ERROR] unable to open database file`): a stray
@@ -139,15 +145,34 @@ behaviour.
   is committed; `.emdash/types.ts` and `.emdash/schema.json` (both written by `emdash types`) are gitignored.
 - Two EmDash-managed taxonomy definitions, `category` (hierarchical) and `tag` (flat), are seeded unconditionally
   by a core database migration (`node_modules/emdash/src/database/migrations/006_taxonomy_defs.ts`) on every fresh
-  install, **before** `seed.json` is applied — independent of whether `seed.json` declares them. Taxonomy
-  definition `name` is globally unique, so a `seed.json` taxonomy named `tag` collides with the migration's row and
-  is silently skipped (its custom `label`/`labelSingular` never take effect; the migration's English "Tags"/"Tag"
-  wins). This project doesn't use categories, so the `category` definition is inert cruft that shows up empty in
-  the admin sidebar — there is no API/CLI in 0.33.0 to rename or delete a taxonomy _definition_ (only terms have
-  update/delete endpoints), so it can't be cleaned up. None of this affects the terms themselves: `tag` terms
-  seeded via `seed.json` are created correctly with proper per-locale `translationGroup` linking — only the
-  taxonomy definition's own display label is wrong, which is admin-UI cosmetic only (the public site reads term
-  `slug`/`label`, never the definition's label).
+  install, **before** `seed.json` is applied — independent of whether `seed.json` declares them. Both are EmDash
+  built-ins (the WordPress split); `tag` is not something this project added, and it's the semantically correct
+  home for the site's flat blog tags, so there is no reason to move tags to `category`. This project doesn't
+  actually use categories, so `category` sits empty in the admin sidebar — it is left in place deliberately as a
+  built-in, not cleaned up. (There's no API/CLI in 0.33.0 to rename or delete a taxonomy _definition_ anyway —
+  only terms have update/delete endpoints — so removing one means raw SQL, see below.)
+  - Since migration `036_i18n_menus_and_taxonomies.ts` the definition unique key is **`(name, locale)`**, not
+    `name` alone. So a `seed.json` taxonomy named `tag` with `locale: "ko"` collides with the migration's row and
+    is silently skipped (its custom `label`/`labelSingular` never take effect; the migration's English "Tags"/"Tag"
+    wins — which is why `.emdash/seed.json` now just declares `"Tags"`/`"Tag"`, matching what the DB will really
+    hold). A second seed block for the same taxonomy in another locale does **not** collide — it creates a second
+    definition row. That's what produced a duplicate `Tags` in the admin sidebar here: `_emdash_taxonomy_defs` held
+    `(tag, ko)` from the migration plus `(tag, en)` from `seed.json`'s old `tax:tag:en` block, and the admin
+    manifest builder (`emdash-runtime.ts`'s `SELECT * FROM _emdash_taxonomy_defs ORDER BY name`) lists every row
+    with no locale filter and no `translation_group` dedupe. That's an upstream EmDash bug — `GET
+    /_emdash/api/taxonomies` supports `?locale=`, the manifest just doesn't use it.
+  - Fixed by deleting the `(tag, en)` row from both the local and production D1 (`wrangler d1 execute www-db
+    --local|--remote --command "DELETE FROM _emdash_taxonomy_defs WHERE name='tag' AND locale='en';"`) and
+    collapsing `.emdash/seed.json` to a **single** taxonomy block whose `terms` array carries the en terms inline
+    with `locale: "en"` + `translationOf` (the flat-taxonomy seed path honours per-term `locale`,
+    `seed/apply.ts`). **Keep it that way** — re-splitting the block per locale recreates the duplicate.
+  - Deleting a definition row is safe: nothing has a foreign key to `_emdash_taxonomy_defs`. Terms
+    (`taxonomies`) join by `name` + `locale`, and `content_taxonomies.taxonomy_id` stores a term's
+    `translation_group`, so the 14 terms and 32 assignment rows were untouched. Term CRUD keeps working for `en`
+    too: every handler calls `requireTaxonomyDef(db, name)` **without** a locale ("terms aren't bound to the def's
+    locale"), and the public read path only needs the distinct set of taxonomy names (`loader.ts`'s
+    `getTaxonomyNames`) plus term rows — `getTaxonomyDefs()`'s only consumer is `astro/prefetch.ts` cache warming.
+    Restart `astro dev` after a local change, since the defs/names caches are per-isolate module state.
 - The markdown corpus (`src/content/post/{ko,en}/*.md`, `src/assets/covers/{ko,en}/*`) was migrated into EmDash
   D1/R2 by a one-time script (`scripts/migrate-content.mjs` + `scripts/lib/markdown-to-portable-text.mjs`, both
   removed once the migration was verified — see the `feat: migrate blog content into EmDash` commit for the full
