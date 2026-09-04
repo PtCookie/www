@@ -1,6 +1,8 @@
 {
   "permissions": {
     "allow": [
+      "WebFetch(domain:api.cloudflare.com)",
+      "WebFetch(domain:ui.shadcn.com)",
       "Bash(pnpm install)",
       "Bash(pnpm dev:*)",
       "Bash(pnpm build:*)",
@@ -8,10 +10,26 @@
       "Bash(pnpm format:*)",
       "Bash(pnpm test:*)",
       "Bash(pnpm exec astro:*)",
+      "Bash(pnpm exec wrangler:*)",
+      "Bash(pnpm exec playwright:*)",
       "Bash(lefthook:*)",
       "Bash(git log:*)",
       "Bash(git diff:*)",
       "Bash(git status)"
+    ]
+  },
+  "sandbox": {
+    "network": {
+      "allowedDomains": [
+        "api.cloudflare.com"
+      ],
+      "allowLocalBinding": true
+    },
+    "excludedCommands": [
+      "pnpm dev *",
+      "pnpm test *",
+      "pnpm exec wrangler *",
+      "pnpm exec playwright *"
     ]
   }
 }
