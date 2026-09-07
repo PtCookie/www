@@ -1,0 +1,135 @@
+# `git.ptcookie.net` is the origin; GitHub is a mirror that git-server's post-receive hook
+# force-pushes to. Two consequences shape this file:
+#
+#   * Nothing here may write to the repository. A commit pushed by a workflow is erased by the
+#     next mirror push, so CI only ever checks — no auto-format, no committing regenerated
+#     files. Formatting stays the author's job, backed by lefthook (`lefthook.yml`).
+#   * `push` is scoped to `main` because pull request branches live in this same repository
+#     (Dependabot's do), so an unscoped `push` trigger would run every PR twice.
+#
+# Deployment is not here on purpose: the Worker is built and released by Cloudflare's own Git
+# integration, so this workflow only ever verifies — it never runs `wrangler deploy`.
+#
+# Since the mirror accepts no merges of its own (an approved PR is pulled locally and pushed to
+# the origin, which is what makes its commits arrive here), these checks are after-the-fact
+# rather than a merge gate.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # eslint + prettier only. `tsc --noEmit` (what lefthook's pre-commit `check-types` runs) is
+  # deliberately absent: it currently reports errors on `main` — `shiki/onig.wasm`, gsap's `GSAP`
+  # type-vs-namespace, and two implicit `any`s in `src/lib/post.ts` — so wiring it up here would
+  # make CI red from its first run. Add the step once those are fixed; it needs a `pnpm exec
+  # astro sync` before it, since `.astro/types.d.ts` is generated and gitignored.
+  lint:
+    name: lint & format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # No `version:` — the action reads package.json's `packageManager` field.
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      # `pnpm format` writes; CI must not (see the header). `--check` is the read-only half.
+      - name: prettier
+        run: pnpm exec prettier --check .
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # `--with-deps` is required on GitHub's runner image, which ships no webkit/firefox system
+      # libraries. The `component` vitest project runs all three browsers.
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium firefox webkit
+      - run: pnpm test --run
+
+  # Separate from `test` so a dev-server flake here doesn't hide the unit/component result.
+  # Playwright's own webServer runs `pnpm dev`, which boots EmDash against a fresh miniflare-
+  # emulated D1/R2 — the seed in `.emdash/seed.json` is applied automatically on first request.
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium firefox webkit
+      - run: pnpm exec playwright test
+      - uses: actions/upload-artifact@v7
+        # Uploaded on failure too — that's the case the report is for. Skipped when the run was
+        # cancelled (the concurrency rule above cancels often).
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report
+          if-no-files-found: ignore
+          retention-days: 7
+
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Astro's own "prerendering static routes" step is the part worth having in CI: it boots
+      # miniflare and actually renders `work`/`about`, so a config or SSR regression fails here
+      # rather than in Cloudflare's build.
+      - run: pnpm build
+      # `--dry-run` needs no credentials and validates the merged config against the declared
+      # bindings, so it doubles as the guard on the thing this project keeps bumping into: the
+      # free Workers plan caps *compressed script size* at 3 MiB (paid: 10 MiB), and the Worker
+      # currently sits around 2.9 MiB. See AGENTS.md on `src/lib/highlighter.ts` for why the
+      # Shiki grammars are imported one at a time — that is what bought the headroom.
+      - name: Check Worker size
+        env:
+          MAX_GZIP_KIB: "3072"
+        run: |
+          pnpm exec wrangler deploy --dry-run 2>&1 | sed -E 's/\x1b\[[0-9;]*m//g' | tee dry-run.log
+          gzip_kib=$(grep -oE 'gzip: [0-9.]+ KiB' dry-run.log | tail -1 | grep -oE '[0-9.]+')
+          if [ -z "$gzip_kib" ]; then
+            echo "::error::could not read the gzipped size out of the wrangler dry-run output"
+            exit 1
+          fi
+          echo "Worker script: ${gzip_kib} KiB gzipped (limit ${MAX_GZIP_KIB} KiB)" >> "$GITHUB_STEP_SUMMARY"
+          awk -v size="$gzip_kib" -v max="$MAX_GZIP_KIB" 'BEGIN {
+            if (size > max) {
+              printf "::error::Worker script is %s KiB gzipped, over the %s KiB limit\n", size, max
+              exit 1
+            }
+            printf "Worker script is %s KiB gzipped, %.1f KiB under the %s KiB limit\n", size, max - size, max
+          }'
