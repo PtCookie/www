@@ -1,0 +1,76 @@
+# https://docs.github.com/code-security/dependabot/working-with-dependabot/dependabot-options-reference
+version: 2
+
+updates:
+  - package-ecosystem: "npm" # pnpm workspaces are handled by the npm ecosystem
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Seoul"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+    groups:
+      # A dependency lands in the first group it matches, so the narrower
+      # groups (cloudflare, emdash) come before the broad framework ones.
+      cloudflare:
+        patterns:
+          - "wrangler"
+          - "@astrojs/cloudflare"
+          - "@cloudflare/*"
+      emdash:
+        patterns:
+          - "emdash"
+          - "@emdash-cms/*"
+      astro:
+        patterns:
+          - "astro"
+          - "astro-*"
+          - "@astrojs/*"
+          - "*-plugin-astro"
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+          - "@base-ui/react"
+          - "@phosphor-icons/react"
+      styling:
+        patterns:
+          - "tailwindcss"
+          - "@tailwindcss/*"
+          - "*-plugin-tailwindcss"
+          - "tw-animate-css"
+          - "class-variance-authority"
+          - "clsx"
+          - "tailwind-merge"
+          - "shadcn"
+      shiki:
+        patterns:
+          - "shiki"
+          - "@shikijs/*"
+      fonts:
+        patterns:
+          - "@fontsource/*"
+          - "@fontsource-variable/*"
+      linting:
+        patterns:
+          - "eslint"
+          - "eslint-*"
+          - "@eslint/*"
+          - "@eslint-react/*"
+          - "typescript-eslint"
+          - "prettier"
+      testing:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+          - "playwright"
+          - "@playwright/*"
+          - "@testing-library/*"
