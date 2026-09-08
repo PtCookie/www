@@ -41,6 +41,7 @@ pnpm-debug.log*
 # .emdash/seed.json is NOT ignored — it's the committed source of truth for the content model.
 .emdash/types.ts
 .emdash/schema.json
+.emdash/migrations.json
 emdash-env.d.ts
 
 # claude code local settings
