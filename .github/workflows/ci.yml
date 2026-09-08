@@ -111,13 +111,14 @@ jobs:
       # rather than in Cloudflare's build.
       - run: pnpm build
       # `--dry-run` needs no credentials and validates the merged config against the declared
-      # bindings, so it doubles as the guard on the thing this project keeps bumping into: the
-      # free Workers plan caps *compressed script size* at 3 MiB (paid: 10 MiB), and the Worker
-      # currently sits around 2.9 MiB. See AGENTS.md on `src/lib/highlighter.ts` for why the
-      # Shiki grammars are imported one at a time — that is what bought the headroom.
+      # bindings, so it doubles as the guard on the thing this project keeps bumping into:
+      # Workers Paid caps *compressed script size* at 10 MiB (free plan: 3 MiB — this account
+      # upgraded to Paid, which is why the limit here isn't 3072). See AGENTS.md on
+      # `src/lib/highlighter.ts` for why the Shiki grammars are imported one at a time — that's
+      # what keeps this well under either cap.
       - name: Check Worker size
         env:
-          MAX_GZIP_KIB: "3072"
+          MAX_GZIP_KIB: "10240"
         run: |
           pnpm exec wrangler deploy --dry-run 2>&1 | sed -E 's/\x1b\[[0-9;]*m//g' | tee dry-run.log
           gzip_kib=$(grep -oE 'gzip: [0-9.]+ KiB' dry-run.log | tail -1 | grep -oE '[0-9.]+')
