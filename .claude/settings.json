@@ -31,5 +31,18 @@
       "pnpm exec wrangler *",
       "pnpm exec playwright *"
     ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/fix-shadcn-import.mjs\""
+          }
+        ]
+      }
+    ]
   }
 }

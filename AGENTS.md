@@ -86,207 +86,76 @@ behaviour.
 
 ## Gotchas
 
-- `vitest.config.ts`'s `coverage.exclude` must never contain a `"!"`-prefixed entry: `@vitest/coverage-v8`
-  passes the whole array straight to picomatch's `ignore` option, and one negated entry zeroes out coverage
-  for _every_ file (not just the one you meant to un-exclude), silently producing a 0/0 report. Use an
-  extglob instead, e.g. `"src/lib/!(utils).ts"` to exclude everything in `src/lib` except `utils.ts`.
-- Vitest's browser project (and anything that runs it — `pnpm test:coverage`, the pre-push hook) needs to
-  bind a local port for Playwright's browser instances. In network-sandboxed tool runners this fails with
-  `EPERM: operation not permitted ::1:<port>` — disable the sandbox for that command rather than debugging it
-  as a code issue.
-- `pnpm install`/`pnpm build` (and hooks that trigger it, e.g. `pre-commit` after a `package.json` change) can
-  fail in sandboxed/non-TTY tool runners with `ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY` or a lefthook
-  `prepare` step `operation not permitted` error — set `CI=true` and disable the sandbox for that command
-  rather than debugging it as a code issue.
-- `astro build`'s "prerendering static routes" step spins up miniflare, which writes a dev-registry file to
-  `~/Library/Preferences/.wrangler/registry/prerender`. In sandboxed tool runners that's `EPERM: operation not
-  permitted` (followed by an unhandled `ECONNRESET` from the torn-down websocket) — the Vite builds themselves
-  all succeed first, so it's not a code failure. `WRANGLER_REGISTRY_PATH` does **not** redirect it. `wrangler`'s
-  own logging hits the same wall separately; there `WRANGLER_LOG_PATH=$TMPDIR/...` *does* work. Run `pnpm build`
-  outside the sandbox.
-- Watch for these two signals that a sandboxed `pnpm add`/`remove`/`install` silently used the wrong store
-  instead of `~/Library/pnpm/store` (confirmed via `pnpm store path` returning a path under the project root,
-  and an actual write there failing with `[ERR_SQLITE_ERROR] unable to open database file`): a stray
-  `.pnpm-store/` directory in `git status`, or a later `pnpm install` anywhere failing with
-  `ERR_PNPM_UNEXPECTED_STORE` (dependencies linked from one store, pnpm now resolving another). Neither a
-  project `.npmrc` `store-dir` nor `--config.store-dir` fixes this — the sandbox denies the write outright
-  regardless of what store-dir is configured, so it's not something project files can route around.
-  `.claude/settings.local.json` sets `sandbox.filesystem.allowWrite: ["~/Library/pnpm/store"]` to let
-  sandboxed pnpm reach the real store, but sandbox config appears to load once at session start — a change
-  made mid-session may not take effect until the next session. If either signal shows up, disable the sandbox
-  for the pnpm command instead of debugging further.
+Deeper rationale for most of these — incident history, upstream bug traces, and how each failure surfaces —
+lives in `.claude/agents/gotcha-guardrail.md`, which reviews a diff against them, and
+`.claude/agents/bundle-size-sentinel.md` for anything that grows the Worker. The rules below are the short
+form; read those files (or hand the change to the agent) before changing something they cover.
+
+- `vitest.config.ts`'s `coverage.exclude` must never contain a `"!"`-prefixed entry — one negated entry
+  zeroes out coverage for _every_ file, silently producing a 0/0 report. Use an extglob instead, e.g.
+  `"src/lib/!(utils).ts"`.
+- **Sandboxed tool runners** hit these as environment errors, not code errors — re-run with the sandbox
+  disabled instead of debugging them:
+  - `pnpm test`/`test:coverage`/the pre-push hook, since the browser project binds a local port for
+    Playwright: `EPERM: operation not permitted ::1:<port>`.
+  - `pnpm install`/`pnpm build` in non-TTY runners: `ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY`, or a
+    lefthook `prepare` `operation not permitted`. `CI=true` helps.
+  - `pnpm build`'s "prerendering static routes" step, where miniflare writes to
+    `~/Library/Preferences/.wrangler/registry/prerender`: `EPERM`, then an unhandled `ECONNRESET`. The Vite
+    builds all succeed first, so `dist/` is still usable. `WRANGLER_REGISTRY_PATH` does **not** redirect it;
+    `WRANGLER_LOG_PATH=$TMPDIR/...` *does* work for wrangler's own logging.
+  - A sandboxed `pnpm add`/`remove`/`install` silently using the wrong store; the signals are a stray
+    `.pnpm-store/` in `git status` or a later `ERR_PNPM_UNEXPECTED_STORE`, confirmable with
+    `pnpm store path` returning a path under the project root. Neither a project `.npmrc`
+    `store-dir` nor `--config.store-dir` routes around it. (`.claude/settings.local.json` allows writes to
+    `~/Library/pnpm/store`, but sandbox config loads once at session start.)
 - `vitest.config.ts` pre-bundles the `astro:transitions` virtual modules in `optimizeDeps`, and the browser project
   is explicitly named `component`. Both comments there explain why — don't strip them, browser tests turn flaky.
-- `astro.config.mjs`'s Cloudflare adapter is gated: `adapter: process.env.VITEST ? undefined : cloudflare()`.
-  Without the guard, `vitest.config.ts`'s `getViteConfig` drags the adapter's Vite plugin into every vitest run,
-  and the Cloudflare plugin's worker-environment validation rejects the `resolve.external` Node-builtins list
-  Vitest's own SSR test environment sets — `vitest` crashes on startup (no tests even run). Keep the guard if you
-  touch either config. `output` carries the identical `process.env.VITEST ? "static" : "server"` guard for the
-  same reason — an SSR `output` with no adapter throws `AdapterSupportOutputMismatch`, so the two must flip
-  together. The `emdash()` integration in `integrations` is guarded the same way: it needs server output and a
-  database connection at config-eval time, neither available under Vitest's SSR test environment.
+- `astro.config.mjs` gates three things on `process.env.VITEST` — `adapter`, `output`, and the `emdash()`
+  integration. All three guards must stay and must flip together, or vitest crashes on startup before a single
+  test runs.
 - `emdash()`'s `database`/`storage` config uses Cloudflare D1/R2 bindings (`d1({binding:"DB"})`,
-  `r2({binding:"MEDIA"})`) in **both** dev and prod, not EmDash's suggested local dev driver
-  (`sqlite({url:"file:./data.db"})` + `local()` filesystem storage, which needs `better-sqlite3`). `astro dev`
-  here runs the real Cloudflare Vite plugin (workerd), which has no Node filesystem and cannot load native N-API
-  addons — `better-sqlite3` crashes dev with `Internal server error: module is not defined` the moment EmDash's
-  middleware touches it. D1/R2 bindings are emulated locally by the Vite plugin without any native code, so one
-  config works unchanged in both environments; `wrangler.jsonc`'s `d1_databases[0].database_id` is the
-  real provisioned production database (`www-db`), used for both local D1 emulation and the deployed
-  Worker — not a placeholder.
+  `r2({binding:"MEDIA"})`) in **both** dev and prod — never EmDash's suggested `sqlite()`/`local()` dev drivers,
+  which need `better-sqlite3` and crash workerd. `wrangler.jsonc`'s `d1_databases[0].database_id` is the real
+  provisioned production database (`www-db`), used for both local D1 emulation and the deployed Worker — not a
+  placeholder.
 - EmDash 0.33.0 has no `emdash.config.ts` / `defineCollection` API — the content model is defined entirely by
-  `.emdash/seed.json` (schema: `node_modules/emdash/src/seed/types.ts`), which the integration inlines into a
-  virtual module at build time (workerd has no filesystem to read it from at runtime). **It is applied exactly
-  once**, on the first request against an empty database with setup not yet completed — editing `seed.json` and
-  redeploying does nothing to an already-bootstrapped site. Evolving a live site's schema goes through the admin
-  panel or `emdash schema` CLI instead, and `emdash export-seed` is the way back into version control afterward.
-  Resetting local state to re-apply an edited seed means deleting `.wrangler/state/v3/{d1,r2}` — this also
-  discards the local passkey and any local content, so it's a real decision, not a cache clear. `.emdash/seed.json`
-  is committed; `.emdash/types.ts` and `.emdash/schema.json` (both written by `emdash types`) are gitignored.
-- Two EmDash-managed taxonomy definitions, `category` (hierarchical) and `tag` (flat), are seeded unconditionally
-  by a core database migration (`node_modules/emdash/src/database/migrations/006_taxonomy_defs.ts`) on every fresh
-  install, **before** `seed.json` is applied — independent of whether `seed.json` declares them. Both are EmDash
-  built-ins (the WordPress split); `tag` is not something this project added, and it's the semantically correct
-  home for the site's flat blog tags, so there is no reason to move tags to `category`. This project doesn't
-  actually use categories, so `category` sits empty in the admin sidebar — it is left in place deliberately as a
-  built-in, not cleaned up. (There's no API/CLI in 0.33.0 to rename or delete a taxonomy _definition_ anyway —
-  only terms have update/delete endpoints — so removing one means raw SQL, see below.)
-  - Since migration `036_i18n_menus_and_taxonomies.ts` the definition unique key is **`(name, locale)`**, not
-    `name` alone. So a `seed.json` taxonomy named `tag` with `locale: "ko"` collides with the migration's row and
-    is silently skipped (its custom `label`/`labelSingular` never take effect; the migration's English "Tags"/"Tag"
-    wins — which is why `.emdash/seed.json` now just declares `"Tags"`/`"Tag"`, matching what the DB will really
-    hold). A second seed block for the same taxonomy in another locale does **not** collide — it creates a second
-    definition row. That's what produced a duplicate `Tags` in the admin sidebar here: `_emdash_taxonomy_defs` held
-    `(tag, ko)` from the migration plus `(tag, en)` from `seed.json`'s old `tax:tag:en` block, and the admin
-    manifest builder (`emdash-runtime.ts`'s `SELECT * FROM _emdash_taxonomy_defs ORDER BY name`) lists every row
-    with no locale filter and no `translation_group` dedupe. That's an upstream EmDash bug — `GET
-    /_emdash/api/taxonomies` supports `?locale=`, the manifest just doesn't use it.
-  - Fixed by deleting the `(tag, en)` row from both the local and production D1 (`wrangler d1 execute www-db
-    --local|--remote --command "DELETE FROM _emdash_taxonomy_defs WHERE name='tag' AND locale='en';"`) and
-    collapsing `.emdash/seed.json` to a **single** taxonomy block whose `terms` array carries the en terms inline
-    with `locale: "en"` + `translationOf` (the flat-taxonomy seed path honours per-term `locale`,
-    `seed/apply.ts`). **Keep it that way** — re-splitting the block per locale recreates the duplicate.
-  - Deleting a definition row is safe: nothing has a foreign key to `_emdash_taxonomy_defs`. Terms
-    (`taxonomies`) join by `name` + `locale`, and `content_taxonomies.taxonomy_id` stores a term's
-    `translation_group`, so the 14 terms and 32 assignment rows were untouched. Term CRUD keeps working for `en`
-    too: every handler calls `requireTaxonomyDef(db, name)` **without** a locale ("terms aren't bound to the def's
-    locale"), and the public read path only needs the distinct set of taxonomy names (`loader.ts`'s
-    `getTaxonomyNames`) plus term rows — `getTaxonomyDefs()`'s only consumer is `astro/prefetch.ts` cache warming.
-    Restart `astro dev` after a local change, since the defs/names caches are per-isolate module state.
+  `.emdash/seed.json` (schema: `node_modules/emdash/src/seed/types.ts`), and it is applied **exactly once**, on
+  the first request against an empty database. Editing it and redeploying does nothing to an already-bootstrapped
+  site: evolving a live schema goes through `/_emdash/admin` or the `emdash schema`/`taxonomy` CLI, then
+  `emdash export-seed` back into version control — use the `emdash-schema-change` skill. `.emdash/seed.json` is
+  committed; `.emdash/types.ts` and `.emdash/schema.json` are gitignored.
+- `.emdash/seed.json`'s taxonomy section must stay a **single** `tag` block whose `terms` carry the en entries
+  inline via `locale` + `translationOf`. Re-splitting it per locale recreates a duplicate "Tags" in the admin
+  sidebar — an upstream EmDash bug this project already hit and fixed by hand. `tag`/`category` are EmDash
+  built-ins seeded by a core migration before `seed.json` runs; `category` sits empty on purpose.
 - The markdown corpus (`src/content/post/{ko,en}/*.md`, `src/assets/covers/{ko,en}/*`) was migrated into EmDash
-  D1/R2 by a one-time script (`scripts/migrate-content.mjs` + `scripts/lib/markdown-to-portable-text.mjs`, both
-  removed once the migration was verified — see the `feat: migrate blog content into EmDash` commit for the full
-  implementation and rationale, including why it walked a real markdown AST instead of using EmDash's own
-  line-by-line `markdownToPortableText`). Content now lives only in D1/R2; edit it through `/_emdash/admin`.
-  - One thing from that migration still matters going forward: for an `en` translation created via
-    `translationOf`, don't pass `taxonomies` expecting it to attach en-locale term rows — `copyEntryTerms` already
-    copies the ko source's pivot rows, and term _reads_ re-join them through `translation_group` filtered by the
-    entry's own locale, so a ko-locale pivot row on an en entry still resolves to the en-locale term. Passing
-    `taxonomies` again is a same-group no-op, not a bug.
-- Content EmDash generates its own public URLs for (sitemap routes, hreflang, admin "view on site" links) resolves
-  the default-locale segment via `i18n.routing.prefixDefaultLocale`, which is only meaningful when `routing` is an
-  object. This project's `routing: "manual"` (see the i18n gotcha below) makes that check read `undefined`, so
-  EmDash would emit ko URLs _without_ the `/ko/` prefix our own `src/pages/[lang]/` routes actually serve at —
-  i.e. EmDash's self-generated URLs disagree with reality for the default locale. Our public routes are unaffected
-  (they're defined directly under `src/pages/[lang]/`, never through EmDash's URL helpers), so the fix is simply
-  not to rely on EmDash's own URL generation (`urlPattern` on collections, its sitemap route, preview links) until
-  this is addressed — don't set `urlPattern` expecting it to match `/[lang]/posts/*`.
-- `astro.config.mjs`'s `r2({...})` storage config only sets `publicUrl` (the real `blog-assets.ptcookie.net`
-  custom domain) when `NODE_ENV !== "development"` — i.e. never under `astro dev`, always under `astro
-build`/`preview` (Astro sets `NODE_ENV` per-command, so this is a reliable signal, same idea as the `VITEST`
-  guards elsewhere in this file). Cover images render via `emdash/ui`'s `<Image>`, which hands the resolved public
-  URL to Astro's `getImage()` (Cloudflare Images binding) — that binding does a real HTTP fetch to transform the
-  image. Local R2 emulation (what `astro dev` reads from) isn't reachable from the public internet, so under dev
-  that fetch 404s for anything only ever migrated locally, and Sharp crashes trying to parse the 404 HTML as image
-  bytes, taking down the whole page's SSR. With `publicUrl` unset, EmDash's `R2Storage.getPublicUrl()`
-  (`node_modules/@emdash-cms/cloudflare/src/storage/r2.ts`) falls back to its own same-origin proxy
-  (`/_emdash/api/media/file/<key>`), which reads through the R2 _binding_ directly — no network fetch, no crash.
-  This config change alone is enough going forward: a cover image's public URL isn't baked into its D1 row at
-  upload time, it's recomputed from current config on every read (confirmed against the actual local D1 rows —
-  none of them carry a `src` field). `astro preview` and the real deployed Worker are unaffected, since `astro
-build` always evaluates this config with `NODE_ENV=production`.
-  - Fixing this surfaced an unrelated, already-existing local-only data problem: `wrangler.jsonc`'s R2
-    `bucket_name` was renamed from `www-emdash-media` to `www-media` at some point (see its git history), but
-    the one-time local content migration had already run against the old name, so all 14 locally migrated media
-    objects sat in a local-only bucket the current config no longer references — the currently-configured local
-    `www-media` bucket was empty. Not something a fresh clone hits (a fresh local D1/R2 bootstrap wouldn't have
-    this split), but if local cover images 404 through the proxy route on an existing checkout, check for stray
-    populated buckets under `.wrangler/state/v3/r2/miniflare-R2BucketObject/*.sqlite` (`sqlite3 <file> "select
-key from _mf_objects"`) and copy objects across with `wrangler r2 object get <old-bucket>/<key> --local
---file=...` + `wrangler r2 object put <new-bucket>/<key> --local --file=...` — purely local state, no git or
-    production impact.
-- **Root-caused and worked around**: under `astro dev`, every `client:*` island on the public site (`Navigation`,
-  `ModeToggle`, `LangToggle`, `Hamburger`) used to fail to hydrate, because the SSR-rendered
-  `<astro-island component-url="...">` omitted Vite's `/@fs/` prefix (`component-url` was a bare absolute
-  filesystem path like `/Users/.../src/components/Navigation.tsx`), so the browser's dynamic import 404'd
-  regardless of `run_worker_first` config. This is an upstream Astro 7 bug (still present in astro@7.2.3, the
-  latest as of this writing — confirmed against the published tarball, not just the installed 7.2.2), not
-  something in this project's own routing: `client:component-path` is compiled to an absolute FS path
-  (`astro/dist/core/compile/compile.js`'s use of `core/viteUtils.js`'s `resolvePath()`), and
-  `runtime/server/hydration.js` turns that into `component-url` via a pipeline-supplied `resolve()`. The
-  _correct_ resolver (`RunnablePipeline` → `createResolve()` → `resolveIdToUrl()` in `core/viteUtils.js`) strips
-  the project root or prepends `/@fs` for an absolute path, but it's only wired up when Astro's `ssr` Vite
-  environment is a `RunnableDevEnvironment` — and `@astrojs/cloudflare` replaces that environment with
-  `@cloudflare/vite-plugin`'s `CloudflareDevEnvironment`, which doesn't extend `RunnableDevEnvironment`. Astro's
-  `isRunnableDevEnvironment()` check then fails, so rendering falls back to the _non-runnable_ dev pipeline
-  (`core/app/dev/pipeline.js`, moved to `core/environment/dev-nonrunnable.js` in 7.2.3), whose `resolve()` is a
-  naive `specifier.startsWith("/") ? specifier : "/@id/" + specifier` — an absolute FS path starts with `/`, so
-  it passes through completely unresolved. `renderer-url` (a bare specifier like `@astrojs/react/client.js`)
-  isn't affected, which is why only `component-url` — and therefore only island hydration — breaks.
-  `src/lib/dev-island-url.ts`'s `devIslandUrlPlugin()` (wired into `astro.config.mjs`'s `vite.plugins`, dev-only
-  via `apply: "serve"` + a `VITEST` guard) works around this — not by changing what `component-url` says in the
-  HTML (that's still the bare absolute path; nothing in the SSR render path can rewrite it without patching
-  Astro itself), but by intercepting the _browser's subsequent request_ for that exact URL — the custom element
-  literally does `import(this.getAttribute("component-url"))`
-  (`astro/dist/runtime/server/astro-island.js`), so the browser issues a same-origin GET for the bare path
-  verbatim. The plugin rewrites that request to `/@fs/...` before `@cloudflare/vite-plugin`'s own pre-middleware
-  can route it into the simulated Worker — it has to sit at the front of `server.middlewares.stack` (via
-  `unshift`, not `use()`) to run before that pre-middleware, since plugin registration order isn't reliable here
-  (the Cloudflare plugin manipulates the stack directly too). See that file's doc comment for the full trace and
-  removal condition. `astro preview`/production are unaffected (this is dev-only SSR, no astro-island client-URL
-  generation there — prerendered/SSR'd HTML ships real bundled scripts under `/_astro/*`).
-  - Fixing `component-url` alone wasn't sufficient: `wrangler.jsonc`'s `assets.run_worker_first` exclusion list
-    also needed `!/src/*` added. `@vitejs/plugin-react`'s React Fast Refresh preamble injects its own self-import
-    of each component module under Vite's _root-relative_ id (e.g. `import * as __vite_react_currentExports
-from "/src/components/Navigation.tsx"`), separate from the `/@fs/...` id used for `import.meta.hot`'s own
-    context in the same emitted file. That request was falling into the same trap as the unpatched
-    `component-url` — not because of the Astro bug above, but because `/src/*` simply wasn't in the
-    `run_worker_first` exception list, so `@cloudflare/vite-plugin`'s pre-middleware routed it into the
-    simulated Worker (which 404s anything that isn't a real route or `env.ASSETS` file) before Vite's own
-    static/transform middleware ever got a chance to serve it. Confirmed by toggling the exclusion and diffing
-    the response code for the exact same request. No `dev-island-url.ts` change was needed for this half — it's
-    purely a `wrangler.jsonc` routing gap, and like the other dev-only exclusions there, `/src/*` never exists as
-    a real production request path.
+  D1/R2 by a one-time script that was removed once verified — see the `feat: migrate blog content into EmDash`
+  commit. Content now lives only in D1/R2; edit it through `/_emdash/admin`.
+- Don't rely on EmDash's own URL generation (collection `urlPattern`, its sitemap route, admin preview links):
+  under `i18n.routing: "manual"` it emits ko URLs _without_ the `/ko/` prefix our `src/pages/[lang]/` routes
+  actually serve at. Our public routes never go through EmDash's URL helpers — keep it that way.
+- `astro.config.mjs`'s `r2({...})` sets `publicUrl` (the real `blog-assets.ptcookie.net` domain) only when
+  `NODE_ENV !== "development"`. Under `astro dev` it must stay unset so EmDash falls back to its same-origin media
+  proxy; with it set, cover images take down the whole page's SSR in dev. `astro preview` and production are
+  unaffected.
+- `src/lib/dev-island-url.ts`'s `devIslandUrlPlugin()` (in `astro.config.mjs`'s `vite.plugins`, dev-only via
+  `apply: "serve"` + a `VITEST` guard) works around an upstream Astro 7 + `@astrojs/cloudflare` bug that breaks
+  **all** island hydration under `astro dev`. It depends on `!/src/*` being in `wrangler.jsonc`'s
+  `assets.run_worker_first` exclusions, and on sitting at the front of the middleware stack. Don't remove either
+  half — the file's own doc comment carries the full trace and the removal condition. `astro preview`/production
+  are unaffected.
 - Git hooks are managed by lefthook (`lefthook.yml`), installed via the `prepare` script. `pre-commit` runs
-  eslint + prettier on staged files in parallel; the **full** vitest suite across 3 browsers runs on `pre-push`,
-  so pushes are slow but commits stay fast.
+  tsc + eslint + prettier on staged files in parallel; the **full** vitest suite across 3 browsers runs on
+  `pre-push`, so pushes are slow but commits stay fast.
 - There is no `src/pages/index.astro` and no `public/_redirects`. `/` → `/ko/` comes solely from
-  `astro.config.mjs`'s top-level `redirects` entry. With the Cloudflare adapter installed, this compiles into a
-  native `dist/client/_redirects` rule (301) at build time — don't add a separate `public/_redirects` back for
-  this route, it would just duplicate the adapter-generated line. Astro's configured `redirects` always lose to a
-  real page file at the same path, so don't add an `index.astro` back at the root without removing or updating the
-  `redirects` entry.
-- `astro.config.mjs`'s `i18n` block must never set `routing.prefixDefaultLocale: true` and must never set
-  `fallback`. Pages are generated manually under `src/pages/[lang]/` (via `getStaticPaths()` for the static routes,
-  or `Astro.params` for the SSR ones), not Astro's automatic locale-folder convention, so neither option is needed
-  for routing to work — but both have real side effects if
-  set: `prefixDefaultLocale: true` forces every route, including ones injected by integrations, to carry a locale
-  prefix, which 404s an admin UI mounted at a fixed unprefixed path (this blocks EmDash CMS's `/_emdash/admin`, see
-  emdash-cms/emdash#369). A `fallback` entry (e.g. `{ en: "ko" }`) makes Astro auto-generate extra build output
-  nesting a non-default-locale prefix on top of our own already-prefixed routes (verified: it produced
-  `/en/en/posts/*` alongside the real `/en/posts/*`).
-- `astro.config.mjs`'s `i18n` block **does** set `routing: "manual"` — this is required, not forbidden, once
-  `output` leaves `"static"` (as it does for any non-Vitest run since EmDash needs SSR). With default routing,
-  Astro's built-in i18n middleware 404s SSR requests to the default locale's prefixed path (`/ko/*`); this is
-  invisible on a fully static build because prerendered pages are served as files and never reach that middleware,
-  but reproduces reliably via `astro build && astro preview` (`astro dev` doesn't honor `prerender` at request
-  time, so it won't show this). `prefixDefaultLocale: true` can't fix it either — see the gotcha above,
-  `/_emdash/admin` 404s. `routing: "manual"` disables Astro's automatic locale handling outright and requires a
-  `src/middleware.ts`; here that file is a trivial pass-through (`defineMiddleware((_, next) => next())`) because
-  every locale-aware page already resolves `lang` itself — via `getStaticPaths` params on the static routes
-  (`work.astro`, `about.astro`), or via `Astro.params` + `isLocale()` on the SSR ones (posts/tags/index) — and
-  never relied on Astro's locale detection/redirect logic. Don't remove `routing: "manual"` or `src/middleware.ts`
-  without re-verifying `/ko/*` SSR routes via an actual `astro preview`, not just `astro dev`.
+  `astro.config.mjs`'s top-level `redirects` entry, which the Cloudflare adapter compiles into a native
+  `dist/client/_redirects` 301 at build time. Don't duplicate it in `public/_redirects`, and don't add an
+  `index.astro` back at the root without updating the `redirects` entry — a real page file always wins.
+- `astro.config.mjs`'s `i18n` block must **never** set `routing.prefixDefaultLocale: true` (it 404s
+  `/_emdash/admin`, emdash-cms/emdash#369) and must **never** set `fallback` (it generates `/en/en/posts/*`). It
+  **must** keep `routing: "manual"` plus the trivial pass-through `src/middleware.ts`, or SSR requests to `/ko/*`
+  404 — reproducible only through `astro build && astro preview`, never `astro dev`.
 - `src/lib/shiki.ts`'s `shikiThemes` (`light: catppuccin-macchiato`, `dark: catppuccin-latte`) looks swapped but is
   intentional, chosen for code-block readability, not a bug. It's shared between `astro.config.mjs`'s
   `markdown.shikiConfig.themes` and `src/lib/highlighter.ts`'s Portable Text code highlighting — keep both on the
@@ -295,69 +164,37 @@ from "/src/components/Navigation.tsx"`), separate from the `/@fs/...` id used fo
 - Only `www.ptcookie.net` is registered as a Worker custom domain in `wrangler.jsonc`. The apex `ptcookie.net`
   is a plain proxied CNAME plus a Cloudflare Redirect Rule (`ptcookie.net/*` → `www.ptcookie.net/${1}`, 301) —
   Redirect Rules run before Workers routes at Cloudflare's edge, so apex doesn't need its own Worker route.
-- `astro build` output is split into `dist/client` (assets) and `dist/server` (worker code) now that
-  `@astrojs/cloudflare` is the adapter and `output` is `"server"` (except under Vitest, see above).
-  `wrangler.jsonc`'s `assets.directory` points at `dist/client`, not `dist` — see the comment there.
-  `wrangler deploy --dry-run` validates the merged config against the real bindings without actually deploying.
-  The adapter writes its actual merged Wrangler config to `dist/server/wrangler.json` (pointed to by
-  `.wrangler/deploy/config.json`) — read that file, not just `wrangler.jsonc`, to see what a deploy really gets;
-  it auto-fills `main` (`entry.mjs`) and a few bindings (e.g. `images.binding`, `kv_namespaces` for sessions) that
-  aren't declared in `wrangler.jsonc`. `assets.binding` is the one binding that is **not** auto-filled here: the
-  adapter only generates it automatically when there's no custom `wrangler.jsonc` at all, and this project already
-  has one (`routes`/`custom_domain`), so it must stay declared explicitly or Worker-served static/prerendered
-  output breaks.
-- `wrangler.jsonc`'s `assets.run_worker_first` is `true`, not scoped to `["/_emdash/*"]` like it was before the
-  post/tag/locale-index routes became SSR (Phase 4 of the EmDash migration). With a scoped array, any path not
-  listed is handled by Cloudflare's static-assets layer _before_ the Worker ever runs — and since SSR routes don't
-  exist as files under `dist/client`, that layer's own `not_found_handling: "404-page"` intercepted them and
-  returned 404 without the Worker (and its D1 query) ever being invoked. This is easy to miss locally: `astro dev`
-  doesn't reproduce it at all (no Cloudflare assets layer in the loop), and even `astro build && astro preview`
-  looks identical for routes that stayed static. It only shows up by actually requesting an SSR route — e.g.
-  `/ko/posts` — through `astro preview` and checking the status code, not just that the build succeeded. `true`
-  matches what the `binding` comment directly above it already assumed ("routes every request through the User
-  Worker first"); `dist/server/entry.mjs` confirms the Worker's own routing falls back to `env.ASSETS.fetch()` for
-  prerendered/static paths, so this doesn't bypass CDN-served assets, just re-orders who checks first.
-- `src/pages/404.astro` is **not** prerendered, unlike the other purely static pages (`work.astro`, `about.astro`).
-  Every SSR post/tag route reaches a bad slug/page-number/locale by calling `Astro.rewrite("/404")` — rewriting an
-  on-demand route to a _prerendered_ one fails at runtime (`Unexpectedly unable to find a component instance for
-route /404`), because the prerendered component was compiled straight to a static HTML file during build and
-  isn't retrievable as a live component instance afterward. Astro's own "no route matched" fallback still finds
-  this file automatically by its reserved filename regardless of prerender status, so on-demand is strictly more
-  capable here, not a tradeoff.
-- `src/lib/highlighter.ts` imports Shiki's language grammars one at a time from `@shikijs/langs/*` (plus
-  `@shikijs/core`, `@shikijs/engine-oniguruma`, `@shikijs/themes`) instead of using the top-level `shiki` package's
-  `createHighlighter`. That convenience API bundles every language reachable through its internal
-  `loadLanguage()` dynamic-import table — since the bundler can't know at build time which ones a Worker will
-  actually request, it includes all of them. For this project's 8-language corpus that was the difference between
-  a ~4.6 MB and ~3.0 MB gzipped Worker (confirmed via `wrangler deploy --dry-run`), which matters because the
-  _free_ Workers plan caps compressed script size at 3 MB (paid: 10 MB) — worth checking again if a future post
-  needs a language outside `src/lib/highlighter.ts`'s explicit import list. `shiki/onig.wasm` (the actual regex
-  engine binary) still comes from the top-level `shiki` package, which the fine-grained subpackages don't
-  otherwise expose a wasm build of; keep it as a dependency for that import alone. The corpus's markdown fences
-  spell the shell language `sh`, but the grammar itself registers as `shellscript` — `LANG_ALIAS` in
-  `highlighter.ts` maps it by hand, since fine-grained mode doesn't carry the full bundle's alias table.
+- `astro build` output is split into `dist/client` (assets) and `dist/server` (worker code). `wrangler.jsonc`'s
+  `assets.directory` points at `dist/client`, not `dist`, and `assets.binding` must stay declared explicitly (the
+  adapter only auto-fills it when there's no custom `wrangler.jsonc` at all). The merged config a deploy really
+  gets is `dist/server/wrangler.json` — read that, not just `wrangler.jsonc`. `wrangler deploy --dry-run`
+  validates it against the real bindings without deploying.
+- `wrangler.jsonc`'s `assets.run_worker_first` must stay `true`, not a scoped array: with a scoped list,
+  Cloudflare's static-assets layer answers SSR routes with its own 404 before the Worker ever runs. Neither
+  `astro dev` nor a successful build shows this — only requesting e.g. `/ko/posts` through `astro preview`.
+- `src/pages/404.astro` is **not** prerendered, unlike `work.astro`/`about.astro`: SSR routes reach it via
+  `Astro.rewrite("/404")`, and rewriting an on-demand route to a prerendered one fails at runtime. Astro's own
+  "no route matched" fallback finds it by filename regardless of prerender status.
+- `src/lib/highlighter.ts` imports Shiki's grammars one at a time from `@shikijs/langs/*` instead of using the
+  `shiki` package's `createHighlighter`, which would bundle every language and blow the Workers script-size cap
+  (CI fails the build above 3072 KiB gzipped). Keep it that way, and measure before adding a language — that's
+  what `bundle-size-sentinel` is for. `LANG_ALIAS` maps the corpus's `sh` fences to the grammar's real
+  `shellscript` id; `shiki/onig.wasm` is why the top-level `shiki` package stays a dependency.
 - `astro-og` (the `og()` integration in `astro.config.mjs`) is a **dev-toolbar app only** — it doesn't generate
   OG images at build time despite the name. Per-page Open Graph data comes entirely from `BaseLayout`'s
   `title`/`description`/`ogType` props.
 - GSAP animations bound outside a `.tsx` island (`Intro.astro`, `Timeline.astro`) run from a plain `<script>` on
   `astro:page-load`, and **must** call `gsap.context(fn, el).revert()` on `astro:before-swap` — without it, a
-  `ClientRouter` navigation back to the same page starts another timeline on top of whatever's still running
-  instead of replacing it. `Intro.astro`'s coin/text timeline is `repeat: -1`, so skipping `revert()` there
-  specifically leaks one more infinite timeline per visit. Additionally, GSAP 3.15 deprecated `yoyoEase` in favour
-  of `easeReverse`. When `repeat` is defined inside a `stagger` object, top-level `yoyo` and `yoyoEase` / `easeReverse`
-  are no longer inherited by the per-target sub-tweens on 3.15, causing staggered targets to repeat without yoyo and
-  remain stuck at their animated offset (e.g. `y: -30`). `repeat`, `yoyo`, and `easeReverse` must all live inside
-  the same `stagger` configuration object (`src/lib/intro-animation.ts`, guarded by `tests/lib/intro-animation.test.ts`).
+  `ClientRouter` return visit stacks another timeline on the running one, and `Intro.astro`'s is `repeat: -1`.
+  On GSAP 3.15, `repeat`, `yoyo`, and `easeReverse` (which replaced `yoyoEase`) must all live inside the same
+  `stagger` object, or staggered targets stick at their animated offset (`src/lib/intro-animation.ts`, guarded by
+  `tests/lib/intro-animation.test.ts`).
 - A Radix `Sheet`/`Dialog` left open during a `ClientRouter` swap can leave `<body>` inert (`overflow: hidden`,
-  `pointer-events: none`) if its own React cleanup effect doesn't get to run before the DOM is replaced.
-  `Header.astro`'s `astro:after-swap` listener clears those defensively — don't remove it, and wrap any new
-  in-sheet nav link in `<SheetClose asChild>` so Radix's own close path runs first.
+  `pointer-events: none`). `Header.astro`'s `astro:after-swap` listener clears that defensively — don't remove it,
+  and wrap any new in-sheet nav link in `<SheetClose asChild>` so Radix's own close path runs first.
 - Third-party SVGs referenced from `about.astro`'s tech grid live in `public/logos/`, not `src/assets/`, on
-  purpose: Astro (≥5.7) inlines `import x from "./x.svg"` as a component, and `graphql.svg` ships an embedded
-  `<style>svg{fill:...}</style>` that would restyle every SVG on the page (including header icons) once inlined,
-  while `nodejs.svg` reuses generic `id="a"`-style ids that would collide with anything else inlined on the same
-  page. `src/assets/logo.svg` is fine to inline — it's the only SVG on any given page and carries no `<style>`.
-- `astro:assets`' `<Image>` derives height from the source file's true (EXIF-corrected) aspect ratio when only
-  `width` is given — `profile.jpg` is a portrait photo once its EXIF rotation is applied, not a landscape
-  headshot, so width-only sizing produces a very tall image that blows out the layout. The About page passes
-  **both** `width` and `height` plus an `object-cover` class so Sharp crops to the box instead.
+  purpose: Astro inlines imported SVGs, and `graphql.svg`'s embedded `<style>` plus `nodejs.svg`'s generic ids
+  would leak across the whole page. `src/assets/logo.svg` is fine to inline.
+- `astro:assets`' `<Image>` derives height from the EXIF-corrected aspect ratio when only `width` is given, and
+  `profile.jpg` is portrait once rotated — the About page passes **both** `width` and `height` plus `object-cover`
+  so Sharp crops to the box instead of blowing out the layout.
