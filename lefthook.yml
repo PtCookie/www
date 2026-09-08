@@ -3,6 +3,9 @@
 pre-commit:
   parallel: true
   commands:
+    check-types:
+      glob: "*.{js,mjs,ts,tsx}"
+      run: pnpm exec tsc --noEmit
     eslint:
       glob: "*.{js,cjs,mjs,ts,tsx,astro}"
       run: pnpm exec eslint --fix {staged_files}
@@ -15,4 +18,5 @@ pre-commit:
 pre-push:
   commands:
     vitest:
+      glob: "*.{js,cjs,mjs,ts,tsx,astro}"
       run: pnpm test --run

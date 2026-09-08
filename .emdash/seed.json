@@ -68,8 +68,8 @@
         {
             "id": "tax:tag:ko",
             "name": "tag",
-            "label": "태그",
-            "labelSingular": "태그",
+            "label": "Tags",
+            "labelSingular": "Tag",
             "hierarchical": false,
             "collections": ["posts"],
             "locale": "ko",
@@ -80,59 +80,54 @@
                 { "id": "term:tag:nodejs:ko", "slug": "nodejs", "label": "nodejs" },
                 { "id": "term:tag:nextjs:ko", "slug": "nextjs", "label": "nextjs" },
                 { "id": "term:tag:electron:ko", "slug": "electron", "label": "electron" },
-                { "id": "term:tag:css:ko", "slug": "css", "label": "css" }
-            ]
-        },
-        {
-            "id": "tax:tag:en",
-            "name": "tag",
-            "label": "Tags",
-            "labelSingular": "Tag",
-            "hierarchical": false,
-            "collections": ["posts"],
-            "locale": "en",
-            "translationOf": "tax:tag:ko",
-            "terms": [
+                { "id": "term:tag:css:ko", "slug": "css", "label": "css" },
                 {
                     "id": "term:tag:typescript:en",
                     "slug": "typescript",
                     "label": "typescript",
+                    "locale": "en",
                     "translationOf": "term:tag:typescript:ko"
                 },
                 {
                     "id": "term:tag:shell:en",
                     "slug": "shell",
                     "label": "shell",
+                    "locale": "en",
                     "translationOf": "term:tag:shell:ko"
                 },
                 {
                     "id": "term:tag:reactjs:en",
                     "slug": "reactjs",
                     "label": "reactjs",
+                    "locale": "en",
                     "translationOf": "term:tag:reactjs:ko"
                 },
                 {
                     "id": "term:tag:nodejs:en",
                     "slug": "nodejs",
                     "label": "nodejs",
+                    "locale": "en",
                     "translationOf": "term:tag:nodejs:ko"
                 },
                 {
                     "id": "term:tag:nextjs:en",
                     "slug": "nextjs",
                     "label": "nextjs",
+                    "locale": "en",
                     "translationOf": "term:tag:nextjs:ko"
                 },
                 {
                     "id": "term:tag:electron:en",
                     "slug": "electron",
                     "label": "electron",
+                    "locale": "en",
                     "translationOf": "term:tag:electron:ko"
                 },
                 {
                     "id": "term:tag:css:en",
                     "slug": "css",
                     "label": "css",
+                    "locale": "en",
                     "translationOf": "term:tag:css:ko"
                 }
             ]
