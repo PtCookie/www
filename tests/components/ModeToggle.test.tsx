@@ -63,19 +63,19 @@ describe("ModeToggle", () => {
 
   test("removes dark class from document when Light is selected", async () => {
     const user = userEvent.setup();
+    // Start from an already-dark document rather than selecting Dark first. Reopening the menu
+    // inside Base UI's close teardown is a race: MenuPositioner keeps an inline
+    // `pointer-events: none` on the popup for as long as the menu isn't open, and on WebKit the
+    // second open does not always take. Selecting Dark has its own test above.
+    document.documentElement.dataset.theme = "dark";
+    document.documentElement.classList.add("dark");
     render(<ModeToggle lang="en" />);
-
-    // Ensure dark mode is applied first
-    await user.click(screen.getByRole("button", { name: /toggle theme/i }));
-    const darkItem = await screen.findByText(/dark/i);
-    await user.click(darkItem);
 
     expect(document.documentElement.classList.contains("dark")).toBe(true);
 
-    // Switch to light
     await user.click(screen.getByRole("button", { name: /toggle theme/i }));
-    const lightItem = await screen.findByText(/light/i);
-    await user.click(lightItem);
+    const item = await screen.findByText(/light/i);
+    await user.click(item);
 
     expect(document.documentElement.classList.contains("dark")).toBe(false);
   });

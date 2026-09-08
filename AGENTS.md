@@ -192,6 +192,12 @@ form; read those files (or hand the change to the agent) before changing somethi
 - A Radix `Sheet`/`Dialog` left open during a `ClientRouter` swap can leave `<body>` inert (`overflow: hidden`,
   `pointer-events: none`). `Header.astro`'s `astro:after-swap` listener clears that defensively — don't remove it,
   and wrap any new in-sheet nav link in `<SheetClose asChild>` so Radix's own close path runs first.
+- Component tests must not reopen a Base UI menu right after selecting an item: `MenuPositioner` puts an
+  inline `pointer-events: none` on the popup for as long as the menu isn't `open`, and a reopen that lands
+  inside Base UI's close teardown doesn't always take — user-event then fails the next click with
+  "element has `pointer-events: none`". It reproduces only on `component (webkit)` in CI (never locally,
+  where Playwright can't launch under the tool sandbox at all), so prefer seeding the starting state on
+  `<html>` over driving the menu twice, the way `tests/components/ModeToggle.test.tsx` does.
 - Third-party SVGs referenced from `about.astro`'s tech grid live in `public/logos/`, not `src/assets/`, on
   purpose: Astro inlines imported SVGs, and `graphql.svg`'s embedded `<style>` plus `nodejs.svg`'s generic ids
   would leak across the whole page. `src/assets/logo.svg` is fine to inline.
