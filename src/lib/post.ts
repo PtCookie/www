@@ -1,11 +1,38 @@
 import type { ContentEntry, MediaValue } from "emdash";
-// The `content` field's actual shape (used for both storage and `<PortableText>` rendering) is
-// astro-portabletext's typed Block/Span structure, re-exported through emdash/ui — not the loose
-// `PortableTextBlock` (`{ _type: string; [key: string]: unknown }`) emdash itself exports for
-// generic field typing. A Portable Text array mixes text blocks (`_type: "block"`, with
-// `children`) with other typed objects at the top level (our corpus only has `_type: "code"`) —
-// astro-portabletext's own default Value type is exactly this union.
-import type { ArbitraryTypedObject, PortableTextBlock, PortableTextSpan } from "emdash/ui";
+
+// The `content` field's actual shape, used for both storage and `<PortableText>` rendering. These
+// used to come from `emdash/ui`, which re-exports astro-portabletext's typed Block/Span structure
+// — but that re-export is broken upstream: emdash's `src/ui.ts` pulls the Portable Text types from
+// `"astro-portabletext"`, whose entry (`lib/index.ts`) exports only the component, while the types
+// live at `"astro-portabletext/types"` and `"@portabletext/types"`. Neither is reachable from this
+// package (both are transitive deps), and the mismatch is type-only so nothing fails at runtime —
+// it surfaces only under `tsc`, where it made every consumer of these names implicitly `any`.
+// Hand-declared here instead, the same way `PostData` below is, and only as wide as this file
+// needs. Drop them for the `emdash/ui` import again once emdash fixes the re-export.
+export interface PortableTextSpan {
+  _type: "span";
+  _key?: string;
+  text: string;
+  marks?: string[];
+}
+
+// A Portable Text array mixes text blocks (`_type: "block"`, with `children`) with other typed
+// objects at the top level — our corpus only has `_type: "code"`.
+export interface PortableTextBlock {
+  _type: "block";
+  _key?: string;
+  children: (PortableTextSpan | ArbitraryTypedObject)[];
+  style?: string;
+  listItem?: string;
+  level?: number;
+  markDefs?: ArbitraryTypedObject[];
+}
+
+export interface ArbitraryTypedObject {
+  _type: string;
+  _key?: string;
+  [key: string]: unknown;
+}
 
 export type PortableTextNode = PortableTextBlock | ArbitraryTypedObject;
 
