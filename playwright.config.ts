@@ -22,7 +22,15 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: "html",
+  // The html report only exists as a downloadable artifact on CI; `github` is what puts a failure
+  // inline on the commit/PR, where it's actually seen. `open: "never"` keeps the reporter from
+  // trying to serve the report and hanging the job.
+  reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "html",
+  /* `astro dev` serves these tests, and a ClientRouter navigation waits on the dev server's
+   * on-demand route compile before the URL changes. The default 5s is a coin flip for that on a
+   * cold CI runner; e2e/theme.spec.ts warms the routes it navigates to, and this is the margin
+   * left over for a merely slow one. */
+  expect: { timeout: 15_000 },
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('')`. */

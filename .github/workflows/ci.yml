@@ -94,6 +94,15 @@ jobs:
           path: playwright-report
           if-no-files-found: ignore
           retention-days: 7
+      # `trace: "on-first-retry"` writes traces here, and they're the thing worth having when a
+      # flake needs diagnosing — without this step they're thrown away with the runner.
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-test-results
+          path: test-results
+          if-no-files-found: ignore
+          retention-days: 7
 
   build:
     name: build
