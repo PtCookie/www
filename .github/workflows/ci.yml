@@ -29,13 +29,16 @@ permissions:
   contents: read
 
 jobs:
-  # eslint + prettier only. `tsc --noEmit` (what lefthook's pre-commit `check-types` runs) is
-  # deliberately absent: it currently reports errors on `main` — `shiki/onig.wasm`, gsap's `GSAP`
-  # type-vs-namespace, and two implicit `any`s in `src/lib/post.ts` — so wiring it up here would
-  # make CI red from its first run. Add the step once those are fixed; it needs a `pnpm exec
-  # astro sync` before it, since `.astro/types.d.ts` is generated and gitignored.
+  # eslint + prettier + `tsc --noEmit`, the same three checks lefthook's pre-commit runs.
+  #
+  # One landmine to know about before touching `src/lib/post.ts`: importing types from `emdash/ui`
+  # is what used to make this red. emdash and astro-portabletext ship raw `.ts` that imports
+  # `.astro`, which plain `tsc` cannot resolve (only `astro check` can), and emdash's `src/ui.ts`
+  # re-exports Portable Text types from a specifier that doesn't have them. A single type import
+  # from `emdash/ui` pulls all of that into the program and brings ~60 third-party errors with it,
+  # none of them fixable here. `skipLibCheck` doesn't help — those are `.ts`, not `.d.ts`.
   lint:
-    name: lint & format
+    name: lint, format & types
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -50,6 +53,12 @@ jobs:
       # `pnpm format` writes; CI must not (see the header). `--check` is the read-only half.
       - name: prettier
         run: pnpm exec prettier --check .
+      # `.astro/types.d.ts` is generated and gitignored, so a fresh checkout has none and
+      # `tsc` would fail on Astro's own ambient types before reaching ours.
+      - name: astro sync
+        run: pnpm exec astro sync
+      - name: check types
+        run: pnpm exec tsc --noEmit
 
   test:
     name: test
