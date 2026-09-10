@@ -24,7 +24,8 @@ pnpm test:coverage                    # unit + chromium only, with coverage
   `.emdash/seed.json` and queried at request time via `getEmDashCollection`/`getEmDashEntry` (from `emdash`) —
   wrapped by `src/lib/posts.ts` (`getAllPublishedPosts`, `getPublishedPostBySlug`). `src/lib/post.ts` hand-declares
   `PostData` (the collection's `data` shape — kept in sync with `.emdash/seed.json` by hand, since the generated
-  `.emdash/types.ts`/`emdash-env.d.ts` are gitignored) and `toPostView()`, which flattens a query result into the
+  `.emdash/types.ts`/`emdash-env.d.ts` are gitignored), the Portable Text node shapes (see the `emdash/ui` gotcha
+  below for why they aren't imported) and `toPostView()`, which flattens a query result into the
   `PostView` shape `PostCard`/`PostList` render (title/subtitle/brief/slug/publishedAt/readTimeInMinutes/tags/
   coverImage). Read time isn't stored — EmDash's content model has no such field — so `getReadTimeInMinutes()`
   estimates it from the Portable Text body. Body content renders via `emdash/ui`'s `<PortableText>`, with the
@@ -75,7 +76,10 @@ pnpm test:coverage                    # unit + chromium only, with coverage
 - `tests/components/**/*.test.tsx` → `component` project, real chromium/firefox/webkit via `@vitest/browser-playwright`,
   Testing Library + jest-dom, setup in `tests/setup.ts`.
 - Coverage tracks `src/**` minus `.astro` files and `src/lib/*` except `utils.ts`.
-- Playwright e2e is configured (`playwright.config.ts`, `testDir: ./e2e`, baseURL `:4321`) but no specs exist yet.
+- `e2e/**/*.spec.ts` → Playwright (`playwright.config.ts`, baseURL `:4321`), run by `pnpm exec playwright test`
+  against a `pnpm dev` server Playwright starts itself. Because that server compiles routes on first request, a
+  spec whose assertions ride on a client-side navigation must warm those routes first — `e2e/theme.spec.ts`'s
+  `beforeAll` is the pattern, and its own comments carry the trace.
 
 ## Documentation
 
@@ -129,6 +133,15 @@ form; read those files (or hand the change to the agent) before changing somethi
   inline via `locale` + `translationOf`. Re-splitting it per locale recreates a duplicate "Tags" in the admin
   sidebar — an upstream EmDash bug this project already hit and fixed by hand. `tag`/`category` are EmDash
   built-ins seeded by a core migration before `seed.json` runs; `category` sits empty on purpose.
+- Never import **types** from `emdash/ui` — it turns CI's `check types` step red, and every local
+  `tsc --noEmit` with it. emdash and astro-portabletext ship raw `.ts` that imports `.astro`, which plain `tsc`
+  can't resolve (only `astro check` can), and emdash's `src/ui.ts` re-exports the Portable Text types from
+  `"astro-portabletext"` — whose entry exports only the component, the types living at `"astro-portabletext/types"`
+  and `"@portabletext/types"`, neither reachable from this package. A single type import drags all of that into
+  the program: ~60 third-party errors, none fixable here, plus `any` for whatever it imported. `skipLibCheck`
+  doesn't help (those are `.ts`, not `.d.ts`). `src/lib/post.ts` hand-declares the Portable Text node shapes for
+  exactly this reason; drop them for the real import once emdash fixes the re-export. Value imports
+  (`<PortableText>`, `<Image>`) are fine — they only ever happen from `.astro`, which `tsc` doesn't parse.
 - The markdown corpus (`src/content/post/{ko,en}/*.md`, `src/assets/covers/{ko,en}/*`) was migrated into EmDash
   D1/R2 by a one-time script that was removed once verified — see the `feat: migrate blog content into EmDash`
   commit. Content now lives only in D1/R2; edit it through `/_emdash/admin`.
