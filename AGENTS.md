@@ -108,11 +108,21 @@ form; read those files (or hand the change to the agent) before changing somethi
     `~/Library/Preferences/.wrangler/registry/prerender`: `EPERM`, then an unhandled `ECONNRESET`. The Vite
     builds all succeed first, so `dist/` is still usable. `WRANGLER_REGISTRY_PATH` does **not** redirect it;
     `WRANGLER_LOG_PATH=$TMPDIR/...` *does* work for wrangler's own logging.
-  - A sandboxed `pnpm add`/`remove`/`install` silently using the wrong store; the signals are a stray
-    `.pnpm-store/` in `git status` or a later `ERR_PNPM_UNEXPECTED_STORE`, confirmable with
-    `pnpm store path` returning a path under the project root. Neither a project `.npmrc`
-    `store-dir` nor `--config.store-dir` routes around it. (`.claude/settings.local.json` allows writes to
-    `~/Library/pnpm/store`, but sandbox config loads once at session start.)
+- A sandboxed pnpm resolving the **wrong store**, which made every `pnpm` command reinstall — `Recreating
+  <project>/node_modules` (it really does delete it), a stray `.pnpm-store/` in `git status`, or
+  `ERR_PNPM_UNEXPECTED_STORE`. Already fixed, by widening `.claude/settings.local.json`'s write allowlist from
+  `~/Library/pnpm/store` to `~/Library/pnpm`; kept here because nothing about the symptom points at that knob.
+  Two halves: pnpm 11 defaults `verifyDepsBeforeRun` to `install`, so every command first compares
+  `.modules.yaml`'s `storeDir` against the freshly resolved one and purges `node_modules` on a mismatch
+  (`checkCompatibility`) — and the *resolution* is what the sandbox broke. `@pnpm/store-path` decides whether the
+  home store is hardlinkable by `mkdir`-ing `<pnpm home>/_tmp_<pid>_<rand>`, one level **above** `store/`;
+  `canLinkToSubdir` swallows the EPERM as "different filesystem" and falls back to `<mountpoint>/.pnpm-store`,
+  which collapses onto the project root when nothing above it is writable. Diagnose by comparing `pnpm store path`
+  with `.modules.yaml`'s `storeDir` — equal means healthy. Only `--store-dir` and `pnpm-workspace.yaml`'s
+  `storeDir` override the probe; `.npmrc`'s `store-dir`, `npm_config_store_dir` and `PNPM_HOME` are all ignored
+  for it. pnpm 12 moves the fallback to `<project>/node_modules/.pnpm-store` (its 12.0 notes name the agent-sandbox
+  case) but keeps the `verifyDepsBeforeRun` default, so it relocates the stray directory without stopping the
+  reinstall.
 - `vitest.config.ts` pre-bundles the `astro:transitions` virtual modules in `optimizeDeps`, and the browser project
   is explicitly named `component`. Both comments there explain why — don't strip them, browser tests turn flaky.
 - `astro.config.mjs` gates three things on `process.env.VITEST` — `adapter`, `output`, and the `emdash()`
