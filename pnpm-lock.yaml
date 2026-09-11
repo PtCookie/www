@@ -144,9 +144,6 @@ importers:
       lefthook:
         specifier: ^2.1.12
         version: 2.1.12
-      playwright:
-        specifier: ^1.62.0
-        version: 1.62.1
       prettier:
         specifier: 3.9.6
         version: 3.9.6
