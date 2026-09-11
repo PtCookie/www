@@ -16,7 +16,7 @@ if (!/\bgit\s+commit\b/.test(command)) {
 const cwd = process.env.CLAUDE_PROJECT_DIR ?? process.cwd();
 
 try {
-  execSync("pnpm cf-typegen", { cwd, stdio: "pipe" });
+  execSync("pnpm run cf-typegen", { cwd, stdio: "pipe" });
   execSync("git add worker-configuration.d.ts", { cwd, stdio: "pipe" });
 } catch (error) {
   console.error(`sync-worker-types: failed to regenerate worker-configuration.d.ts: ${error.message}`);

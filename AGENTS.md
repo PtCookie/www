@@ -7,14 +7,18 @@ plus a blog backed by EmDash, an Astro-native CMS running in-app with an admin U
 ## Commands
 
 ```bash
-pnpm dev                              # dev server on :4321
-pnpm build && pnpm preview            # production build
-pnpm lint                             # eslint
-pnpm format                           # prettier --write .
-pnpm test                             # vitest watch (unit + 3 browsers)
+pnpm run dev                          # dev server on :4321
+pnpm run build && pnpm run preview    # production build
+pnpm run lint                         # eslint
+pnpm run format                       # prettier --write .
+pnpm run test                         # vitest watch (unit + 3 browsers)
 pnpm exec vitest run --project unit   # fast node-only pass
-pnpm test:coverage                    # unit + chromium only, with coverage
+pnpm run test:coverage                # unit + chromium only, with coverage
 ```
+
+Always spell out `run`/`exec` explicitly — pnpm's bare shorthand (e.g. `pnpm test:coverage`) isn't covered by
+`.claude/settings.json`'s `sandbox.excludedCommands: ["pnpm run test*"]`, so it runs sandboxed instead of
+unsandboxed and Playwright's browser launch fails with a `mach_port_rendezvous` permission error.
 
 - Component tests need browsers: `pnpm exec playwright install`.
 
@@ -76,8 +80,10 @@ pnpm test:coverage                    # unit + chromium only, with coverage
 - `tests/components/**/*.test.tsx` → `component` project, real chromium/firefox/webkit via `@vitest/browser-playwright`,
   Testing Library + jest-dom, setup in `tests/setup.ts`.
 - Coverage tracks `src/**` minus `.astro` files and `src/lib/*` except `utils.ts`.
-- `e2e/**/*.spec.ts` → Playwright (`playwright.config.ts`, baseURL `:4321`), run by `pnpm exec playwright test`
-  against a `pnpm dev` server Playwright starts itself. Because that server compiles routes on first request, a
+- `e2e/**/*.spec.ts` → Playwright (`playwright.config.ts`, baseURL `:4321`), run by `pnpm run test:e2e`
+  against a `pnpm dev` server Playwright starts itself (that's `playwright.config.ts`'s own `webServer.command`,
+  a nested child process — it doesn't need the `run`/`exec` form itself since it inherits the parent's already
+  resolved sandbox status). Because that server compiles routes on first request, a
   spec whose assertions ride on a client-side navigation must warm those routes first — `e2e/theme.spec.ts`'s
   `beforeAll` is the pattern, and its own comments carry the trace.
 
@@ -108,6 +114,10 @@ form; read those files (or hand the change to the agent) before changing somethi
   `.modules.yaml`'s `storeDir` — equal means healthy; override with `--store-dir` or `pnpm-workspace.yaml`'s
   `storeDir` (`.npmrc`'s `store-dir`, `npm_config_store_dir` and `PNPM_HOME` are ignored). pnpm 12 relocates the
   fallback to `<project>/node_modules/.pnpm-store` but keeps the same reinstall behavior.
+- `wrangler deploy --dry-run` always logs a `sandbox_violations` entry for `sparrow.cloudflare.com:443`
+  (wrangler's own telemetry beacon, not on `.claude/settings.json`'s network allowlist) — harmless, the
+  dry-run result is unaffected. Real deploys go through CI/CD or the user manually, never through Claude,
+  so this allowlist gap is left as-is on purpose.
 - `vitest.config.ts` pre-bundles the `astro:transitions` virtual modules in `optimizeDeps`, and the browser project
   is explicitly named `component`. Both comments there explain why — don't strip them, browser tests turn flaky.
 - `astro.config.mjs` gates three things on `process.env.VITEST` — `adapter`, `output`, and the `emdash()`
