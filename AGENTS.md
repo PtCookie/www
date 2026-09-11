@@ -98,31 +98,16 @@ form; read those files (or hand the change to the agent) before changing somethi
 - `vitest.config.ts`'s `coverage.exclude` must never contain a `"!"`-prefixed entry — one negated entry
   zeroes out coverage for _every_ file, silently producing a 0/0 report. Use an extglob instead, e.g.
   `"src/lib/!(utils).ts"`.
-- **Sandboxed tool runners** hit these as environment errors, not code errors — re-run with the sandbox
-  disabled instead of debugging them:
-  - `pnpm test`/`test:coverage`/the pre-push hook, since the browser project binds a local port for
-    Playwright: `EPERM: operation not permitted ::1:<port>`.
-  - `pnpm install`/`pnpm build` in non-TTY runners: `ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY`, or a
-    lefthook `prepare` `operation not permitted`. `CI=true` helps.
-  - `pnpm build`'s "prerendering static routes" step, where miniflare writes to
-    `~/Library/Preferences/.wrangler/registry/prerender`: `EPERM`, then an unhandled `ECONNRESET`. The Vite
-    builds all succeed first, so `dist/` is still usable. `WRANGLER_REGISTRY_PATH` does **not** redirect it;
-    `WRANGLER_LOG_PATH=$TMPDIR/...` *does* work for wrangler's own logging.
-- A sandboxed pnpm resolving the **wrong store**, which made every `pnpm` command reinstall — `Recreating
+- A sandboxed pnpm can resolve the **wrong store**, making every command reinstall — `Recreating
   <project>/node_modules` (it really does delete it), a stray `.pnpm-store/` in `git status`, or
-  `ERR_PNPM_UNEXPECTED_STORE`. Already fixed, by widening `.claude/settings.local.json`'s write allowlist from
-  `~/Library/pnpm/store` to `~/Library/pnpm`; kept here because nothing about the symptom points at that knob.
-  Two halves: pnpm 11 defaults `verifyDepsBeforeRun` to `install`, so every command first compares
-  `.modules.yaml`'s `storeDir` against the freshly resolved one and purges `node_modules` on a mismatch
-  (`checkCompatibility`) — and the *resolution* is what the sandbox broke. `@pnpm/store-path` decides whether the
-  home store is hardlinkable by `mkdir`-ing `<pnpm home>/_tmp_<pid>_<rand>`, one level **above** `store/`;
-  `canLinkToSubdir` swallows the EPERM as "different filesystem" and falls back to `<mountpoint>/.pnpm-store`,
-  which collapses onto the project root when nothing above it is writable. Diagnose by comparing `pnpm store path`
-  with `.modules.yaml`'s `storeDir` — equal means healthy. Only `--store-dir` and `pnpm-workspace.yaml`'s
-  `storeDir` override the probe; `.npmrc`'s `store-dir`, `npm_config_store_dir` and `PNPM_HOME` are all ignored
-  for it. pnpm 12 moves the fallback to `<project>/node_modules/.pnpm-store` (its 12.0 notes name the agent-sandbox
-  case) but keeps the `verifyDepsBeforeRun` default, so it relocates the stray directory without stopping the
-  reinstall.
+  `ERR_PNPM_UNEXPECTED_STORE`. Fixed by widening `.claude/settings.local.json`'s write allowlist from
+  `~/Library/pnpm/store` to `~/Library/pnpm`: pnpm 11's `verifyDepsBeforeRun` compares `.modules.yaml`'s
+  `storeDir` against a freshly resolved one on every command and purges `node_modules` on a mismatch, and the
+  sandbox broke that resolution by EPERM-ing the `mkdir` probe `@pnpm/store-path` uses to test hardlink support,
+  which silently falls back to a store under the project root. Diagnose by comparing `pnpm store path` with
+  `.modules.yaml`'s `storeDir` — equal means healthy; override with `--store-dir` or `pnpm-workspace.yaml`'s
+  `storeDir` (`.npmrc`'s `store-dir`, `npm_config_store_dir` and `PNPM_HOME` are ignored). pnpm 12 relocates the
+  fallback to `<project>/node_modules/.pnpm-store` but keeps the same reinstall behavior.
 - `vitest.config.ts` pre-bundles the `astro:transitions` virtual modules in `optimizeDeps`, and the browser project
   is explicitly named `component`. Both comments there explain why — don't strip them, browser tests turn flaky.
 - `astro.config.mjs` gates three things on `process.env.VITEST` — `adapter`, `output`, and the `emdash()`
