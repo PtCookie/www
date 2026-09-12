@@ -12,7 +12,7 @@ pnpm run build && pnpm run preview    # production build
 pnpm run lint                         # eslint
 pnpm run format                       # prettier --write .
 pnpm run test                         # vitest watch (unit + 3 browsers)
-pnpm exec vitest run --project unit   # fast node-only pass
+pnpm run test run --project unit      # fast node-only pass
 pnpm run test:coverage                # unit + chromium only, with coverage
 ```
 
@@ -114,10 +114,6 @@ form; read those files (or hand the change to the agent) before changing somethi
   `.modules.yaml`'s `storeDir` — equal means healthy; override with `--store-dir` or `pnpm-workspace.yaml`'s
   `storeDir` (`.npmrc`'s `store-dir`, `npm_config_store_dir` and `PNPM_HOME` are ignored). pnpm 12 relocates the
   fallback to `<project>/node_modules/.pnpm-store` but keeps the same reinstall behavior.
-- `wrangler deploy --dry-run` always logs a `sandbox_violations` entry for `sparrow.cloudflare.com:443`
-  (wrangler's own telemetry beacon, not on `.claude/settings.json`'s network allowlist) — harmless, the
-  dry-run result is unaffected. Real deploys go through CI/CD or the user manually, never through Claude,
-  so this allowlist gap is left as-is on purpose.
 - `vitest.config.ts` pre-bundles the `astro:transitions` virtual modules in `optimizeDeps`, and the browser project
   is explicitly named `component`. Both comments there explain why — don't strip them, browser tests turn flaky.
 - `astro.config.mjs` gates three things on `process.env.VITEST` — `adapter`, `output`, and the `emdash()`
@@ -147,9 +143,6 @@ form; read those files (or hand the change to the agent) before changing somethi
   doesn't help (those are `.ts`, not `.d.ts`). `src/lib/post.ts` hand-declares the Portable Text node shapes for
   exactly this reason; drop them for the real import once emdash fixes the re-export. Value imports
   (`<PortableText>`, `<Image>`) are fine — they only ever happen from `.astro`, which `tsc` doesn't parse.
-- The markdown corpus (`src/content/post/{ko,en}/*.md`, `src/assets/covers/{ko,en}/*`) was migrated into EmDash
-  D1/R2 by a one-time script that was removed once verified — see the `feat: migrate blog content into EmDash`
-  commit. Content now lives only in D1/R2; edit it through `/_emdash/admin`.
 - Don't rely on EmDash's own URL generation (collection `urlPattern`, its sitemap route, admin preview links):
   under `i18n.routing: "manual"` it emits ko URLs _without_ the `/ko/` prefix our `src/pages/[lang]/` routes
   actually serve at. Our public routes never go through EmDash's URL helpers — keep it that way.
