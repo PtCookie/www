@@ -24,7 +24,7 @@ Verification commands worth running when a violation is plausible but not certai
 
 ```bash
 pnpm exec vitest run --project unit          # fast; proves vitest still boots at all
-pnpm build && pnpm exec astro preview        # the only way to see the SSR/i18n/assets-layer bugs
+pnpm run build && pnpm exec astro preview    # the only way to see the SSR/i18n/assets-layer bugs
 pnpm exec wrangler deploy --dry-run          # validates merged config against real bindings
 ```
 

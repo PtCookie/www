@@ -32,7 +32,12 @@ function getHighlighter(): Promise<HighlighterCore> {
   highlighterPromise ??= createHighlighterCore({
     themes: [catppuccinMacchiato, catppuccinLatte],
     langs: [c, cpp, javascript, powershell, python, shellscript, typescript],
-    engine: createOnigurumaEngine(import("shiki/onig.wasm")),
+    // Shiki accepts the `{ default: WebAssembly.Module }` module namespace this import produces —
+    // its loader has a branch for exactly that — but its published `LoadWasmOptions` type doesn't
+    // list the shape, so spell out the equivalent instantiator rather than casting past the type.
+    engine: createOnigurumaEngine(async (importObject) =>
+      WebAssembly.instantiate((await import("shiki/onig.wasm")).default, importObject),
+    ),
   });
   return highlighterPromise;
 }

@@ -38,7 +38,7 @@ Two details of that setup are easy to break:
 ## How to measure
 
 ```bash
-pnpm build                                   # writes dist/client + dist/server
+pnpm run build                               # writes dist/client + dist/server
 pnpm exec wrangler deploy --dry-run          # prints "Total Upload: X KiB / gzip: Y KiB"
 ```
 

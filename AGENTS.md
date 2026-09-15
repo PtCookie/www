@@ -7,14 +7,18 @@ plus a blog backed by EmDash, an Astro-native CMS running in-app with an admin U
 ## Commands
 
 ```bash
-pnpm dev                              # dev server on :4321
-pnpm build && pnpm preview            # production build
-pnpm lint                             # eslint
-pnpm format                           # prettier --write .
-pnpm test                             # vitest watch (unit + 3 browsers)
-pnpm exec vitest run --project unit   # fast node-only pass
-pnpm test:coverage                    # unit + chromium only, with coverage
+pnpm run dev                          # dev server on :4321
+pnpm run build && pnpm run preview    # production build
+pnpm run lint                         # eslint
+pnpm run format                       # prettier --write .
+pnpm run test                         # vitest watch (unit + 3 browsers)
+pnpm run test run --project unit      # fast node-only pass
+pnpm run test:coverage                # unit + chromium only, with coverage
 ```
+
+Always spell out `run`/`exec` explicitly — pnpm's bare shorthand (e.g. `pnpm test:coverage`) isn't covered by
+`.claude/settings.json`'s `sandbox.excludedCommands: ["pnpm run test*"]`, so it runs sandboxed instead of
+unsandboxed and Playwright's browser launch fails with a `mach_port_rendezvous` permission error.
 
 - Component tests need browsers: `pnpm exec playwright install`.
 
@@ -24,7 +28,8 @@ pnpm test:coverage                    # unit + chromium only, with coverage
   `.emdash/seed.json` and queried at request time via `getEmDashCollection`/`getEmDashEntry` (from `emdash`) —
   wrapped by `src/lib/posts.ts` (`getAllPublishedPosts`, `getPublishedPostBySlug`). `src/lib/post.ts` hand-declares
   `PostData` (the collection's `data` shape — kept in sync with `.emdash/seed.json` by hand, since the generated
-  `.emdash/types.ts`/`emdash-env.d.ts` are gitignored) and `toPostView()`, which flattens a query result into the
+  `.emdash/types.ts`/`emdash-env.d.ts` are gitignored), the Portable Text node shapes (see the `emdash/ui` gotcha
+  below for why they aren't imported) and `toPostView()`, which flattens a query result into the
   `PostView` shape `PostCard`/`PostList` render (title/subtitle/brief/slug/publishedAt/readTimeInMinutes/tags/
   coverImage). Read time isn't stored — EmDash's content model has no such field — so `getReadTimeInMinutes()`
   estimates it from the Portable Text body. Body content renders via `emdash/ui`'s `<PortableText>`, with the
@@ -75,7 +80,12 @@ pnpm test:coverage                    # unit + chromium only, with coverage
 - `tests/components/**/*.test.tsx` → `component` project, real chromium/firefox/webkit via `@vitest/browser-playwright`,
   Testing Library + jest-dom, setup in `tests/setup.ts`.
 - Coverage tracks `src/**` minus `.astro` files and `src/lib/*` except `utils.ts`.
-- Playwright e2e is configured (`playwright.config.ts`, `testDir: ./e2e`, baseURL `:4321`) but no specs exist yet.
+- `e2e/**/*.spec.ts` → Playwright (`playwright.config.ts`, baseURL `:4321`), run by `pnpm run test:e2e`
+  against a `pnpm dev` server Playwright starts itself (that's `playwright.config.ts`'s own `webServer.command`,
+  a nested child process — it doesn't need the `run`/`exec` form itself since it inherits the parent's already
+  resolved sandbox status). Because that server compiles routes on first request, a
+  spec whose assertions ride on a client-side navigation must warm those routes first — `e2e/theme.spec.ts`'s
+  `beforeAll` is the pattern, and its own comments carry the trace.
 
 ## Documentation
 
@@ -94,21 +104,16 @@ form; read those files (or hand the change to the agent) before changing somethi
 - `vitest.config.ts`'s `coverage.exclude` must never contain a `"!"`-prefixed entry — one negated entry
   zeroes out coverage for _every_ file, silently producing a 0/0 report. Use an extglob instead, e.g.
   `"src/lib/!(utils).ts"`.
-- **Sandboxed tool runners** hit these as environment errors, not code errors — re-run with the sandbox
-  disabled instead of debugging them:
-  - `pnpm test`/`test:coverage`/the pre-push hook, since the browser project binds a local port for
-    Playwright: `EPERM: operation not permitted ::1:<port>`.
-  - `pnpm install`/`pnpm build` in non-TTY runners: `ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY`, or a
-    lefthook `prepare` `operation not permitted`. `CI=true` helps.
-  - `pnpm build`'s "prerendering static routes" step, where miniflare writes to
-    `~/Library/Preferences/.wrangler/registry/prerender`: `EPERM`, then an unhandled `ECONNRESET`. The Vite
-    builds all succeed first, so `dist/` is still usable. `WRANGLER_REGISTRY_PATH` does **not** redirect it;
-    `WRANGLER_LOG_PATH=$TMPDIR/...` *does* work for wrangler's own logging.
-  - A sandboxed `pnpm add`/`remove`/`install` silently using the wrong store; the signals are a stray
-    `.pnpm-store/` in `git status` or a later `ERR_PNPM_UNEXPECTED_STORE`, confirmable with
-    `pnpm store path` returning a path under the project root. Neither a project `.npmrc`
-    `store-dir` nor `--config.store-dir` routes around it. (`.claude/settings.local.json` allows writes to
-    `~/Library/pnpm/store`, but sandbox config loads once at session start.)
+- A sandboxed pnpm can resolve the **wrong store**, making every command reinstall — `Recreating
+  <project>/node_modules` (it really does delete it), a stray `.pnpm-store/` in `git status`, or
+  `ERR_PNPM_UNEXPECTED_STORE`. Fixed by widening `.claude/settings.local.json`'s write allowlist from
+  `~/Library/pnpm/store` to `~/Library/pnpm`: pnpm 11's `verifyDepsBeforeRun` compares `.modules.yaml`'s
+  `storeDir` against a freshly resolved one on every command and purges `node_modules` on a mismatch, and the
+  sandbox broke that resolution by EPERM-ing the `mkdir` probe `@pnpm/store-path` uses to test hardlink support,
+  which silently falls back to a store under the project root. Diagnose by comparing `pnpm store path` with
+  `.modules.yaml`'s `storeDir` — equal means healthy; override with `--store-dir` or `pnpm-workspace.yaml`'s
+  `storeDir` (`.npmrc`'s `store-dir`, `npm_config_store_dir` and `PNPM_HOME` are ignored). pnpm 12 relocates the
+  fallback to `<project>/node_modules/.pnpm-store` but keeps the same reinstall behavior.
 - `vitest.config.ts` pre-bundles the `astro:transitions` virtual modules in `optimizeDeps`, and the browser project
   is explicitly named `component`. Both comments there explain why — don't strip them, browser tests turn flaky.
 - `astro.config.mjs` gates three things on `process.env.VITEST` — `adapter`, `output`, and the `emdash()`
@@ -129,9 +134,15 @@ form; read those files (or hand the change to the agent) before changing somethi
   inline via `locale` + `translationOf`. Re-splitting it per locale recreates a duplicate "Tags" in the admin
   sidebar — an upstream EmDash bug this project already hit and fixed by hand. `tag`/`category` are EmDash
   built-ins seeded by a core migration before `seed.json` runs; `category` sits empty on purpose.
-- The markdown corpus (`src/content/post/{ko,en}/*.md`, `src/assets/covers/{ko,en}/*`) was migrated into EmDash
-  D1/R2 by a one-time script that was removed once verified — see the `feat: migrate blog content into EmDash`
-  commit. Content now lives only in D1/R2; edit it through `/_emdash/admin`.
+- Never import **types** from `emdash/ui` — it turns CI's `check types` step red, and every local
+  `tsc --noEmit` with it. emdash and astro-portabletext ship raw `.ts` that imports `.astro`, which plain `tsc`
+  can't resolve (only `astro check` can), and emdash's `src/ui.ts` re-exports the Portable Text types from
+  `"astro-portabletext"` — whose entry exports only the component, the types living at `"astro-portabletext/types"`
+  and `"@portabletext/types"`, neither reachable from this package. A single type import drags all of that into
+  the program: ~60 third-party errors, none fixable here, plus `any` for whatever it imported. `skipLibCheck`
+  doesn't help (those are `.ts`, not `.d.ts`). `src/lib/post.ts` hand-declares the Portable Text node shapes for
+  exactly this reason; drop them for the real import once emdash fixes the re-export. Value imports
+  (`<PortableText>`, `<Image>`) are fine — they only ever happen from `.astro`, which `tsc` doesn't parse.
 - Don't rely on EmDash's own URL generation (collection `urlPattern`, its sitemap route, admin preview links):
   under `i18n.routing: "manual"` it emits ko URLs _without_ the `/ko/` prefix our `src/pages/[lang]/` routes
   actually serve at. Our public routes never go through EmDash's URL helpers — keep it that way.

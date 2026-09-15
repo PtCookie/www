@@ -7,11 +7,25 @@
 // automatically by its reserved filename regardless of prerender status.
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { buttonVariants } from "@/components/ui/button.tsx";
+import { translate } from "@/lib/utils.ts";
+import { config, isLocale } from "@/config.ts";
+
+// This route has no `lang` param of its own, so the locale is recovered from the path the visitor
+// actually asked for. Astro.originPathname is that path — the pathname *before* rewrites — and it
+// survives both ways this page is reached:
+//   Astro.rewrite("/404") from the SSR index/post/tag routes, where Astro.url is only "/404"
+//     (astro/dist/core/rewrites/handler.js hands the pre-rewrite pathname to setOriginPathname)
+//   Astro's own "no route matched" fallback, which builds the render context from the original
+//     request (astro/dist/core/errors/default-handler.js)
+// A first segment that isn't a locale falls back to the default — which covers both a bare
+// unprefixed path and the !isLocale(lang) guards that rewrite here with a bogus locale.
+const [, maybeLocale] = Astro.originPathname.split("/");
+const lang = isLocale(maybeLocale) ? maybeLocale : config.defaultLocale;
 ---
 
-<BaseLayout title="Not found">
+<BaseLayout lang={lang} title={translate(lang, "page.notFound")}>
   <div class="flex grow flex-col items-center justify-center gap-8">
-    <p class="text-2xl">Page not found</p>
-    <a href="/" class={buttonVariants()}> Go home </a>
+    <h1 class="text-2xl">{translate(lang, "page.notFound")}</h1>
+    <a href={`/${lang}`} class={buttonVariants()}>{translate(lang, "page.returnHome")}</a>
   </div>
 </BaseLayout>

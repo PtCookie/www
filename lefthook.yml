@@ -19,4 +19,4 @@ pre-push:
   commands:
     vitest:
       glob: "*.{js,cjs,mjs,ts,tsx,astro}"
-      run: pnpm test --run
+      run: pnpm run test --run

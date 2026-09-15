@@ -1,12 +1,19 @@
 import type { gsap as GSAP } from "gsap";
 
+// gsap's type members live in a *global* `gsap` namespace; the package's own `gsap` export is a
+// `const` typed `typeof gsap`, which carries a value meaning only — so `GSAP.TweenTarget` is not a
+// namespace access and doesn't compile. Alias what's needed here at module scope, where the `gsap`
+// parameter below doesn't shadow the global. The import stays: it's what loads gsap's types.
+type TweenTarget = gsap.TweenTarget;
+type Timeline = gsap.core.Timeline;
+
 export interface IntroTargets {
-  coin: GSAP.TweenTarget;
-  chars: GSAP.TweenTarget;
+  coin: TweenTarget;
+  chars: TweenTarget;
 }
 
 /** Builds the looping coin-flip + character-bounce timeline. */
-export function buildIntroTimeline(gsap: typeof GSAP, targets: IntroTargets): GSAP.core.Timeline {
+export function buildIntroTimeline(gsap: typeof GSAP, targets: IntroTargets): Timeline {
   const mainTimeline = gsap.timeline({ repeat: -1, repeatDelay: 1 });
 
   const flipTimeline = gsap.timeline();
