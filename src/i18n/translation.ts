@@ -24,6 +24,7 @@ export interface Translation {
   "page.hobbyProjects": string;
   "page.underConstruction": string;
   "page.returnHome": string;
+  "page.notFound": string;
   "page.about": string;
   "page.aboutDescription": string;
   "page.greeting": string;
@@ -57,6 +58,7 @@ export const translation: Record<Locale, Translation> = {
     "page.hobbyProjects": "사이드 프로젝트",
     "page.underConstruction": "준비 중입니다",
     "page.returnHome": "홈으로 돌아가기",
+    "page.notFound": "페이지를 찾을 수 없습니다",
     "page.about": "소개",
     "page.aboutDescription": "자기소개",
     "page.greeting": "안녕하세요!",
@@ -88,6 +90,7 @@ export const translation: Record<Locale, Translation> = {
     "page.hobbyProjects": "Hobby Projects",
     "page.underConstruction": "Under Construction",
     "page.returnHome": "Return Home",
+    "page.notFound": "Page Not Found",
     "page.about": "About",
     "page.aboutDescription": "About Minsup Ju",
     "page.greeting": "Hello!",
