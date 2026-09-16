@@ -1,52 +1,8 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 
 import type { Tag } from "@/lib/post.ts";
-import { cn, formatDate, getAllTags, getTimeline, range, translate } from "@/lib/utils.ts";
+import { formatDate, getAllTags, getPostCountLabel, getTimeline, localePath, range, translate } from "@/lib/utils.ts";
 import { formatPeriod, timelineEntry } from "@/i18n/timeline.ts";
-
-describe("cn", () => {
-  test("should concatenate multiple class strings into one", () => {
-    const result = cn("class1", "class2", "class3");
-
-    expect(result).toBe("class1 class2 class3");
-  });
-
-  test("should ignore falsy values like null, undefined, and false", () => {
-    const result = cn("class1", null, undefined, false, "class2");
-
-    expect(result).toBe("class1 class2");
-  });
-
-  test("should include numeric values as strings in the result", () => {
-    const result = cn("class1", 123, "class2");
-
-    expect(result).toBe("class1 123 class2");
-  });
-
-  test("should handle objects with truthy and falsy values", () => {
-    const result = cn({ class1: true, class2: false, class3: true });
-
-    expect(result).toBe("class1 class3");
-  });
-
-  test("should handle a mix of strings, numbers, and objects", () => {
-    const result = cn("class1", { class2: true, class3: false }, 456);
-
-    expect(result).toBe("class1 class2 456");
-  });
-
-  test("should handle array inputs and concatenate them properly", () => {
-    const result = cn(["class1", "class2"], ["class3"]);
-
-    expect(result).toBe("class1 class2 class3");
-  });
-
-  test("should handle empty inputs gracefully and return an empty string", () => {
-    const result = cn();
-
-    expect(result).toBe("");
-  });
-});
 
 describe("getAllTags", () => {
   test("should return all tags with their counts (unsorted)", () => {
@@ -158,6 +114,40 @@ describe("translate", () => {
 
   test("should return the English string for a given key", () => {
     expect(translate("en", "component.light")).toBe("Light");
+  });
+});
+
+describe("getPostCountLabel", () => {
+  test("should use the singular English form for a count of one", () => {
+    expect(getPostCountLabel("en", 1)).toBe("post");
+  });
+
+  test("should use the plural English form for counts other than one", () => {
+    expect(getPostCountLabel("en", 0)).toBe("posts");
+    expect(getPostCountLabel("en", 2)).toBe("posts");
+  });
+
+  test("should return the same Korean word regardless of count", () => {
+    expect(getPostCountLabel("ko", 1)).toBe("게시글");
+    expect(getPostCountLabel("ko", 2)).toBe("게시글");
+  });
+});
+
+describe("localePath", () => {
+  test("should replace the locale segment with the target locale", () => {
+    expect(localePath("en", "ko", "/en/posts/hello-world")).toBe("/ko/posts/hello-world");
+  });
+
+  test("should replace a bare locale root", () => {
+    expect(localePath("ko", "en", "/ko")).toBe("/en");
+  });
+
+  test("should return the same path when the target matches the current locale", () => {
+    expect(localePath("en", "en", "/en/about")).toBe("/en/about");
+  });
+
+  test("should fall back to the target locale root when the path has no recognizable prefix", () => {
+    expect(localePath("ko", "en", "/404")).toBe("/en");
   });
 });
 

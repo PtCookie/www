@@ -15,7 +15,7 @@ import { Image, PortableText } from "emdash/ui";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import PostList from "@/components/PostList.astro";
 import Code from "@/components/portable-text/Code.astro";
-import { badgeVariants } from "@/components/ui/badge.tsx";
+import TagList from "@/components/TagList.astro";
 import { PostCard } from "@/components/PostCard.tsx";
 import { formatDate, translate } from "@/lib/utils.ts";
 import { paginate, type PagedItems } from "@/lib/pagination.ts";
@@ -79,7 +79,7 @@ if (slug === undefined || isNumericSlug) {
       <PostList title={translate(lang, "page.allPosts")} basePath={`/${lang}/posts`} page={result.page} lang={lang} />
     ) : (
       <Fragment>
-        <h1 class="my-4 text-3xl font-extrabold sm:my-8 sm:text-5xl">{result.postView.title}</h1>
+        <h1 class="my-4 text-3xl font-extrabold text-balance sm:my-8 sm:text-5xl">{result.postView.title}</h1>
         <p class="mb-3 text-xl font-semibold sm:mb-4 sm:text-2xl">{result.postView.subtitle}</p>
         <div class="text-muted-foreground mb-2 flex justify-between font-sans text-xs tabular-nums sm:text-sm">
           <p>
@@ -90,21 +90,14 @@ if (slug === undefined || isNumericSlug) {
             {translate(lang, "component.readTime")}
           </p>
         </div>
-        <div class="flex flex-wrap justify-end gap-2">
-          {result.postView.tags.map((tag) => (
-            <a
-              href={`/${lang}/tags/${tag.slug}`}
-              data-testid="badge"
-              class:list={[badgeVariants({ variant: "secondary" }), "font-mono"]}
-            >
-              #{tag.name}
-            </a>
-          ))}
-        </div>
+        {/* Rendered once here, aligned with the title/subtitle above it — a second copy used to
+            repeat the same list below the article body, right-aligned up here and left-aligned
+            down there. */}
+        <TagList tags={result.postView.tags} lang={lang} class="justify-start" />
 
         {result.postView.coverImage.image && (
           <figure class="relative mt-4 mb-8 sm:mt-6 sm:mb-10">
-            <Image image={result.postView.coverImage.image} alt={result.postView.title} priority class="rounded-md" />
+            <Image image={result.postView.coverImage.image} alt="" priority class="rounded-md" />
             {result.postView.coverImage.photographer && result.postView.coverImage.attribution && (
               <figcaption class="bg-muted absolute right-2 bottom-2 rounded-sm px-2.5 py-1 text-xs italic sm:right-4 sm:bottom-4 sm:text-sm">
                 Photo by&nbsp;
@@ -129,21 +122,11 @@ if (slug === undefined || isNumericSlug) {
           <PortableText value={result.post.data.content} components={{ type: { code: Code } }} />
         </article>
 
-        <div class="my-6 flex flex-wrap justify-start gap-2 sm:my-8">
-          {result.postView.tags.map((tag) => (
-            <a
-              href={`/${lang}/tags/${tag.slug}`}
-              data-testid="badge"
-              class:list={[badgeVariants({ variant: "secondary" }), "font-mono"]}
-            >
-              #{tag.name}
-            </a>
-          ))}
-        </div>
-
         {(result.prevPost || result.nextPost) && (
           <Fragment>
-            <h2 class="text-center text-lg font-medium sm:mb-4 sm:text-xl">{translate(lang, "page.readNext")}</h2>
+            <h2 class="mt-6 text-center text-lg font-medium sm:mt-8 sm:mb-4 sm:text-xl">
+              {translate(lang, "page.readNext")}
+            </h2>
             <div class="my-4 grid flex-1 place-items-center content-center gap-8">
               {result.nextPost && <PostCard post={result.nextPost} lang={lang} disableImage={true} headingLevel="h3" />}
               {result.prevPost && <PostCard post={result.prevPost} lang={lang} disableImage={true} headingLevel="h3" />}

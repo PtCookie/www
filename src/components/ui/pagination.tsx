@@ -1,7 +1,7 @@
 import * as React from "react";
 import type { VariantProps } from "class-variance-authority";
+import { cn } from "cn";
 
-import { cn } from "@/lib/utils.ts";
 import { buttonVariants } from "@/components/ui/button.tsx";
 import { CaretLeftIcon, CaretRightIcon, DotsThreeIcon } from "@phosphor-icons/react";
 

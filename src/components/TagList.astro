@@ -1,0 +1,35 @@
+---
+import { badgeVariants } from "@/components/ui/badge.tsx";
+import { tagLinkClass } from "@/lib/utils.ts";
+import { cn } from "cn";
+import type { Tag } from "@/lib/post.ts";
+import type { Locale } from "@/config.ts";
+
+// `role="list"` below is not redundant: Tailwind's preflight sets `list-style: none`, which makes
+// Safari/VoiceOver drop the list semantics from a plain <ul>.
+interface Props {
+  tags: Tag[];
+  lang: Locale;
+  class?: string;
+}
+
+const { tags, lang, class: className } = Astro.props;
+---
+
+{
+  tags.length > 0 && (
+    <ul role="list" class:list={["flex flex-wrap gap-2", className]}>
+      {tags.map((tag) => (
+        <li>
+          <a
+            href={`/${lang}/tags/${tag.slug}`}
+            data-testid="badge"
+            class={cn(badgeVariants({ variant: "secondary" }), tagLinkClass)}
+          >
+            #{tag.name}
+          </a>
+        </li>
+      ))}
+    </ul>
+  )
+}

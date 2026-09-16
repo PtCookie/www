@@ -11,26 +11,26 @@ const { lang } = Astro.props;
 const timeline = getTimeline(lang);
 ---
 
-<div class="mx-auto max-w-4xl min-w-3/5 px-4 py-8">
+<div class="mx-auto max-w-4xl min-w-3/5 overflow-x-clip px-4 py-8">
   <h2 class="mb-8 text-center font-sans text-3xl font-bold">{translate(lang, "page.professionalExperience")}</h2>
   <div class="relative pl-8">
     <Separator orientation="vertical" className="absolute top-0 left-4 h-full w-0.5!" />
     {
       timeline.map((item) => (
-        <div class="mb-12 flex items-center">
+        <div class="timeline-item mb-12 flex items-center">
           <div class="timeline-point border-background bg-chart-5 z-10 ml-4 h-4 w-4 -translate-x-1/2 transform rounded-full border-4 shadow-md" />
           <div class="flex-1 font-sans">
             <div class="timeline-card bg-card rounded-lg border p-6 shadow-lg">
               <div class="text-chart-4 mb-2 text-sm font-semibold">{item.period}</div>
-              <h3 class="text-primary mb-2 text-xl font-bold break-words">{item.title}</h3>
+              <h3 class="text-primary mb-2 text-xl font-bold text-balance break-words">{item.title}</h3>
               <p class="text-secondary-foreground mb-4 font-serif break-words">{item.description}</p>
-              <div class="mb-4 flex flex-wrap gap-2">
+              <ul role="list" class="mb-4 flex flex-wrap gap-2">
                 {item.technologies.map((tech) => (
-                  <span class="bg-sidebar-accent text-sidebar-accent-foreground rounded-full px-3 py-1 font-mono text-xs font-medium">
+                  <li class="bg-sidebar-accent text-sidebar-accent-foreground rounded-full px-3 py-1 font-mono text-xs font-medium">
                     {tech}
-                  </span>
+                  </li>
                 ))}
-              </div>
+              </ul>
               {item.details.length > 0 && (
                 <ul class="text-primary space-y-1 text-sm">
                   {item.details.map((detail) => (
@@ -55,12 +55,14 @@ const timeline = getTimeline(lang);
   import { gsap } from "gsap";
 
   let ctx: gsap.Context | undefined;
+  let observer: IntersectionObserver | undefined;
 
   document.addEventListener("astro:page-load", () => {
     const container = document.querySelector<HTMLElement>(".timeline-card")?.closest(".relative");
     if (!container) return;
 
     ctx?.revert();
+    observer?.disconnect();
 
     // Respect the user's motion preference: leave cards and points in their default (fully
     // visible, untransformed) markup state instead of animating them in.
@@ -69,29 +71,44 @@ const timeline = getTimeline(lang);
     ctx = gsap.context(() => {
       gsap.set(".timeline-card", { x: 300, opacity: 0 });
       gsap.set(".timeline-point", { opacity: 0, scale: 0 });
-
-      const mainTimeline = gsap.timeline();
-      const cardTimeline = gsap.timeline();
-      const pointTimeline = gsap.timeline();
-
-      mainTimeline.add([cardTimeline, pointTimeline], 0);
-
-      cardTimeline.to(".timeline-card", {
-        x: 0,
-        opacity: 1,
-        duration: 0.8,
-        ease: "power2.out",
-        stagger: { each: 0.2 },
-      });
-      pointTimeline.to(".timeline-point", {
-        opacity: 1,
-        scale: 1,
-        duration: 0.8,
-        ease: "back.out(1.7)",
-        stagger: { each: 0.2 },
-      });
     }, container);
+
+    // Reveal each card (and its point) the first time it scrolls into view, instead of animating
+    // all of them on page load — cards below the fold used to finish their tween while still
+    // off-screen. Observed target is `.timeline-item`, the untransformed wrapper, not
+    // `.timeline-card` itself: the card starts translated 300px off to the side, which on a
+    // narrow viewport moves its geometry entirely outside the root's horizontal bounds and makes
+    // IntersectionObserver report isIntersecting: false forever — the transform is invisible
+    // (clipped by the container) but IntersectionObserver measures untransformed-by-clip
+    // geometry, not paint. Tweens are created lazily inside the callback, so they're added to the
+    // context via `ctx.add()` rather than gsap.context()'s own synchronous capture, which only
+    // tracks animations created while its setup function runs.
+    observer = new IntersectionObserver(
+      (entries) => {
+        entries
+          .filter((entry) => entry.isIntersecting)
+          .forEach((entry, i) => {
+            const item = entry.target as HTMLElement;
+            const card = item.querySelector<HTMLElement>(".timeline-card");
+            const point = item.querySelector<HTMLElement>(".timeline-point");
+            const delay = i * 0.2;
+
+            ctx?.add(() => {
+              if (card) gsap.to(card, { x: 0, opacity: 1, duration: 0.8, ease: "power2.out", delay });
+              if (point) gsap.to(point, { opacity: 1, scale: 1, duration: 0.8, ease: "back.out(1.7)", delay });
+            });
+
+            observer?.unobserve(item);
+          });
+      },
+      { rootMargin: "0px 0px -10% 0px" },
+    );
+
+    container.querySelectorAll<HTMLElement>(".timeline-item").forEach((item) => observer?.observe(item));
   });
 
-  document.addEventListener("astro:before-swap", () => ctx?.revert());
+  document.addEventListener("astro:before-swap", () => {
+    ctx?.revert();
+    observer?.disconnect();
+  });
 </script>

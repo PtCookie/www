@@ -9,7 +9,7 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu.tsx";
-import { cn } from "@/lib/utils.ts";
+import { cn } from "cn";
 import type { MenuEntry } from "@/config.ts";
 
 const EMPTY_LINK_ENTRY: MenuEntry[] = [];

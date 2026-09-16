@@ -7,6 +7,8 @@ export interface Translation {
   "component.readTime": string;
   "component.readMore": string;
   "component.menu": string;
+  "component.openMenu": string;
+  "component.close": string;
   "component.skipToContent": string;
   "component.toggleTheme": string;
   "component.toggleLocale": string;
@@ -17,6 +19,9 @@ export interface Translation {
   "page.allPosts": string;
   "page.readNext": string;
   "page.allTags": string;
+  "page.noPosts": string;
+  "page.noTags": string;
+  "page.post": string;
   "page.posts": string;
   "page.work": string;
   "page.workDescription": string;
@@ -41,6 +46,8 @@ export const translation: Record<Locale, Translation> = {
     "component.readTime": "분 소요",
     "component.readMore": "더 읽기",
     "component.menu": "메뉴",
+    "component.openMenu": "메뉴 열기",
+    "component.close": "닫기",
     "component.skipToContent": "본문으로 건너뛰기",
     "component.toggleTheme": "테마 전환",
     "component.toggleLocale": "언어 전환",
@@ -51,6 +58,9 @@ export const translation: Record<Locale, Translation> = {
     "page.allPosts": "모든 게시글",
     "page.readNext": "다음 읽기",
     "page.allTags": "모든 태그",
+    "page.noPosts": "아직 게시글이 없습니다.",
+    "page.noTags": "아직 태그가 없습니다.",
+    "page.post": "게시글",
     "page.posts": "게시글",
     "page.work": "경력",
     "page.workDescription": "개발 경력과 프로젝트",
@@ -73,9 +83,11 @@ export const translation: Record<Locale, Translation> = {
     "component.readTime": " min read",
     "component.readMore": "Read more",
     "component.menu": "Menu",
+    "component.openMenu": "Open menu",
+    "component.close": "Close",
     "component.skipToContent": "Skip to content",
     "component.toggleTheme": "Toggle theme",
-    "component.toggleLocale": "Toggle Locale",
+    "component.toggleLocale": "Toggle locale",
     "component.themeGroup": "Theme selection",
     "component.localeGroup": "Language selection",
     "page.recentPosts": "Recent Posts",
@@ -83,6 +95,9 @@ export const translation: Record<Locale, Translation> = {
     "page.allPosts": "All Posts",
     "page.readNext": "Read Next",
     "page.allTags": "All Tags",
+    "page.noPosts": "No posts yet.",
+    "page.noTags": "No tags yet.",
+    "page.post": "post",
     "page.posts": "posts",
     "page.work": "Work",
     "page.workDescription": "Professional experience and projects",

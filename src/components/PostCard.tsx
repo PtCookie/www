@@ -3,7 +3,8 @@ import * as React from "react";
 import { badgeVariants } from "@/components/ui/badge.tsx";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card.tsx";
 import type { PostView } from "@/lib/post.ts";
-import { cn, formatDate, translate } from "@/lib/utils.ts";
+import { formatDate, tagLinkClass, translate } from "@/lib/utils.ts";
+import { cn } from "cn";
 import { config, type Locale } from "@/config.ts";
 
 interface Props {
@@ -23,15 +24,20 @@ export function PostCard({
   headingLevel: Heading = "h2",
   children,
 }: Props) {
+  const href = lang ? `/${lang}/posts/${post.slug}` : `/posts/${post.slug}`;
+
   return (
-    <Card className="w-full max-w-2xl">
+    // `relative` anchors the title's stretched link (`after:inset-0`), which makes the whole card
+    // one target. Anything else that must stay clickable inside the card has to sit above that
+    // overlay — see the tag list below.
+    <Card className="relative w-full max-w-2xl">
       <CardHeader className={cn("-mt-6 block overflow-hidden p-0", !disableImage && "h-48")}>
         {!disableImage &&
           (children ||
             (post.coverImage.image && (
               <img
                 src={post.coverImage.image.src}
-                alt={post.title}
+                alt=""
                 width={post.coverImage.image.width}
                 height={post.coverImage.image.height}
                 loading="lazy"
@@ -42,7 +48,14 @@ export function PostCard({
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          <Heading className="font-sans text-xl font-bold text-pretty break-words sm:text-2xl">{post.title}</Heading>
+          <Heading className="font-sans text-xl font-bold text-pretty break-words sm:text-2xl">
+            <a
+              href={href}
+              className="focus-visible:after:ring-ring after:absolute after:inset-0 after:rounded-xl hover:underline focus-visible:outline-none focus-visible:after:ring-2"
+            >
+              {post.title}
+            </a>
+          </Heading>
           <div className="text-muted-foreground flex justify-between font-sans text-xs tabular-nums sm:text-sm">
             <p>
               <time dateTime={post.publishedAt}>{formatDate(lang, post.publishedAt)}</time>
@@ -56,24 +69,27 @@ export function PostCard({
         </div>
       </CardContent>
       <CardFooter className="flex items-start justify-between gap-4">
-        <a
-          href={lang ? `/${lang}/posts/${post.slug}` : `/posts/${post.slug}`}
-          className="text-primary shrink-0 font-sans text-xs font-medium hover:underline sm:text-sm"
-        >
+        {/* A span, not a link: the title's stretched link already covers the whole card, and a
+            second anchor to the same post would add a duplicate tab stop plus a vague "Read more"
+            link name to the accessibility tree. Clicks still land on the overlay above it. */}
+        <span className="text-primary shrink-0 font-sans text-xs font-medium group-hover/card:underline sm:text-sm">
           {translate(lang, "component.readMore")}
-        </a>
-        <div className="flex min-w-0 flex-wrap justify-end gap-2">
+        </span>
+        {/* `relative z-10` lifts the tags above the title's stretched-link overlay; `role="list"`
+            restores the list semantics Tailwind's `list-style: none` preflight strips. */}
+        <ul role="list" className="relative z-10 flex min-w-0 flex-wrap justify-end gap-2">
           {post.tags.map((tag) => (
-            <a
-              key={tag.slug}
-              href={lang ? `/${lang}/tags/${tag.slug}` : `/tags/${tag.slug}`}
-              data-testid="badge"
-              className={cn(badgeVariants({ variant: "secondary" }), "font-mono")}
-            >
-              #{tag.name}
-            </a>
+            <li key={tag.slug}>
+              <a
+                href={lang ? `/${lang}/tags/${tag.slug}` : `/tags/${tag.slug}`}
+                data-testid="badge"
+                className={cn(badgeVariants({ variant: "secondary" }), tagLinkClass)}
+              >
+                #{tag.name}
+              </a>
+            </li>
           ))}
-        </div>
+        </ul>
       </CardFooter>
     </Card>
   );

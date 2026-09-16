@@ -9,8 +9,10 @@ describe("buildIntroTimeline", () => {
 
     const tl = buildIntroTimeline(gsap, { coin, chars });
 
-    expect(tl.repeat()).toBe(-1);
-    expect(tl.repeatDelay()).toBe(1);
+    // One-shot, not looping — see buildIntroTimeline's own doc comment for the WCAG 2.2.2
+    // rationale (an autoplaying animation running past 5s needs a stop mechanism; not repeating
+    // is simpler than adding one).
+    expect(tl.repeat()).toBe(0);
     expect(tl.duration()).toBe(3);
   });
 

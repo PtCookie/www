@@ -23,7 +23,13 @@ const posts = (await getAllPublishedPosts(lang)).slice(0, 3).map(toPostView);
   <div class="grid flex-1 place-items-center content-start gap-8 py-8">
     <Intro />
     <h2 class="text-center text-2xl font-medium sm:text-3xl">{translate(lang, "page.recentPosts")}</h2>
-    {posts.map((post) => <PostCard post={post} lang={lang} disableImage={true} headingLevel="h3" />)}
+    {
+      posts.length === 0 ? (
+        <p class="text-muted-foreground">{translate(lang, "page.noPosts")}</p>
+      ) : (
+        posts.map((post) => <PostCard post={post} lang={lang} disableImage={true} headingLevel="h3" />)
+      )
+    }
     <a href={`/${lang}/posts`} class="text-primary font-sans text-lg font-medium hover:underline sm:text-xl">
       {translate(lang, "page.viewAll")}
     </a>

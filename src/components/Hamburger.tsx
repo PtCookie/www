@@ -12,8 +12,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet.tsx";
 import { useTheme } from "@/hooks/useTheme.ts";
-import { switchLocale } from "@/lib/locale.ts";
-import { cn, translate } from "@/lib/utils.ts";
+import { localePath, translate } from "@/lib/utils.ts";
+import { cn } from "cn";
 import { config, type Locale, type MenuEntry } from "@/config.ts";
 
 const EMPTY_LINK_ENTRY: MenuEntry[] = [];
@@ -34,11 +34,11 @@ export function Hamburger({ lang = config.defaultLocale, menuEntry, linkEntry = 
         render={
           <Button variant="ghost" size="icon">
             <ListIcon className="size-6" aria-hidden="true" />
-            <span className="sr-only">Open menu</span>
+            <span className="sr-only">{translate(lang, "component.openMenu")}</span>
           </Button>
         }
       />
-      <SheetContent className="max-w-xs">
+      <SheetContent className="max-w-xs" closeLabel={translate(lang, "component.close")}>
         <SheetHeader>
           <SheetTitle>{translate(lang, "component.menu")}</SheetTitle>
         </SheetHeader>
@@ -85,33 +85,49 @@ export function Hamburger({ lang = config.defaultLocale, menuEntry, linkEntry = 
                 className="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-[transform,opacity] dark:scale-100 dark:rotate-0"
               />
             </div>
-            <Button variant="ghost" aria-current={theme === "system"} onClick={() => setTheme("system")}>
+            {/* aria-pressed, not aria-current: these three are a toggle set, not a set of links
+                where one is the current destination. The locale buttons below stay on
+                aria-current, which really does mark the page's current language. */}
+            <Button variant="ghost" aria-pressed={theme === "system"} onClick={() => setTheme("system")}>
               {translate(lang, "component.system")}
             </Button>
-            <Button variant="ghost" aria-current={theme === "light"} onClick={() => setTheme("light")}>
+            <Button variant="ghost" aria-pressed={theme === "light"} onClick={() => setTheme("light")}>
               {translate(lang, "component.light")}
             </Button>
-            <Button variant="ghost" aria-current={theme === "dark"} onClick={() => setTheme("dark")}>
+            <Button variant="ghost" aria-pressed={theme === "dark"} onClick={() => setTheme("dark")}>
               {translate(lang, "component.dark")}
             </Button>
           </div>
+          {/* Real <a href> elements (wrapped in SheetClose, same pattern as the menuEntry links
+              above), not onClick handlers, so Cmd/Ctrl-click, middle-click and "copy link
+              address" all work. */}
           <div className="flex items-center" role="group" aria-label={translate(lang, "component.localeGroup")}>
-            <Button
-              variant="ghost"
-              lang="ko"
-              aria-current={lang === "ko"}
-              onClick={() => switchLocale(lang, "ko", currentUrl)}
-            >
-              한글
-            </Button>
-            <Button
-              variant="ghost"
-              lang="en"
-              aria-current={lang === "en"}
-              onClick={() => switchLocale(lang, "en", currentUrl)}
-            >
-              English
-            </Button>
+            <SheetClose
+              nativeButton={false}
+              render={
+                <a
+                  href={localePath(lang, "ko", currentUrl)}
+                  lang="ko"
+                  aria-current={lang === "ko"}
+                  className={buttonVariants({ variant: "ghost" })}
+                >
+                  한글
+                </a>
+              }
+            />
+            <SheetClose
+              nativeButton={false}
+              render={
+                <a
+                  href={localePath(lang, "en", currentUrl)}
+                  lang="en"
+                  aria-current={lang === "en"}
+                  className={buttonVariants({ variant: "ghost" })}
+                >
+                  English
+                </a>
+              }
+            />
           </div>
         </SheetFooter>
       </SheetContent>

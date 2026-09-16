@@ -1,7 +1,8 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { badgeVariants } from "@/components/ui/badge.tsx";
-import { getAllTags, translate } from "@/lib/utils.ts";
+import { getAllTags, getPostCountLabel, tagLinkClass, translate } from "@/lib/utils.ts";
+import { cn } from "cn";
 import { toPostView } from "@/lib/post.ts";
 import { getAllPublishedPosts } from "@/lib/posts.ts";
 import { isLocale } from "@/config.ts";
@@ -17,23 +18,29 @@ const allTags = getAllTags(posts, true);
 ---
 
 <BaseLayout lang={lang} title={translate(lang, "page.allTags")}>
-  <h1 class="mt-8 mb-12 text-center text-5xl font-extrabold">{translate(lang, "page.allTags")}</h1>
-  <div class="grid flex-1 place-items-start content-start gap-8 px-8">
-    {
-      allTags.map((tag) => (
-        <div>
-          <a
-            href={`/${lang}/tags/${tag.slug}`}
-            data-testid="badge"
-            class:list={[badgeVariants({ variant: "secondary" }), "font-mono"]}
-          >
-            #{tag.name}
-          </a>
-          <p class="mt-2 pl-4">
-            {tag.count} {translate(lang, "page.posts")}
-          </p>
-        </div>
-      ))
-    }
-  </div>
+  <h1 class="mt-8 mb-12 text-center text-4xl font-extrabold text-balance sm:text-5xl">
+    {translate(lang, "page.allTags")}
+  </h1>
+  {
+    allTags.length === 0 ? (
+      <p class="text-muted-foreground flex-1 text-center">{translate(lang, "page.noTags")}</p>
+    ) : (
+      <ul role="list" class="grid flex-1 place-items-start content-start gap-8 px-8">
+        {allTags.map((tag) => (
+          <li>
+            <a
+              href={`/${lang}/tags/${tag.slug}`}
+              data-testid="badge"
+              class={cn(badgeVariants({ variant: "secondary" }), tagLinkClass)}
+            >
+              #{tag.name}
+            </a>
+            <p class="mt-2 pl-4">
+              {tag.count} {getPostCountLabel(lang, tag.count)}
+            </p>
+          </li>
+        ))}
+      </ul>
+    )
+  }
 </BaseLayout>

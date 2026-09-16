@@ -42,7 +42,9 @@ test.beforeAll(async ({ playwright }, testInfo) => {
 
 async function choose(page: import("@playwright/test").Page, label: "System" | "Light" | "Dark") {
   await page.getByRole("button", { name: /toggle theme/i }).click();
-  await page.getByRole("menuitem", { name: label }).click();
+  // menuitemradio, not menuitem: the entries are Base UI radio items so the active theme carries
+  // aria-checked.
+  await page.getByRole("menuitemradio", { name: label }).click();
 }
 
 // The page shells are static-generated and served with no per-visitor theme baked in, so it

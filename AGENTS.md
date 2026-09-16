@@ -67,10 +67,13 @@ unsandboxed and Playwright's browser launch fails with a `mach_port_rendezvous` 
   instead, resolved by a small helper in `src/lib/utils.ts`; `src/i18n/timeline.ts` + `getTimeline()` is the
   reference shape to copy. `config.menuEntry`/`linkEntry` labels are a deliberate exception and stay untranslated,
   matching the pre-existing `Home`/`Posts`/`Tags` precedent.
-- Reuse `src/lib/utils.ts`: `cn`, `getAllTags`, `getTimeline`, `range`, `translate`. Don't add
+- Reuse `src/lib/utils.ts`: `getAllTags`, `getTimeline`, `localePath`, `range`, `translate`. Class-name merging uses
+  the `cn` package (`import { cn } from "cn"`), not a local helper — shadcn regenerates `src/components/ui/*` to
+  import it from there. Don't add
   `astro:transitions/client` imports there — `tests/lib/utils.test.ts` runs in the node-environment `unit` vitest
-  project, which can't resolve that virtual module. Locale-switching navigation lives in `src/lib/locale.ts`
-  instead, covered behaviourally by component tests rather than a unit test.
+  project, which can't resolve that virtual module. `localePath` builds the target-locale URL as a plain string;
+  `LangToggle`/`Hamburger` render it as a real `<a href>` and let `BaseLayout`'s `<ClientRouter />` handle the
+  same-origin navigation, rather than calling `navigate()` from an `onClick`.
 - Code comments in English. Prettier + `.editorconfig` decide formatting (120 cols; 2 spaces, 4 in css/json).
 - Conventional Commits (`feat:`, `fix:`, `test:`, `chore(deps):`).
 
@@ -196,7 +199,9 @@ form; read those files (or hand the change to the agent) before changing somethi
   `title`/`description`/`ogType` props.
 - GSAP animations bound outside a `.tsx` island (`Intro.astro`, `Timeline.astro`) run from a plain `<script>` on
   `astro:page-load`, and **must** call `gsap.context(fn, el).revert()` on `astro:before-swap` — without it, a
-  `ClientRouter` return visit stacks another timeline on the running one, and `Intro.astro`'s is `repeat: -1`.
+  `ClientRouter` return visit stacks a second entrance timeline on one that's still mid-flight (`Intro.astro`'s
+  is one-shot, not looping — see `buildIntroTimeline`'s doc comment for the WCAG 2.2.2 reasoning — but a
+  revisit mid-animation still needs the teardown).
   On GSAP 3.15, `repeat`, `yoyo`, and `easeReverse` (which replaced `yoyoEase`) must all live inside the same
   `stagger` object, or staggered targets stick at their animated offset (`src/lib/intro-animation.ts`, guarded by
   `tests/lib/intro-animation.test.ts`).
