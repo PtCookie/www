@@ -3,6 +3,9 @@ import { expect, test } from "@playwright/test";
 // Post list under the Korean locale — the route that renders PostCard with its cover, tags and
 // the title's stretched link.
 const POSTS_PAGE = "/ko/posts";
+// The two navigation targets below, matching .emdash/seed.json's content.posts[0] slug and tags.
+const SAMPLE_POST_PAGE = "/ko/posts/hello-emdash";
+const SAMPLE_TAG_PAGE = "/ko/tags/typescript";
 
 // See e2e/theme.spec.ts's `beforeAll` for why this warm-up exists: `astro dev` compiles a route on
 // its first request, which is slow enough to make a cold `goto` flaky.
@@ -15,7 +18,14 @@ test.beforeAll(async ({ playwright }, testInfo) => {
   // call). Hit the dev-only setup bypass first so the seeded sample post and its tags exist
   // before any test below looks for a card.
   await context.get("/_emdash/api/setup/dev-bypass");
-  await context.get(POSTS_PAGE);
+  // The post list, post detail and tag pages are three separate Astro route files pulling in
+  // disjoint module trees — the post detail branch alone drags in PortableText, its
+  // toolkit/list/mark components, and Shiki via Code.astro, none of which the list branch
+  // touches. `astro dev` only compiles whichever a request actually hits, so warming the list
+  // page alone leaves the other two routes' first compile to eat into a test's 5s `toHaveURL`
+  // timeout once a real click drives the navigation. Warm all three up front instead, the same
+  // idea as e2e/theme.spec.ts's beforeAll.
+  await Promise.all([POSTS_PAGE, SAMPLE_POST_PAGE, SAMPLE_TAG_PAGE].map((path) => context.get(path)));
   await context.dispose();
 });
 
