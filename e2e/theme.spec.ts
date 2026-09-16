@@ -40,11 +40,39 @@ test.beforeAll(async ({ playwright }, testInfo) => {
   await context.dispose();
 });
 
+// Tailwind's `sm:` breakpoint — Header.astro swaps the desktop ModeToggle/Navigation shell for
+// the Hamburger sheet exactly here (`hidden sm:flex` / `flex sm:hidden`), so it doubles as the
+// line between the two theme-picker UIs below.
+const MOBILE_BREAKPOINT = 640;
+
+function isMobileViewport(page: import("@playwright/test").Page) {
+  const viewport = page.viewportSize();
+  return viewport !== null && viewport.width < MOBILE_BREAKPOINT;
+}
+
 async function choose(page: import("@playwright/test").Page, label: "System" | "Light" | "Dark") {
+  if (isMobileViewport(page)) {
+    // Below the breakpoint, `ModeToggle` is `display:none` and Hamburger.tsx renders its own
+    // theme control inside the sheet instead — flat `aria-pressed` buttons, not a dropdown, so
+    // there is no "toggle theme" trigger or menuitemradio to find here.
+    await page.getByRole("button", { name: /open menu/i }).click();
+    await page.getByRole("button", { name: label, exact: true }).click();
+    return;
+  }
+
   await page.getByRole("button", { name: /toggle theme/i }).click();
   // menuitemradio, not menuitem: the entries are Base UI radio items so the active theme carries
   // aria-checked.
   await page.getByRole("menuitemradio", { name: label }).click();
+}
+
+// Navigation's desktop links are real `<a>` (role "link"), but Hamburger.tsx's mobile sheet
+// wraps its equivalent `<a href>` in Base UI's `SheetClose` with `nativeButton={false}`, which
+// overrides the accessible role to "button" even though the element still is an anchor
+// underneath (real navigation, right-click, Cmd/Ctrl-click all still work).
+async function goToWork(page: import("@playwright/test").Page) {
+  const role = isMobileViewport(page) ? "button" : "link";
+  await page.getByRole(role, { name: "Work" }).click();
 }
 
 // The page shells are static-generated and served with no per-visitor theme baked in, so it
@@ -88,7 +116,7 @@ test("an explicit Dark choice survives a client-side navigation", async ({ page 
   await choose(page, "Dark");
   expect(await isDark(page)).toBe(true);
 
-  await page.getByRole("link", { name: "Work" }).click();
+  await goToWork(page);
   await expect(page).toHaveURL(/\/en\/work\/?$/);
 
   expect(await preference(page)).toBe("dark");
@@ -103,7 +131,7 @@ test("an explicit System choice survives a client-side navigation", async ({ pag
   await choose(page, "System");
   expect(await stored(page)).toBe("system");
 
-  await page.getByRole("link", { name: "Work" }).click();
+  await goToWork(page);
   await expect(page).toHaveURL(/\/en\/work\/?$/);
 
   expect(await preference(page)).toBe("system");
