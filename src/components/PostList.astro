@@ -22,7 +22,7 @@ const { title, basePath, page, lang } = Astro.props;
   {
     page.items.map((post) => (
       <PostCard post={post} lang={lang}>
-        <Image image={post.coverImage.image} class="h-full w-full overflow-hidden rounded-t-xl object-cover" />
+        <Image image={post.coverImage.image} alt="" class="h-full w-full overflow-hidden rounded-t-xl object-cover" />
       </PostCard>
     ))
   }

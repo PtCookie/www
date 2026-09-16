@@ -10,6 +10,12 @@ export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
 }
 
+// Extra classes every tag chip carries on top of `badgeVariants({ variant: "secondary" })`.
+// The `h-6` overrides the variant's `h-5` (20px) base so the chip clears the 24x24 CSS px
+// minimum touch target. Shared so TagList.astro and PostCard.tsx can't drift — PostCard is a
+// React file and can't import the .astro component itself.
+export const tagLinkClass = "font-mono h-6";
+
 export function getAllTags(posts: { data: { tags: Tag[] } }[], sort = false): (Tag & { count: number })[] {
   const allTags = posts.reduce<(Tag & { count: number })[]>((acc, post) => {
     post.data.tags.forEach((tag) => {
@@ -45,6 +51,15 @@ export function range(start: number, stop?: number, step = 1): number[] {
 
 export function translate(lang: Locale, key: keyof Translation): string {
   return translation[lang][key];
+}
+
+const PLURAL_LOCALE: Record<Locale, string> = { ko: "ko-KR", en: "en-US" };
+
+// Intl.PluralRules("ko-KR") always resolves to "other", so this is a no-op for Korean
+// (page.post and page.posts are the same word) and only affects English "1 post" vs "N posts".
+export function getPostCountLabel(lang: Locale, count: number): string {
+  const category = new Intl.PluralRules(PLURAL_LOCALE[lang]).select(count);
+  return translate(lang, category === "one" ? "page.post" : "page.posts");
 }
 
 const DATE_LOCALE: Record<Locale, string> = { ko: "ko-KR", en: "en-US" };

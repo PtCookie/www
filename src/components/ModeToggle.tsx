@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button.tsx";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu.tsx";
-import { useTheme } from "@/hooks/useTheme.ts";
+import { useTheme, type Theme } from "@/hooks/useTheme.ts";
 import { translate } from "@/lib/utils.ts";
 import { config, type Locale } from "@/config.ts";
 
@@ -17,7 +18,7 @@ interface Props {
 }
 
 export function ModeToggle({ lang = config.defaultLocale }: Props) {
-  const { setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
 
   return (
     <DropdownMenu>
@@ -37,15 +38,22 @@ export function ModeToggle({ lang = config.defaultLocale }: Props) {
         }
       />
       <DropdownMenuContent align="end">
-        <DropdownMenuItem className="font-sans" onClick={() => setTheme("system")}>
-          {translate(lang, "component.system")}
-        </DropdownMenuItem>
-        <DropdownMenuItem className="font-sans" onClick={() => setTheme("light")}>
-          {translate(lang, "component.light")}
-        </DropdownMenuItem>
-        <DropdownMenuItem className="font-sans" onClick={() => setTheme("dark")}>
-          {translate(lang, "component.dark")}
-        </DropdownMenuItem>
+        {/* Radio items, not plain items: the active theme has to be announced (menuitemradio +
+            aria-checked) and shown, the way Hamburger's theme buttons already do. `closeOnClick`
+            is explicit because Base UI defaults it to false on RadioItem (Menu.Item defaults to
+            true) — without it the menu stays open and its inert backdrop keeps swallowing the
+            next click on the page. */}
+        <DropdownMenuRadioGroup value={theme} onValueChange={(value) => setTheme(value as Theme)}>
+          <DropdownMenuRadioItem className="font-sans" value="system" closeOnClick>
+            {translate(lang, "component.system")}
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem className="font-sans" value="light" closeOnClick>
+            {translate(lang, "component.light")}
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem className="font-sans" value="dark" closeOnClick>
+            {translate(lang, "component.dark")}
+          </DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );

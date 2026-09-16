@@ -80,6 +80,22 @@ describe("ModeToggle", () => {
     expect(document.documentElement.classList.contains("dark")).toBe(false);
   });
 
+  test("marks the active theme with aria-checked", async () => {
+    const user = userEvent.setup();
+    // Seed the starting state on <html> instead of selecting a theme and reopening the menu:
+    // Base UI's MenuPositioner keeps an inline `pointer-events: none` on the popup while the menu
+    // is closed, and a reopen landing inside that teardown flakes on WebKit.
+    document.documentElement.dataset.theme = "dark";
+    document.documentElement.classList.add("dark");
+    render(<ModeToggle lang="en" />);
+
+    await user.click(screen.getByRole("button", { name: /toggle theme/i }));
+
+    expect(await screen.findByRole("menuitemradio", { name: /dark/i })).toHaveAttribute("aria-checked", "true");
+    expect(screen.getByRole("menuitemradio", { name: /system/i })).toHaveAttribute("aria-checked", "false");
+    expect(screen.getByRole("menuitemradio", { name: /light/i })).toHaveAttribute("aria-checked", "false");
+  });
+
   test("respects system preference when System is selected", async () => {
     const user = userEvent.setup();
     render(<ModeToggle lang="en" />);

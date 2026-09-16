@@ -15,7 +15,7 @@ import { Image, PortableText } from "emdash/ui";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import PostList from "@/components/PostList.astro";
 import Code from "@/components/portable-text/Code.astro";
-import { badgeVariants } from "@/components/ui/badge.tsx";
+import TagList from "@/components/TagList.astro";
 import { PostCard } from "@/components/PostCard.tsx";
 import { formatDate, translate } from "@/lib/utils.ts";
 import { paginate, type PagedItems } from "@/lib/pagination.ts";
@@ -90,21 +90,11 @@ if (slug === undefined || isNumericSlug) {
             {translate(lang, "component.readTime")}
           </p>
         </div>
-        <div class="flex flex-wrap justify-end gap-2">
-          {result.postView.tags.map((tag) => (
-            <a
-              href={`/${lang}/tags/${tag.slug}`}
-              data-testid="badge"
-              class:list={[badgeVariants({ variant: "secondary" }), "font-mono"]}
-            >
-              #{tag.name}
-            </a>
-          ))}
-        </div>
+        <TagList tags={result.postView.tags} lang={lang} class="justify-end" />
 
         {result.postView.coverImage.image && (
           <figure class="relative mt-4 mb-8 sm:mt-6 sm:mb-10">
-            <Image image={result.postView.coverImage.image} alt={result.postView.title} priority class="rounded-md" />
+            <Image image={result.postView.coverImage.image} alt="" priority class="rounded-md" />
             {result.postView.coverImage.photographer && result.postView.coverImage.attribution && (
               <figcaption class="bg-muted absolute right-2 bottom-2 rounded-sm px-2.5 py-1 text-xs italic sm:right-4 sm:bottom-4 sm:text-sm">
                 Photo by&nbsp;
@@ -129,17 +119,7 @@ if (slug === undefined || isNumericSlug) {
           <PortableText value={result.post.data.content} components={{ type: { code: Code } }} />
         </article>
 
-        <div class="my-6 flex flex-wrap justify-start gap-2 sm:my-8">
-          {result.postView.tags.map((tag) => (
-            <a
-              href={`/${lang}/tags/${tag.slug}`}
-              data-testid="badge"
-              class:list={[badgeVariants({ variant: "secondary" }), "font-mono"]}
-            >
-              #{tag.name}
-            </a>
-          ))}
-        </div>
+        <TagList tags={result.postView.tags} lang={lang} class="my-6 justify-start sm:my-8" />
 
         {(result.prevPost || result.nextPost) && (
           <Fragment>

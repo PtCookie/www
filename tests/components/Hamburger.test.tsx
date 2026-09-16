@@ -81,26 +81,26 @@ describe("Hamburger", () => {
     expect(document.documentElement.classList.contains("dark")).toBe(false);
   });
 
-  test("marks the active theme button with aria-current, including System", async () => {
+  test("marks the active theme button with aria-pressed, including System", async () => {
     const user = userEvent.setup();
     render(<Hamburger lang="en" menuEntry={menuEntry} currentUrl="/en/work" />);
 
     await user.click(screen.getByRole("button", { name: /open menu/i }));
-    expect(screen.getByText(/system/i).closest("button")).toHaveAttribute("aria-current", "true");
+    expect(screen.getByText(/system/i).closest("button")).toHaveAttribute("aria-pressed", "true");
 
     await user.click(screen.getByText(/dark/i));
-    expect(screen.getByText(/dark/i).closest("button")).toHaveAttribute("aria-current", "true");
-    expect(screen.getByText(/system/i).closest("button")).toHaveAttribute("aria-current", "false");
+    expect(screen.getByText(/dark/i).closest("button")).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText(/system/i).closest("button")).toHaveAttribute("aria-pressed", "false");
 
     await user.click(screen.getByText(/system/i));
-    expect(screen.getByText(/system/i).closest("button")).toHaveAttribute("aria-current", "true");
+    expect(screen.getByText(/system/i).closest("button")).toHaveAttribute("aria-pressed", "true");
   });
 
   test("navigates to the English version when English is selected", async () => {
     const user = userEvent.setup();
     render(<Hamburger lang="ko" menuEntry={menuEntry} currentUrl="/ko/work" />);
 
-    await user.click(screen.getByRole("button", { name: /open menu/i }));
+    await user.click(screen.getByRole("button", { name: /메뉴 열기/ }));
     await user.click(screen.getByText("English"));
 
     expect(navigate).toHaveBeenCalledWith("/en/work");

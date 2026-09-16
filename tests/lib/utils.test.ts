@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 
 import type { Tag } from "@/lib/post.ts";
-import { cn, formatDate, getAllTags, getTimeline, range, translate } from "@/lib/utils.ts";
+import { cn, formatDate, getAllTags, getPostCountLabel, getTimeline, range, translate } from "@/lib/utils.ts";
 import { formatPeriod, timelineEntry } from "@/i18n/timeline.ts";
 
 describe("cn", () => {
@@ -158,6 +158,22 @@ describe("translate", () => {
 
   test("should return the English string for a given key", () => {
     expect(translate("en", "component.light")).toBe("Light");
+  });
+});
+
+describe("getPostCountLabel", () => {
+  test("should use the singular English form for a count of one", () => {
+    expect(getPostCountLabel("en", 1)).toBe("post");
+  });
+
+  test("should use the plural English form for counts other than one", () => {
+    expect(getPostCountLabel("en", 0)).toBe("posts");
+    expect(getPostCountLabel("en", 2)).toBe("posts");
+  });
+
+  test("should return the same Korean word regardless of count", () => {
+    expect(getPostCountLabel("ko", 1)).toBe("게시글");
+    expect(getPostCountLabel("ko", 2)).toBe("게시글");
   });
 });
 

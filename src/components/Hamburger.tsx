@@ -34,11 +34,11 @@ export function Hamburger({ lang = config.defaultLocale, menuEntry, linkEntry = 
         render={
           <Button variant="ghost" size="icon">
             <ListIcon className="size-6" aria-hidden="true" />
-            <span className="sr-only">Open menu</span>
+            <span className="sr-only">{translate(lang, "component.openMenu")}</span>
           </Button>
         }
       />
-      <SheetContent className="max-w-xs">
+      <SheetContent className="max-w-xs" closeLabel={translate(lang, "component.close")}>
         <SheetHeader>
           <SheetTitle>{translate(lang, "component.menu")}</SheetTitle>
         </SheetHeader>
@@ -85,13 +85,16 @@ export function Hamburger({ lang = config.defaultLocale, menuEntry, linkEntry = 
                 className="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-[transform,opacity] dark:scale-100 dark:rotate-0"
               />
             </div>
-            <Button variant="ghost" aria-current={theme === "system"} onClick={() => setTheme("system")}>
+            {/* aria-pressed, not aria-current: these three are a toggle set, not a set of links
+                where one is the current destination. The locale buttons below stay on
+                aria-current, which really does mark the page's current language. */}
+            <Button variant="ghost" aria-pressed={theme === "system"} onClick={() => setTheme("system")}>
               {translate(lang, "component.system")}
             </Button>
-            <Button variant="ghost" aria-current={theme === "light"} onClick={() => setTheme("light")}>
+            <Button variant="ghost" aria-pressed={theme === "light"} onClick={() => setTheme("light")}>
               {translate(lang, "component.light")}
             </Button>
-            <Button variant="ghost" aria-current={theme === "dark"} onClick={() => setTheme("dark")}>
+            <Button variant="ghost" aria-pressed={theme === "dark"} onClick={() => setTheme("dark")}>
               {translate(lang, "component.dark")}
             </Button>
           </div>
