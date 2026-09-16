@@ -12,9 +12,18 @@ export interface IntroTargets {
   chars: TweenTarget;
 }
 
-/** Builds the looping coin-flip + character-bounce timeline. */
+/**
+ * Builds the one-shot coin-flip + character-bounce entrance timeline.
+ *
+ * Deliberately not looping. An indefinitely repeating hero animation is autoplaying motion that
+ * runs past five seconds with no way to pause, stop or hide it, which WCAG 2.2.2 forbids — and
+ * the `prefers-reduced-motion` early-return in Intro.astro addresses a different audience, so it
+ * does not satisfy that criterion. Playing the entrance once and stopping meets it without adding
+ * a decorative play/pause control to the hero. The per-character `repeat: 1` stagger below is
+ * finite and unaffected.
+ */
 export function buildIntroTimeline(gsap: typeof GSAP, targets: IntroTargets): Timeline {
-  const mainTimeline = gsap.timeline({ repeat: -1, repeatDelay: 1 });
+  const mainTimeline = gsap.timeline();
 
   const flipTimeline = gsap.timeline();
   const typingTimeline = gsap.timeline();

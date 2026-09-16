@@ -13,7 +13,7 @@ const { lang, class: className, button = false } = Astro.props;
 ---
 
 <div class={cn("flex flex-col items-center justify-center gap-8 text-center", className)}>
-  <div class="text-6xl sm:text-8xl">&#x1F6A7;</div>
+  <div class="text-6xl sm:text-8xl" aria-hidden="true">&#x1F6A7;</div>
   <h2 class="text-4xl font-bold">{translate(lang, "page.underConstruction")}</h2>
   {
     button && (

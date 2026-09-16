@@ -48,7 +48,10 @@ export function PostCard({
       <CardContent>
         <div className="space-y-2">
           <Heading className="font-sans text-xl font-bold text-pretty break-words sm:text-2xl">
-            <a href={href} className="after:absolute after:inset-0 hover:underline">
+            <a
+              href={href}
+              className="focus-visible:after:ring-ring after:absolute after:inset-0 after:rounded-xl hover:underline focus-visible:outline-none focus-visible:after:ring-2"
+            >
               {post.title}
             </a>
           </Heading>

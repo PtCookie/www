@@ -196,7 +196,9 @@ form; read those files (or hand the change to the agent) before changing somethi
   `title`/`description`/`ogType` props.
 - GSAP animations bound outside a `.tsx` island (`Intro.astro`, `Timeline.astro`) run from a plain `<script>` on
   `astro:page-load`, and **must** call `gsap.context(fn, el).revert()` on `astro:before-swap` — without it, a
-  `ClientRouter` return visit stacks another timeline on the running one, and `Intro.astro`'s is `repeat: -1`.
+  `ClientRouter` return visit stacks a second entrance timeline on one that's still mid-flight (`Intro.astro`'s
+  is one-shot, not looping — see `buildIntroTimeline`'s doc comment for the WCAG 2.2.2 reasoning — but a
+  revisit mid-animation still needs the teardown).
   On GSAP 3.15, `repeat`, `yoyo`, and `easeReverse` (which replaced `yoyoEase`) must all live inside the same
   `stagger` object, or staggered targets stick at their animated offset (`src/lib/intro-animation.ts`, guarded by
   `tests/lib/intro-animation.test.ts`).
