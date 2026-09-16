@@ -35,6 +35,14 @@ const pageUrl = new URL(Astro.url.pathname, Astro.site);
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" sizes="any" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    {
+      // blog-assets.ptcookie.net serves every post cover from R2 and is the LCP element on post
+      // detail pages — open the connection before the parser reaches the <img>. Dev-only guarded:
+      // astro.config.mjs's r2({ publicUrl }) is unset under `astro dev`, so EmDash falls back to
+      // its same-origin media proxy instead of that host; preconnecting to it there would just be
+      // a wasted connection to a host nothing on the page actually requests.
+      !import.meta.env.DEV && <link rel="preconnect" href="https://blog-assets.ptcookie.net" crossorigin />
+    }
     <!--Theme (content kept in sync with src/lib/theme.ts's applyTheme via the script below)-->
     <meta name="theme-color" id="theme-color-meta" content="oklch(1 0 0)" />
     <script is:inline data-theme-init>

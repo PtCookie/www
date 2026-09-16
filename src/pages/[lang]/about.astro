@@ -1,6 +1,6 @@
 ---
 export const prerender = true;
-import { Image } from "astro:assets";
+import { getImage } from "astro:assets";
 
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import profileJpg from "@/assets/profile.jpg";
@@ -13,6 +13,14 @@ export async function getStaticPaths() {
 }
 
 const { lang } = Astro.params;
+
+// Both variants used to render as two <Image>s, one hidden with `hidden sm:block` / `sm:hidden`
+// — CSS display:none doesn't stop the download, so every visitor paid for both. A native
+// <picture> with a <source media> only ever fetches the one it picks. Built at request time via
+// getImage() (this page is prerendered, so that's still build time) rather than <Image>, since
+// <picture>'s <source srcset> needs a plain string, not the component.
+const desktopProfile = await getImage({ src: profileJpg, width: 768, height: 768 });
+const mobileProfile = await getImage({ src: profilePng, width: 512, height: 512 });
 
 // Page-scoped content, not shared elsewhere — doesn't belong in config.ts.
 const techEntry = [
@@ -42,14 +50,10 @@ const techEntry = [
             avatar container expects. `object-cover` fills the box without distorting it.
           */
         }
-        <Image
-          src={profileJpg}
-          alt="Profile"
-          width={768}
-          height={768}
-          class="hidden h-full w-full object-cover sm:block"
-        />
-        <Image src={profilePng} alt="Profile" width={512} height={512} class="h-full w-full object-cover sm:hidden" />
+        <picture>
+          <source media="(min-width: 640px)" srcset={desktopProfile.src} width="768" height="768" />
+          <img src={mobileProfile.src} alt="Profile" width={512} height={512} class="h-full w-full object-cover" />
+        </picture>
       </div>
       <div class="flex flex-col items-center justify-center gap-8 text-center">
         <h1 class="max-w-3/5 font-sans text-4xl leading-tight font-black text-balance sm:max-w-full sm:text-6xl">
