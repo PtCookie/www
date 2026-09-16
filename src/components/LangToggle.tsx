@@ -8,8 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu.tsx";
-import { switchLocale } from "@/lib/locale.ts";
-import { translate } from "@/lib/utils.ts";
+import { localePath, translate } from "@/lib/utils.ts";
 import { config, type Locale } from "@/config.ts";
 
 interface Props {
@@ -18,10 +17,6 @@ interface Props {
 }
 
 export function LangToggle({ lang = config.defaultLocale, currentUrl }: Props) {
-  async function handleClick(targetLocale: Locale) {
-    await switchLocale(lang, targetLocale, currentUrl);
-  }
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -32,23 +27,28 @@ export function LangToggle({ lang = config.defaultLocale, currentUrl }: Props) {
           </Button>
         }
       />
+      {/* Rendered as real <a href> elements, not onClick handlers, so Cmd/Ctrl-click, middle-click
+          and "copy link address" all work. BaseLayout's <ClientRouter /> intercepts same-origin
+          anchor clicks itself, so client-side navigation still happens on a plain click. */}
       <DropdownMenuContent align="end">
         <DropdownMenuItem
+          nativeButton={false}
           className="font-sans"
-          lang="ko"
-          aria-current={lang === "ko" ? "true" : undefined}
-          onClick={() => handleClick("ko")}
-        >
-          한글
-        </DropdownMenuItem>
+          render={
+            <a lang="ko" href={localePath(lang, "ko", currentUrl)} aria-current={lang === "ko" ? "true" : undefined}>
+              한글
+            </a>
+          }
+        />
         <DropdownMenuItem
+          nativeButton={false}
           className="font-sans"
-          lang="en"
-          aria-current={lang === "en" ? "true" : undefined}
-          onClick={() => handleClick("en")}
-        >
-          English
-        </DropdownMenuItem>
+          render={
+            <a lang="en" href={localePath(lang, "en", currentUrl)} aria-current={lang === "en" ? "true" : undefined}>
+              English
+            </a>
+          }
+        />
       </DropdownMenuContent>
     </DropdownMenu>
   );

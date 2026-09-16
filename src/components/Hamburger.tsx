@@ -12,8 +12,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet.tsx";
 import { useTheme } from "@/hooks/useTheme.ts";
-import { switchLocale } from "@/lib/locale.ts";
-import { cn, translate } from "@/lib/utils.ts";
+import { cn, localePath, translate } from "@/lib/utils.ts";
 import { config, type Locale, type MenuEntry } from "@/config.ts";
 
 const EMPTY_LINK_ENTRY: MenuEntry[] = [];
@@ -98,23 +97,36 @@ export function Hamburger({ lang = config.defaultLocale, menuEntry, linkEntry = 
               {translate(lang, "component.dark")}
             </Button>
           </div>
+          {/* Real <a href> elements (wrapped in SheetClose, same pattern as the menuEntry links
+              above), not onClick handlers, so Cmd/Ctrl-click, middle-click and "copy link
+              address" all work. */}
           <div className="flex items-center" role="group" aria-label={translate(lang, "component.localeGroup")}>
-            <Button
-              variant="ghost"
-              lang="ko"
-              aria-current={lang === "ko"}
-              onClick={() => switchLocale(lang, "ko", currentUrl)}
-            >
-              한글
-            </Button>
-            <Button
-              variant="ghost"
-              lang="en"
-              aria-current={lang === "en"}
-              onClick={() => switchLocale(lang, "en", currentUrl)}
-            >
-              English
-            </Button>
+            <SheetClose
+              nativeButton={false}
+              render={
+                <a
+                  href={localePath(lang, "ko", currentUrl)}
+                  lang="ko"
+                  aria-current={lang === "ko"}
+                  className={buttonVariants({ variant: "ghost" })}
+                >
+                  한글
+                </a>
+              }
+            />
+            <SheetClose
+              nativeButton={false}
+              render={
+                <a
+                  href={localePath(lang, "en", currentUrl)}
+                  lang="en"
+                  aria-current={lang === "en"}
+                  className={buttonVariants({ variant: "ghost" })}
+                >
+                  English
+                </a>
+              }
+            />
           </div>
         </SheetFooter>
       </SheetContent>

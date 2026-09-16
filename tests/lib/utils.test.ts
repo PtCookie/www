@@ -1,7 +1,16 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 
 import type { Tag } from "@/lib/post.ts";
-import { cn, formatDate, getAllTags, getPostCountLabel, getTimeline, range, translate } from "@/lib/utils.ts";
+import {
+  cn,
+  formatDate,
+  getAllTags,
+  getPostCountLabel,
+  getTimeline,
+  localePath,
+  range,
+  translate,
+} from "@/lib/utils.ts";
 import { formatPeriod, timelineEntry } from "@/i18n/timeline.ts";
 
 describe("cn", () => {
@@ -174,6 +183,24 @@ describe("getPostCountLabel", () => {
   test("should return the same Korean word regardless of count", () => {
     expect(getPostCountLabel("ko", 1)).toBe("게시글");
     expect(getPostCountLabel("ko", 2)).toBe("게시글");
+  });
+});
+
+describe("localePath", () => {
+  test("should replace the locale segment with the target locale", () => {
+    expect(localePath("en", "ko", "/en/posts/hello-world")).toBe("/ko/posts/hello-world");
+  });
+
+  test("should replace a bare locale root", () => {
+    expect(localePath("ko", "en", "/ko")).toBe("/en");
+  });
+
+  test("should return the same path when the target matches the current locale", () => {
+    expect(localePath("en", "en", "/en/about")).toBe("/en/about");
+  });
+
+  test("should fall back to the target locale root when the path has no recognizable prefix", () => {
+    expect(localePath("ko", "en", "/404")).toBe("/en");
   });
 });
 

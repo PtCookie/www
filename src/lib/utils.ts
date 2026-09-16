@@ -53,6 +53,19 @@ export function translate(lang: Locale, key: keyof Translation): string {
   return translation[lang][key];
 }
 
+// Kept in utils.ts rather than src/lib/locale.ts: this is pure string manipulation with no
+// astro:transitions/client import, so it's directly unit-testable in the node-environment `unit`
+// vitest project. Replaces the current locale's path segment with the target's, and falls back to
+// a bare `/${target}` when currentUrl has no recognizable locale prefix (e.g. /404) instead of
+// leaving the URL untouched, which the naive `currentUrl.replace(lang, target)` this replaced did.
+export function localePath(lang: Locale, target: Locale, currentUrl: string): string {
+  const prefix = `/${lang}`;
+  if (currentUrl === prefix || currentUrl.startsWith(`${prefix}/`)) {
+    return `/${target}${currentUrl.slice(prefix.length)}`;
+  }
+  return `/${target}`;
+}
+
 const PLURAL_LOCALE: Record<Locale, string> = { ko: "ko-KR", en: "en-US" };
 
 // Intl.PluralRules("ko-KR") always resolves to "other", so this is a no-op for Korean

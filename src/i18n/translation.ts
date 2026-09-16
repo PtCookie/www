@@ -83,7 +83,7 @@ export const translation: Record<Locale, Translation> = {
     "component.close": "Close",
     "component.skipToContent": "Skip to content",
     "component.toggleTheme": "Toggle theme",
-    "component.toggleLocale": "Toggle Locale",
+    "component.toggleLocale": "Toggle locale",
     "component.themeGroup": "Theme selection",
     "component.localeGroup": "Language selection",
     "page.recentPosts": "Recent Posts",
