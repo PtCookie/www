@@ -8,6 +8,13 @@ const POSTS_PAGE = "/ko/posts";
 // its first request, which is slow enough to make a cold `goto` flaky.
 test.beforeAll(async ({ playwright }, testInfo) => {
   const context = await playwright.request.newContext({ baseURL: testInfo.project.use.baseURL });
+  // A fresh database (CI, a new clone) only gets `.emdash/seed.json`'s collections/taxonomies
+  // from the auto-seed on first request — sample content and taxonomy terms are gated behind
+  // `includeContent`, which that auto-seed never sets (see AGENTS.md's EmDash gotchas, and
+  // node_modules/emdash/src/emdash-runtime.ts's `applySeed(db, seed, { onConflict: "skip" })`
+  // call). Hit the dev-only setup bypass first so the seeded sample post and its tags exist
+  // before any test below looks for a card.
+  await context.get("/_emdash/api/setup/dev-bypass");
   await context.get(POSTS_PAGE);
   await context.dispose();
 });

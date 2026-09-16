@@ -127,7 +127,7 @@ form; read those files (or hand the change to the agent) before changing somethi
   which need `better-sqlite3` and crash workerd. `wrangler.jsonc`'s `d1_databases[0].database_id` is the real
   provisioned production database (`www-db`), used for both local D1 emulation and the deployed Worker — not a
   placeholder.
-- EmDash 0.33.0 has no `emdash.config.ts` / `defineCollection` API — the content model is defined entirely by
+- EmDash has no `emdash.config.ts` / `defineCollection` API — the content model is defined entirely by
   `.emdash/seed.json` (schema: `node_modules/emdash/src/seed/types.ts`), and it is applied **exactly once**, on
   the first request against an empty database. Editing it and redeploying does nothing to an already-bootstrapped
   site: evolving a live schema goes through `/_emdash/admin` or the `emdash schema`/`taxonomy` CLI, then
@@ -137,6 +137,16 @@ form; read those files (or hand the change to the agent) before changing somethi
   inline via `locale` + `translationOf`. Re-splitting it per locale recreates a duplicate "Tags" in the admin
   sidebar — an upstream EmDash bug this project already hit and fixed by hand. `tag`/`category` are EmDash
   built-ins seeded by a core migration before `seed.json` runs; `category` sits empty on purpose.
+- The auto-seed that runs on that first request (`node_modules/emdash/src/emdash-runtime.ts`) calls
+  `applySeed(db, seed, { onConflict: "skip" })` with no `includeContent` — which defaults to `false`
+  (`node_modules/emdash/src/seed/apply.ts`) and silently skips `seed.json`'s taxonomy **terms** and its
+  `content` entries, not just sample posts. A genuinely fresh database (CI, a new clone) therefore has the
+  `posts` collection and the `tag` taxonomy *definition*, but no tags and no posts, until something applies
+  the seed with `includeContent: true` — the admin setup wizard does, and so does the dev-only
+  `/_emdash/api/setup/dev-bypass` endpoint (`?content=0` opts back out). `e2e/post-card.spec.ts`'s `beforeAll`
+  hits that endpoint before every test for exactly this reason; don't remove the call assuming the warm-up
+  `GET` alone is enough. `.emdash/seed.json`'s `content.posts` sample entry exists so that call has something
+  to seed.
 - Never import **types** from `emdash/ui` — it turns CI's `check types` step red, and every local
   `tsc --noEmit` with it. emdash and astro-portabletext ship raw `.ts` that imports `.astro`, which plain `tsc`
   can't resolve (only `astro check` can), and emdash's `src/ui.ts` re-exports the Portable Text types from

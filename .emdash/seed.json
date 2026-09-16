@@ -132,5 +132,34 @@
                 }
             ]
         }
-    ]
+    ],
+    "content": {
+        "posts": [
+            {
+                "id": "post:sample:ko",
+                "slug": "hello-emdash",
+                "status": "published",
+                "taxonomies": { "tag": ["typescript", "shell"] },
+                "data": {
+                    "title": "EmDash로 시작하는 블로그",
+                    "subtitle": "시드 데이터로 만든 샘플 게시물",
+                    "excerpt": "이 글은 빈 데이터베이스에서도 블로그 목록과 태그를 확인할 수 있도록 시드 파일이 채워 넣은 샘플 게시물입니다.",
+                    "content": [
+                        {
+                            "_type": "block",
+                            "style": "normal",
+                            "markDefs": [],
+                            "children": [
+                                {
+                                    "_type": "span",
+                                    "text": "이 글은 .emdash/seed.json의 샘플 콘텐츠로 생성되었습니다.",
+                                    "marks": []
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        ]
+    }
 }
