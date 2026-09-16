@@ -3,8 +3,8 @@ import { ClientRouter } from "astro:transitions";
 
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
-import { config, type Locale } from "@/config.ts";
-import { translate } from "@/lib/utils.ts";
+import { config, isLocale, type Locale } from "@/config.ts";
+import { localePath, translate } from "@/lib/utils.ts";
 import packageJson from "../../package.json";
 import "@/styles/global.css";
 
@@ -22,6 +22,13 @@ const title = [Astro.props.title, config.title].filter(Boolean).join(" | ");
 const description = Astro.props.description || config.description;
 const ogType = Astro.props.ogType ?? (Astro.props.description ? "article" : "website");
 const pageUrl = new URL(Astro.url.pathname, Astro.site);
+
+// The pathname's own first segment, not the `lang` prop: 404.astro passes its recovered locale
+// as `lang`, but Astro.url.pathname there is literally "/404" after Astro.rewrite("/404") — no
+// real per-locale URL exists for that page, so hreflang alternates must stay off rather than
+// point at a URL nobody can actually reach.
+const [, maybePathLocale] = Astro.url.pathname.split("/");
+const pathLocale = isLocale(maybePathLocale) ? maybePathLocale : undefined;
 ---
 
 <!doctype html>
@@ -87,21 +94,42 @@ const pageUrl = new URL(Astro.url.pathname, Astro.site);
     <meta name="description" content={description} />
     <meta name="author" content={packageJson.author.name} />
     <meta name="generator" content={Astro.generator} />
+    {
+      // Only on pages actually served under a /<locale>/ prefix — see pathLocale's own comment
+      // above for why 404 (and anything else Astro.rewrite()s here) must stay excluded.
+      pathLocale &&
+        config.locales.map((altLocale) => (
+          <link
+            rel="alternate"
+            hreflang={altLocale}
+            href={new URL(localePath(pathLocale, altLocale, Astro.url.pathname), Astro.site)}
+          />
+        ))
+    }
+    {
+      pathLocale && (
+        <link
+          rel="alternate"
+          hreflang="x-default"
+          href={new URL(localePath(pathLocale, config.defaultLocale, Astro.url.pathname), Astro.site)}
+        />
+      )
+    }
     <!--Open Graph-->
     <meta property="og:title" content={title} />
     <meta property="og:type" content={ogType} />
     <meta property="og:url" content={pageUrl} />
-    <meta property="og:image" content="/og.png" />
+    <meta property="og:image" content={new URL("/og.png", Astro.site)} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content={title} />
     <meta property="og:description" content={description} />
     <!--Twitter Cards-->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:image" content="/x.png" />
-    <meta property="twitter:image:width" content="1200" />
-    <meta property="twitter:image:height" content="675" />
-    <meta property="twitter:image:alt" content={title} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={new URL("/x.png", Astro.site)} />
+    <meta name="twitter:image:width" content="1200" />
+    <meta name="twitter:image:height" content="675" />
+    <meta name="twitter:image:alt" content={title} />
     <!--Astro view transition-->
     <ClientRouter />
     <!--Hide JS-only controls (theme/locale toggles) when JS is unavailable, instead of shipping a dead button-->
