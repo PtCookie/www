@@ -79,7 +79,7 @@ if (slug === undefined || isNumericSlug) {
       <PostList title={translate(lang, "page.allPosts")} basePath={`/${lang}/posts`} page={result.page} lang={lang} />
     ) : (
       <Fragment>
-        <h1 class="my-4 text-3xl font-extrabold sm:my-8 sm:text-5xl">{result.postView.title}</h1>
+        <h1 class="my-4 text-3xl font-extrabold text-balance sm:my-8 sm:text-5xl">{result.postView.title}</h1>
         <p class="mb-3 text-xl font-semibold sm:mb-4 sm:text-2xl">{result.postView.subtitle}</p>
         <div class="text-muted-foreground mb-2 flex justify-between font-sans text-xs tabular-nums sm:text-sm">
           <p>
@@ -90,7 +90,10 @@ if (slug === undefined || isNumericSlug) {
             {translate(lang, "component.readTime")}
           </p>
         </div>
-        <TagList tags={result.postView.tags} lang={lang} class="justify-end" />
+        {/* Rendered once here, aligned with the title/subtitle above it — a second copy used to
+            repeat the same list below the article body, right-aligned up here and left-aligned
+            down there. */}
+        <TagList tags={result.postView.tags} lang={lang} class="justify-start" />
 
         {result.postView.coverImage.image && (
           <figure class="relative mt-4 mb-8 sm:mt-6 sm:mb-10">
@@ -119,11 +122,11 @@ if (slug === undefined || isNumericSlug) {
           <PortableText value={result.post.data.content} components={{ type: { code: Code } }} />
         </article>
 
-        <TagList tags={result.postView.tags} lang={lang} class="my-6 justify-start sm:my-8" />
-
         {(result.prevPost || result.nextPost) && (
           <Fragment>
-            <h2 class="text-center text-lg font-medium sm:mb-4 sm:text-xl">{translate(lang, "page.readNext")}</h2>
+            <h2 class="mt-6 text-center text-lg font-medium sm:mt-8 sm:mb-4 sm:text-xl">
+              {translate(lang, "page.readNext")}
+            </h2>
             <div class="my-4 grid flex-1 place-items-center content-center gap-8">
               {result.nextPost && <PostCard post={result.nextPost} lang={lang} disableImage={true} headingLevel="h3" />}
               {result.prevPost && <PostCard post={result.prevPost} lang={lang} disableImage={true} headingLevel="h3" />}

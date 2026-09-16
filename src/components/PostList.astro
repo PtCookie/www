@@ -5,7 +5,8 @@ import { Pagination } from "@/components/Pagination.tsx";
 import { PostCard } from "@/components/PostCard.tsx";
 import type { PagedItems } from "@/lib/pagination.ts";
 import type { PostView } from "@/lib/post.ts";
-import type { Locale } from "@/config.ts";
+import { translate } from "@/lib/utils.ts";
+import { config, type Locale } from "@/config.ts";
 
 interface Props {
   title: string;
@@ -14,19 +15,28 @@ interface Props {
   lang?: Locale;
 }
 
-const { title, basePath, page, lang } = Astro.props;
+const { title, basePath, page, lang = config.defaultLocale } = Astro.props;
 ---
 
-<h1 class="mt-8 mb-12 text-center text-4xl font-extrabold sm:text-5xl">{title}</h1>
-<div class="grid flex-1 place-items-center content-start gap-8">
-  {
-    page.items.map((post) => (
-      <PostCard post={post} lang={lang}>
-        <Image image={post.coverImage.image} alt="" class="h-full w-full overflow-hidden rounded-t-xl object-cover" />
-      </PostCard>
-    ))
-  }
-</div>
+<h1 class="mt-8 mb-12 text-center text-4xl font-extrabold text-balance sm:text-5xl">{title}</h1>
+{
+  page.items.length === 0 ? (
+    <p class="text-muted-foreground flex-1 text-center">{translate(lang, "page.noPosts")}</p>
+  ) : (
+    <div class="grid flex-1 place-items-center content-start gap-8">
+      {page.items.map((post, index) => (
+        <PostCard post={post} lang={lang}>
+          <Image
+            image={post.coverImage.image}
+            alt=""
+            class="h-full w-full overflow-hidden rounded-t-xl object-cover"
+            priority={index === 0}
+          />
+        </PostCard>
+      ))}
+    </div>
+  )
+}
 {
   page.totalPages > 1 && (
     <div class="mt-8">

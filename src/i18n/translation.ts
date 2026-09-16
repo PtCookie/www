@@ -19,6 +19,8 @@ export interface Translation {
   "page.allPosts": string;
   "page.readNext": string;
   "page.allTags": string;
+  "page.noPosts": string;
+  "page.noTags": string;
   "page.post": string;
   "page.posts": string;
   "page.work": string;
@@ -56,6 +58,8 @@ export const translation: Record<Locale, Translation> = {
     "page.allPosts": "모든 게시글",
     "page.readNext": "다음 읽기",
     "page.allTags": "모든 태그",
+    "page.noPosts": "아직 게시글이 없습니다.",
+    "page.noTags": "아직 태그가 없습니다.",
     "page.post": "게시글",
     "page.posts": "게시글",
     "page.work": "경력",
@@ -91,6 +95,8 @@ export const translation: Record<Locale, Translation> = {
     "page.allPosts": "All Posts",
     "page.readNext": "Read Next",
     "page.allTags": "All Tags",
+    "page.noPosts": "No posts yet.",
+    "page.noTags": "No tags yet.",
     "page.post": "post",
     "page.posts": "posts",
     "page.work": "Work",

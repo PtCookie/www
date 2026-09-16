@@ -26,6 +26,16 @@ const lang = isLocale(maybeLocale) ? maybeLocale : config.defaultLocale;
 <BaseLayout lang={lang} title={translate(lang, "page.notFound")}>
   <div class="flex grow flex-col items-center justify-center gap-8">
     <h1 class="text-2xl">{translate(lang, "page.notFound")}</h1>
-    <a href={`/${lang}`} class={buttonVariants()}>{translate(lang, "page.returnHome")}</a>
+    <div class="flex flex-wrap items-center justify-center gap-4">
+      <a href={`/${lang}`} class={buttonVariants()}>
+        {translate(lang, "page.returnHome")}
+      </a>
+      <a href={`/${lang}/posts`} class={buttonVariants({ variant: "secondary" })}>
+        {translate(lang, "page.allPosts")}
+      </a>
+      <a href={`/${lang}/tags`} class={buttonVariants({ variant: "secondary" })}>
+        {translate(lang, "page.allTags")}
+      </a>
+    </div>
   </div>
 </BaseLayout>
