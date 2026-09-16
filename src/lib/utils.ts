@@ -1,14 +1,7 @@
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-
 import type { Tag } from "@/lib/post.ts";
 import { translation, type Translation } from "@/i18n/translation.ts";
 import { formatPeriod, timelineCopy, timelineEntry, type TimelineItem } from "@/i18n/timeline.ts";
 import type { Locale } from "@/config.ts";
-
-export function cn(...inputs: ClassValue[]): string {
-  return twMerge(clsx(inputs));
-}
 
 // Extra classes every tag chip carries on top of `badgeVariants({ variant: "secondary" })`.
 // The `h-6` overrides the variant's `h-5` (20px) base so the chip clears the 24x24 CSS px

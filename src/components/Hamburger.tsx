@@ -12,7 +12,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet.tsx";
 import { useTheme } from "@/hooks/useTheme.ts";
-import { cn, localePath, translate } from "@/lib/utils.ts";
+import { localePath, translate } from "@/lib/utils.ts";
+import { cn } from "cn";
 import { config, type Locale, type MenuEntry } from "@/config.ts";
 
 const EMPTY_LINK_ENTRY: MenuEntry[] = [];

@@ -3,7 +3,8 @@ import * as React from "react";
 import { badgeVariants } from "@/components/ui/badge.tsx";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card.tsx";
 import type { PostView } from "@/lib/post.ts";
-import { cn, formatDate, tagLinkClass, translate } from "@/lib/utils.ts";
+import { formatDate, tagLinkClass, translate } from "@/lib/utils.ts";
+import { cn } from "cn";
 import { config, type Locale } from "@/config.ts";
 
 interface Props {

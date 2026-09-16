@@ -67,7 +67,9 @@ unsandboxed and Playwright's browser launch fails with a `mach_port_rendezvous` 
   instead, resolved by a small helper in `src/lib/utils.ts`; `src/i18n/timeline.ts` + `getTimeline()` is the
   reference shape to copy. `config.menuEntry`/`linkEntry` labels are a deliberate exception and stay untranslated,
   matching the pre-existing `Home`/`Posts`/`Tags` precedent.
-- Reuse `src/lib/utils.ts`: `cn`, `getAllTags`, `getTimeline`, `localePath`, `range`, `translate`. Don't add
+- Reuse `src/lib/utils.ts`: `getAllTags`, `getTimeline`, `localePath`, `range`, `translate`. Class-name merging uses
+  the `cn` package (`import { cn } from "cn"`), not a local helper — shadcn regenerates `src/components/ui/*` to
+  import it from there. Don't add
   `astro:transitions/client` imports there — `tests/lib/utils.test.ts` runs in the node-environment `unit` vitest
   project, which can't resolve that virtual module. `localePath` builds the target-locale URL as a plain string;
   `LangToggle`/`Hamburger` render it as a real `<a href>` and let `BaseLayout`'s `<ClientRouter />` handle the
