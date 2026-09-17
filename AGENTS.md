@@ -88,9 +88,14 @@ unsandboxed and Playwright's browser launch fails with a `mach_port_rendezvous` 
 - `e2e/**/*.spec.ts` → Playwright (`playwright.config.ts`, baseURL `:4321`), run by `pnpm run test:e2e`
   against a `pnpm dev` server Playwright starts itself (that's `playwright.config.ts`'s own `webServer.command`,
   a nested child process — it doesn't need the `run`/`exec` form itself since it inherits the parent's already
-  resolved sandbox status). Because that server compiles routes on first request, a
-  spec whose assertions ride on a client-side navigation must warm those routes first — `e2e/theme.spec.ts`'s
-  `beforeAll` is the pattern, and its own comments carry the trace.
+  resolved sandbox status). Because that server compiles routes on first request, every route the suite
+  touches is seeded and warmed once up front by `e2e/warmup.setup.ts` — a Playwright **setup project** that
+  every browser project declares in `dependencies`. Add the route there when you add a spec that navigates
+  somewhere new; its own comments carry the trace. Don't reintroduce per-spec `beforeAll` warm-ups: running
+  them once per browser project is what used to blow the 30s hook budget on CI.
+- A full-document navigation must be awaited with `page.waitForURL()`, never `expect(page).toHaveURL()`:
+  `page.url()` stays on the old URL until the new document commits, and `toHaveURL` caps that wait at the
+  expect timeout, which an `astro dev` SSR response on a CI runner can outlast.
 
 ## Documentation
 
@@ -145,10 +150,10 @@ form; read those files (or hand the change to the agent) before changing somethi
   `content` entries, not just sample posts. A genuinely fresh database (CI, a new clone) therefore has the
   `posts` collection and the `tag` taxonomy *definition*, but no tags and no posts, until something applies
   the seed with `includeContent: true` — the admin setup wizard does, and so does the dev-only
-  `/_emdash/api/setup/dev-bypass` endpoint (`?content=0` opts back out). `e2e/post-card.spec.ts`'s `beforeAll`
-  hits that endpoint before every test for exactly this reason; don't remove the call assuming the warm-up
-  `GET` alone is enough. `.emdash/seed.json`'s `content.posts` sample entry exists so that call has something
-  to seed.
+  `/_emdash/api/setup/dev-bypass` endpoint (`?content=0` opts back out; it 403s outside `import.meta.env.DEV`,
+  so it's unavailable to anything running against a production build). `e2e/warmup.setup.ts` hits that endpoint
+  once before the suite for exactly this reason; don't remove the call assuming the warm-up `GET` alone is
+  enough. `.emdash/seed.json`'s `content.posts` sample entry exists so that call has something to seed.
 - Never import **types** from `emdash/ui` — it turns CI's `check types` step red, and every local
   `tsc --noEmit` with it. emdash and astro-portabletext ship raw `.ts` that imports `.astro`, which plain `tsc`
   can't resolve (only `astro check` can), and emdash's `src/ui.ts` re-exports the Portable Text types from

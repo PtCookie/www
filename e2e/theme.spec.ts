@@ -3,8 +3,6 @@ import { expect, test } from "@playwright/test";
 // Home page under the English locale — static content, no API calls to stub, and the desktop
 // `Navigation` island renders real `<a>` links suitable for a same-shell ClientRouter navigation.
 const PAGE = "/en";
-// The client-side navigation target. Same shell, same locale, and prerendered in production.
-const WORK_PAGE = "/en/work";
 const STORAGE_KEY = "theme";
 
 const preference = (page: import("@playwright/test").Page) =>
@@ -27,18 +25,13 @@ async function gotoReady(page: import("@playwright/test").Page, path: string) {
 }
 
 // The same dev-server cost bites client-side navigation harder, because there is no `goto` to
-// absorb it: `astro dev` compiles a route on its first request, and `/en/work` drags GSAP
+// absorb it: `astro dev` compiles a route on its first request, and `/en/work` — the target the
+// tests below reach by clicking the desktop `Navigation` island's "Work" link — drags GSAP
 // (`Timeline.astro`) through Vite's dependency optimizer with it. `ClientRouter` pushes the new
 // URL only *after* that document fetch resolves, so a cold compile outruns the expect timeout
-// and the assertion still sees the old URL — the flake this warm-up removes. A plain HTTP GET is
-// enough: the router fetches the document and nothing else, so compiling the route server-side
-// is exactly what that window was waiting on. `beforeAll` rather than `globalSetup`, which has
-// no guaranteed ordering against Playwright's `webServer`.
-test.beforeAll(async ({ playwright }, testInfo) => {
-  const context = await playwright.request.newContext({ baseURL: testInfo.project.use.baseURL });
-  await Promise.all([PAGE, WORK_PAGE].map((path) => context.get(path)));
-  await context.dispose();
-});
+// and the assertion still sees the old URL. Both `/en` and `/en/work` are warmed by a plain HTTP
+// GET in e2e/warmup.setup.ts — the router fetches the document and nothing else, so compiling
+// the route server-side is exactly what that window was waiting on.
 
 // Tailwind's `sm:` breakpoint — Header.astro swaps the desktop ModeToggle/Navigation shell for
 // the Hamburger sheet exactly here (`hidden sm:flex` / `flex sm:hidden`), so it doubles as the
