@@ -8,7 +8,7 @@ plus a blog backed by EmDash, an Astro-native CMS running in-app with an admin U
 
 ```bash
 pnpm run dev                          # dev server on :4321
-pnpm run build && pnpm run preview    # production build
+pnpm run preview                      # production build (runs `astro build && astro preview` itself)
 pnpm run lint                         # eslint
 pnpm run format                       # prettier --write .
 pnpm run test                         # vitest watch (unit + 3 browsers)
@@ -83,7 +83,8 @@ unsandboxed and Playwright's browser launch fails with a `mach_port_rendezvous` 
 - `tests/lib/**/*.test.ts` → vitest `unit` project, node environment.
 - `tests/components/**/*.test.tsx` → `component` project, real chromium/firefox/webkit via `@vitest/browser-playwright`,
   Testing Library + jest-dom, setup in `tests/setup.ts`.
-- Coverage tracks `src/**` minus `.astro` files and `src/lib/*` except `utils.ts`.
+- Coverage tracks `src/**` minus `.astro` files, `src/*config.ts`, `src/components/ui/*`, and `src/lib/*`
+  except `utils.ts`.
 - `e2e/**/*.spec.ts` → Playwright (`playwright.config.ts`, baseURL `:4321`), run by `pnpm run test:e2e`
   against a `pnpm dev` server Playwright starts itself (that's `playwright.config.ts`'s own `webServer.command`,
   a nested child process — it doesn't need the `run`/`exec` form itself since it inherits the parent's already
@@ -194,17 +195,23 @@ form; read those files (or hand the change to the agent) before changing somethi
   adapter only auto-fills it when there's no custom `wrangler.jsonc` at all). The merged config a deploy really
   gets is `dist/server/wrangler.json` — read that, not just `wrangler.jsonc`. `wrangler deploy --dry-run`
   validates it against the real bindings without deploying.
-- `wrangler.jsonc`'s `assets.run_worker_first` must stay `true`, not a scoped array: with a scoped list,
-  Cloudflare's static-assets layer answers SSR routes with its own 404 before the Worker ever runs. Neither
-  `astro dev` nor a successful build shows this — only requesting e.g. `/ko/posts` through `astro preview`.
+- `wrangler.jsonc`'s `assets.run_worker_first` must keep matching every real route — currently
+  `["/*", "!/@vite/*", "!/@id/*", "!/@react-refresh", "!/@fs/*", "!/src/*", "!/node_modules/*", "!/_astro/*"]`,
+  i.e. "everything, minus dev-only Vite-internal paths" (those `!`-exclusions exist for the
+  `dev-island-url.ts` workaround below, not for SSR routing). Don't narrow it back to an app-route
+  scoped list like `["/_emdash/*"]` — with a scoped list, Cloudflare's static-assets layer answers
+  SSR routes with its own 404 before the Worker ever runs. Neither `astro dev` nor a successful
+  build shows this — only requesting e.g. `/ko/posts` through `astro preview`.
 - `src/pages/404.astro` is **not** prerendered, unlike `work.astro`/`about.astro`: SSR routes reach it via
   `Astro.rewrite("/404")`, and rewriting an on-demand route to a prerendered one fails at runtime. Astro's own
   "no route matched" fallback finds it by filename regardless of prerender status.
 - `src/lib/highlighter.ts` imports Shiki's grammars one at a time from `@shikijs/langs/*` instead of using the
   `shiki` package's `createHighlighter`, which would bundle every language and blow the Workers script-size cap
-  (CI fails the build above 3072 KiB gzipped). Keep it that way, and measure before adding a language — that's
-  what `bundle-size-sentinel` is for. `LANG_ALIAS` maps the corpus's `sh` fences to the grammar's real
-  `shellscript` id; `shiki/onig.wasm` is why the top-level `shiki` package stays a dependency.
+  enforced by `.github/workflows/ci.yml`'s `Check Worker size` step (`MAX_GZIP_KIB`, currently the Workers Paid
+  plan's 10240 KiB/10 MiB — re-read that step for the current number and plan before assuming headroom). Keep
+  it that way, and measure before adding a language — that's what `bundle-size-sentinel` is for. `LANG_ALIAS`
+  maps the corpus's `sh` fences to the grammar's real `shellscript` id; `shiki/onig.wasm` is why the top-level
+  `shiki` package stays a dependency.
 - `astro-og` (the `og()` integration in `astro.config.mjs`) is a **dev-toolbar app only** — it doesn't generate
   OG images at build time despite the name. Per-page Open Graph data comes entirely from `BaseLayout`'s
   `title`/`description`/`ogType` props.
