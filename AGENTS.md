@@ -8,7 +8,7 @@ plus a blog backed by EmDash, an Astro-native CMS running in-app with an admin U
 
 ```bash
 pnpm run dev                          # dev server on :4321
-pnpm run build && pnpm run preview    # production build
+pnpm run preview                      # production build (runs `astro build && astro preview` itself)
 pnpm run lint                         # eslint
 pnpm run format                       # prettier --write .
 pnpm run test                         # vitest watch (unit + 3 browsers)
@@ -51,7 +51,8 @@ unsandboxed and Playwright's browser launch fails with a `mach_port_rendezvous` 
   (`ModeToggle`, `LangToggle`, `Navigation`, `Hamburger`, `Pagination`, `PostCard`). `Navigation` is hydrated
   (`client:load`) because its `Link` dropdown needs a Radix trigger — it used to be static SSR-only markup, so
   don't remove the directive assuming it's decorative. `src/components/ui/*` is shadcn-generated (new-york style)
-  — add components with the shadcn CLI instead of hand-writing them.
+  — prefer the shadcn CLI for adding new components, but small hand-edits to existing ones are fine (e.g. the
+  `cn`-import fix noted in Conventions, or retargeting a `cva()` variant's color token).
 - **Theming**: Catppuccin Latte (light) / Macchiato (dark) tokens in `src/styles/global.css` `@theme`.
   `src/hooks/useTheme.ts` owns the `dark`-class toggle on `<html>`; `ModeToggle` and `Hamburger` both consume it.
   This is **not** next-themes — the project doesn't use that library. `Header.astro`'s inline `<script>` does the
@@ -82,7 +83,8 @@ unsandboxed and Playwright's browser launch fails with a `mach_port_rendezvous` 
 - `tests/lib/**/*.test.ts` → vitest `unit` project, node environment.
 - `tests/components/**/*.test.tsx` → `component` project, real chromium/firefox/webkit via `@vitest/browser-playwright`,
   Testing Library + jest-dom, setup in `tests/setup.ts`.
-- Coverage tracks `src/**` minus `.astro` files and `src/lib/*` except `utils.ts`.
+- Coverage tracks `src/**` minus `.astro` files, `src/*config.ts`, `src/components/ui/*`, and `src/lib/*`
+  except `utils.ts`.
 - `e2e/**/*.spec.ts` → Playwright (`playwright.config.ts`, baseURL `:4321`), run by `pnpm run test:e2e`
   against a `pnpm dev` server Playwright starts itself (that's `playwright.config.ts`'s own `webServer.command`,
   a nested child process — it doesn't need the `run`/`exec` form itself since it inherits the parent's already
@@ -127,7 +129,7 @@ form; read those files (or hand the change to the agent) before changing somethi
   which need `better-sqlite3` and crash workerd. `wrangler.jsonc`'s `d1_databases[0].database_id` is the real
   provisioned production database (`www-db`), used for both local D1 emulation and the deployed Worker — not a
   placeholder.
-- EmDash 0.33.0 has no `emdash.config.ts` / `defineCollection` API — the content model is defined entirely by
+- EmDash has no `emdash.config.ts` / `defineCollection` API — the content model is defined entirely by
   `.emdash/seed.json` (schema: `node_modules/emdash/src/seed/types.ts`), and it is applied **exactly once**, on
   the first request against an empty database. Editing it and redeploying does nothing to an already-bootstrapped
   site: evolving a live schema goes through `/_emdash/admin` or the `emdash schema`/`taxonomy` CLI, then
@@ -137,6 +139,16 @@ form; read those files (or hand the change to the agent) before changing somethi
   inline via `locale` + `translationOf`. Re-splitting it per locale recreates a duplicate "Tags" in the admin
   sidebar — an upstream EmDash bug this project already hit and fixed by hand. `tag`/`category` are EmDash
   built-ins seeded by a core migration before `seed.json` runs; `category` sits empty on purpose.
+- The auto-seed that runs on that first request (`node_modules/emdash/src/emdash-runtime.ts`) calls
+  `applySeed(db, seed, { onConflict: "skip" })` with no `includeContent` — which defaults to `false`
+  (`node_modules/emdash/src/seed/apply.ts`) and silently skips `seed.json`'s taxonomy **terms** and its
+  `content` entries, not just sample posts. A genuinely fresh database (CI, a new clone) therefore has the
+  `posts` collection and the `tag` taxonomy *definition*, but no tags and no posts, until something applies
+  the seed with `includeContent: true` — the admin setup wizard does, and so does the dev-only
+  `/_emdash/api/setup/dev-bypass` endpoint (`?content=0` opts back out). `e2e/post-card.spec.ts`'s `beforeAll`
+  hits that endpoint before every test for exactly this reason; don't remove the call assuming the warm-up
+  `GET` alone is enough. `.emdash/seed.json`'s `content.posts` sample entry exists so that call has something
+  to seed.
 - Never import **types** from `emdash/ui` — it turns CI's `check types` step red, and every local
   `tsc --noEmit` with it. emdash and astro-portabletext ship raw `.ts` that imports `.astro`, which plain `tsc`
   can't resolve (only `astro check` can), and emdash's `src/ui.ts` re-exports the Portable Text types from
@@ -183,17 +195,23 @@ form; read those files (or hand the change to the agent) before changing somethi
   adapter only auto-fills it when there's no custom `wrangler.jsonc` at all). The merged config a deploy really
   gets is `dist/server/wrangler.json` — read that, not just `wrangler.jsonc`. `wrangler deploy --dry-run`
   validates it against the real bindings without deploying.
-- `wrangler.jsonc`'s `assets.run_worker_first` must stay `true`, not a scoped array: with a scoped list,
-  Cloudflare's static-assets layer answers SSR routes with its own 404 before the Worker ever runs. Neither
-  `astro dev` nor a successful build shows this — only requesting e.g. `/ko/posts` through `astro preview`.
+- `wrangler.jsonc`'s `assets.run_worker_first` must keep matching every real route — currently
+  `["/*", "!/@vite/*", "!/@id/*", "!/@react-refresh", "!/@fs/*", "!/src/*", "!/node_modules/*", "!/_astro/*"]`,
+  i.e. "everything, minus dev-only Vite-internal paths" (those `!`-exclusions exist for the
+  `dev-island-url.ts` workaround below, not for SSR routing). Don't narrow it back to an app-route
+  scoped list like `["/_emdash/*"]` — with a scoped list, Cloudflare's static-assets layer answers
+  SSR routes with its own 404 before the Worker ever runs. Neither `astro dev` nor a successful
+  build shows this — only requesting e.g. `/ko/posts` through `astro preview`.
 - `src/pages/404.astro` is **not** prerendered, unlike `work.astro`/`about.astro`: SSR routes reach it via
   `Astro.rewrite("/404")`, and rewriting an on-demand route to a prerendered one fails at runtime. Astro's own
   "no route matched" fallback finds it by filename regardless of prerender status.
 - `src/lib/highlighter.ts` imports Shiki's grammars one at a time from `@shikijs/langs/*` instead of using the
   `shiki` package's `createHighlighter`, which would bundle every language and blow the Workers script-size cap
-  (CI fails the build above 3072 KiB gzipped). Keep it that way, and measure before adding a language — that's
-  what `bundle-size-sentinel` is for. `LANG_ALIAS` maps the corpus's `sh` fences to the grammar's real
-  `shellscript` id; `shiki/onig.wasm` is why the top-level `shiki` package stays a dependency.
+  enforced by `.github/workflows/ci.yml`'s `Check Worker size` step (`MAX_GZIP_KIB`, currently the Workers Paid
+  plan's 10240 KiB/10 MiB — re-read that step for the current number and plan before assuming headroom). Keep
+  it that way, and measure before adding a language — that's what `bundle-size-sentinel` is for. `LANG_ALIAS`
+  maps the corpus's `sh` fences to the grammar's real `shellscript` id; `shiki/onig.wasm` is why the top-level
+  `shiki` package stays a dependency.
 - `astro-og` (the `og()` integration in `astro.config.mjs`) is a **dev-toolbar app only** — it doesn't generate
   OG images at build time despite the name. Per-page Open Graph data comes entirely from `BaseLayout`'s
   `title`/`description`/`ogType` props.

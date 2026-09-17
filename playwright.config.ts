@@ -22,20 +22,11 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  // The html report only exists as a downloadable artifact on CI; `github` is what puts a failure
-  // inline on the commit/PR, where it's actually seen. `open: "never"` keeps the reporter from
-  // trying to serve the report and hanging the job.
-  reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "html",
-  /* `astro dev` serves these tests, and a ClientRouter navigation waits on the dev server's
-   * on-demand route compile before the URL changes. The default 5s is a coin flip for that on a
-   * cold CI runner; e2e/theme.spec.ts warms the routes it navigates to, and this is the margin
-   * left over for a merely slow one. */
-  expect: { timeout: 15_000 },
+  reporter: "html",
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('')`. */
     baseURL: "http://localhost:4321",
-
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",
   },
@@ -46,26 +37,28 @@ export default defineConfig({
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
     },
-
     {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
+      name: "Mobile Chrome",
+      use: { ...devices["Pixel 5"] },
     },
 
-    {
-      name: "webkit",
-      use: { ...devices["Desktop Safari"] },
-    },
-
-    /* Test against mobile viewports. */
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
-    // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
-    // },
+    /* Test against minor browsers on CI. */
+    ...(process.env.CI
+      ? [
+          {
+            name: "firefox",
+            use: { ...devices["Desktop Firefox"] },
+          },
+          {
+            name: "webkit",
+            use: { ...devices["Desktop Safari"] },
+          },
+          {
+            name: "Mobile Safari",
+            use: { ...devices["iPhone 12"] },
+          },
+        ]
+      : []),
 
     /* Test against branded browsers. */
     // {
@@ -80,8 +73,9 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: "pnpm dev",
+    command: "pnpm run dev",
     url: "http://localhost:4321",
     reuseExistingServer: !process.env.CI,
+    env: { ASTRO_DEV_BACKGROUND: "0" },
   },
 });

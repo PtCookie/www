@@ -67,19 +67,26 @@ const techEntry = [
         <p class="font-mono text-base leading-normal font-semibold sm:max-w-4/5 sm:text-xl">
           {translate(lang, "page.techIntro")}
         </p>
-        <div class="mt-8 grid grid-cols-2 items-center justify-center gap-8 sm:grid-cols-3">
+        {
+          /* flex-wrap + justify-center centers every row including the trailing one, instead of
+             a fixed-column grid that leaves an orphaned partial row pinned to the start. A
+             visible label under each mark is needed since an unfamiliar logo with only `alt`
+             text is unidentifiable at a glance. */
+        }
+        <div class="mt-8 flex flex-wrap items-start justify-center gap-8">
           {
             techEntry.map((tech) => (
-              <a href={tech.href} target="_blank" rel="noreferrer">
+              <a href={tech.href} target="_blank" rel="noreferrer" class="flex flex-col items-center gap-2">
                 <img
                   src={tech.src}
-                  alt={tech.name}
+                  alt=""
                   width={128}
                   height={128}
                   loading="lazy"
                   decoding="async"
                   class="w-24 sm:w-32"
                 />
+                <span class="text-muted-foreground font-mono text-xs sm:text-sm">{tech.name}</span>
               </a>
             ))
           }

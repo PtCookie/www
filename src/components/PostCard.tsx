@@ -72,7 +72,7 @@ export function PostCard({
         {/* A span, not a link: the title's stretched link already covers the whole card, and a
             second anchor to the same post would add a duplicate tab stop plus a vague "Read more"
             link name to the accessibility tree. Clicks still land on the overlay above it. */}
-        <span className="text-primary shrink-0 font-sans text-xs font-medium group-hover/card:underline sm:text-sm">
+        <span className="text-primary-text shrink-0 font-sans text-xs font-medium group-hover/card:underline sm:text-sm">
           {translate(lang, "component.readMore")}
         </span>
         {/* `relative z-10` lifts the tags above the title's stretched-link overlay; `role="list"`

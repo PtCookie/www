@@ -70,6 +70,20 @@ export default defineConfig({
     // for a unit/browser test run to exercise, and vitest's SSR test environment also reports
     // `command: "serve"`, so leaving it unguarded would let it register a middleware there too.
     plugins: [tailwindcss(), ...(process.env.VITEST ? [] : [devIslandUrlPlugin()])],
+    // `@astrojs/cloudflare`'s own optimizeDeps.include list pre-declares most of Astro's runtime
+    // pieces for the "astro"/"ssr"/"prerender" Vite environments so the SSR dep optimizer never
+    // discovers one mid-request — but it only adds `astro/logger/json`, conditional on
+    // `config.logger.entrypoint`. This project uses Astro's default console logger
+    // (`astro/logger/console`), which isn't in that list, so on a cold `.vite` cache the optimizer
+    // discovers it on the very first request, triggers a "program reload", and the workerd runner
+    // crashes referencing pre-reload chunk filenames that no longer exist ("The file does not
+    // exist at .../deps_ssr/entrypoints-*.js") — reproduced locally against a cleared
+    // `node_modules/.vite`, matching withastro/astro#17788/#17893/#17921 exactly. Declaring it here
+    // merges into that same include list (`@astrojs/cloudflare`'s `configEnvironment` hook reads
+    // `config.vite.optimizeDeps.include`), so it's bundled in the initial scan instead.
+    optimizeDeps: {
+      include: ["astro/logger/console"],
+    },
   },
   markdown: {
     shikiConfig: {

@@ -25,7 +25,10 @@ const allTags = getAllTags(posts, true);
     allTags.length === 0 ? (
       <p class="text-muted-foreground flex-1 text-center">{translate(lang, "page.noTags")}</p>
     ) : (
-      <ul role="list" class="grid flex-1 place-items-start content-start gap-8 px-8">
+      <ul
+        role="list"
+        class="grid flex-1 grid-cols-1 place-items-start content-start gap-8 px-8 sm:grid-cols-2 lg:grid-cols-3"
+      >
         {allTags.map((tag) => (
           <li>
             <a

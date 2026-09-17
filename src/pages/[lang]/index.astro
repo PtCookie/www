@@ -30,7 +30,7 @@ const posts = (await getAllPublishedPosts(lang)).slice(0, 3).map(toPostView);
         posts.map((post) => <PostCard post={post} lang={lang} disableImage={true} headingLevel="h3" />)
       )
     }
-    <a href={`/${lang}/posts`} class="text-primary font-sans text-lg font-medium hover:underline sm:text-xl">
+    <a href={`/${lang}/posts`} class="text-primary-text font-sans text-lg font-medium hover:underline sm:text-xl">
       {translate(lang, "page.viewAll")}
     </a>
   </div>

@@ -116,17 +116,20 @@ pnpm exec wrangler deploy --dry-run          # validates merged config against r
 
 ## `wrangler.jsonc`
 
-- **`assets.run_worker_first` must stay `true`, not a scoped array.** It was `["/_emdash/*"]` before
-  the post/tag/locale-index routes became SSR (Phase 4 of the EmDash migration). With a scoped list,
-  any path not listed is handled by
-  Cloudflare's static-assets layer *before* the Worker runs — and since SSR routes don't exist as
+- **`assets.run_worker_first` must keep matching every real route.** It's currently the array
+  `["/*", "!/@vite/*", "!/@id/*", "!/@react-refresh", "!/@fs/*", "!/src/*", "!/node_modules/*",
+  "!/_astro/*"]` — read that as "everything, minus dev-only Vite-internal paths," not as a scoped
+  allowlist. It was once literally `["/_emdash/*"]` before the post/tag/locale-index routes became
+  SSR (Phase 4 of the EmDash migration): with a scoped list, any path not listed is handled by
+  Cloudflare's static-assets layer *before* the Worker runs, and since SSR routes don't exist as
   files under `dist/client`, that layer's own `not_found_handling: "404-page"` returned 404 without
   the Worker (and its D1 query) ever being invoked. Neither `astro dev` (no assets layer in the
   loop) nor a successful build shows this; it appears only by requesting an SSR route such as
   `/ko/posts` through `astro preview` and checking the status code. `dist/server/entry.mjs` falls
-  back to `env.ASSETS.fetch()` for prerendered/static paths, so `true` re-orders who checks first
-  rather than bypassing CDN-served assets.
-- **`assets.run_worker_first`'s exclusion list must keep `!/src/*`.** `@vitejs/plugin-react`'s Fast
+  back to `env.ASSETS.fetch()` for prerendered/static paths, so matching everything re-orders who
+  checks first rather than bypassing CDN-served assets. Don't narrow it back to an app-route scoped
+  list — that's the same failure mode, just reintroduced a different way.
+- **The `!`-prefixed entries in that array must keep `!/src/*`.** `@vitejs/plugin-react`'s Fast
   Refresh preamble self-imports each component module under Vite's *root-relative* id (e.g.
   `import * as __vite_react_currentExports from "/src/components/Navigation.tsx"`), separate from
   the `/@fs/...` id used for `import.meta.hot` in the same emitted file. Without the exclusion, the
@@ -153,11 +156,13 @@ pnpm exec wrangler deploy --dry-run          # validates merged config against r
   not yet completed. Editing it and redeploying does nothing to an already-bootstrapped site, so a
   diff that changes schema *only* in `seed.json` is incomplete: the live change must also be made
   through `/_emdash/admin` or the `emdash schema`/`taxonomy` CLI (the `emdash-schema-change` skill
-  covers the full workflow). EmDash 0.33.0 has no `emdash.config.ts`/`defineCollection` API; the
+  covers the full workflow). EmDash has no `emdash.config.ts`/`defineCollection` API; the
   integration inlines `seed.json` into a virtual module at build time because workerd has no
-  filesystem to read it from at runtime. Resetting local state to re-apply an edited seed means
-  deleting `.wrangler/state/v3/{d1,r2}`, which also discards the local passkey and all local content
-  — a real decision, not a cache clear.
+  filesystem to read it from at runtime. (EmDash is still pre-1.0 and versions frequently — don't
+  assume this or anything else version-specific in this file still holds without checking
+  `node_modules/emdash/package.json` against the behavior described.) Resetting local state to
+  re-apply an edited seed means deleting `.wrangler/state/v3/{d1,r2}`, which also discards the local
+  passkey and all local content — a real decision, not a cache clear.
 - **The `tag` taxonomy must stay a single block with per-term `locale`/`translationOf`.** Two
   taxonomy definitions, `category` (hierarchical) and `tag` (flat), are seeded unconditionally by a
   core migration (`node_modules/emdash/src/database/migrations/006_taxonomy_defs.ts`) on every fresh
@@ -176,15 +181,15 @@ pnpm exec wrangler deploy --dry-run          # validates merged config against r
   flat-taxonomy seed path (`seed/apply.ts`) honours per-term `locale`, which is what makes a single
   block sufficient. Any diff that re-splits it per locale recreates the duplicate.
 - `category` sits empty in the admin sidebar on purpose — it's an EmDash built-in (the WordPress
-  split), `tag` is the semantically correct home for this site's flat blog tags, and 0.33.0 has no
-  API/CLI to rename or delete a taxonomy *definition* anyway (only terms have update/delete
-  endpoints), so removing it would mean raw SQL. Deleting a definition row is nonetheless safe:
-  nothing has a foreign key to `_emdash_taxonomy_defs`, terms join by `name` + `locale`, and
-  `content_taxonomies.taxonomy_id` stores a term's `translation_group`. Term CRUD keeps working for
-  every locale because handlers call `requireTaxonomyDef(db, name)` without a locale ("terms aren't
-  bound to the def's locale"), and the public read path needs only the distinct taxonomy names
-  (`loader.ts`'s `getTaxonomyNames`) plus term rows — `getTaxonomyDefs()`'s only consumer is
-  `astro/prefetch.ts` cache warming. The fix itself was
+  split), `tag` is the semantically correct home for this site's flat blog tags, and the installed
+  EmDash has no API/CLI to rename or delete a taxonomy *definition* anyway (only terms have
+  update/delete endpoints), so removing it would mean raw SQL. Deleting a definition row is
+  nonetheless safe: nothing has a foreign key to `_emdash_taxonomy_defs`, terms join by `name` +
+  `locale`, and `content_taxonomies.taxonomy_id` stores a term's `translation_group`. Term CRUD
+  keeps working for every locale because handlers call `requireTaxonomyDef(db, name)` without a
+  locale ("terms aren't bound to the def's locale"), and the public read path needs only the
+  distinct taxonomy names (`loader.ts`'s `getTaxonomyNames`) plus term rows —
+  `getTaxonomyDefs()`'s only consumer is `astro/prefetch.ts` cache warming. The fix itself was
   `wrangler d1 execute www-db --local|--remote --command "DELETE FROM _emdash_taxonomy_defs WHERE
   name='tag' AND locale='en';"`, and the 14 terms plus 32 assignment rows were untouched by it.
   Restart `astro dev` after such a change — the defs/names caches are per-isolate module state.

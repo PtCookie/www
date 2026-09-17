@@ -79,7 +79,7 @@ if (slug === undefined || isNumericSlug) {
       <PostList title={translate(lang, "page.allPosts")} basePath={`/${lang}/posts`} page={result.page} lang={lang} />
     ) : (
       <Fragment>
-        <h1 class="my-4 text-3xl font-extrabold text-balance sm:my-8 sm:text-5xl">{result.postView.title}</h1>
+        <h1 class="my-4 text-4xl font-extrabold text-balance sm:my-8 sm:text-5xl">{result.postView.title}</h1>
         <p class="mb-3 text-xl font-semibold sm:mb-4 sm:text-2xl">{result.postView.subtitle}</p>
         <div class="text-muted-foreground mb-2 flex justify-between font-sans text-xs tabular-nums sm:text-sm">
           <p>
@@ -111,7 +111,7 @@ if (slug === undefined || isNumericSlug) {
 
         <article
           class:list={[
-            "prose sm:prose-lg dark:prose-invert prose-p:font-serif max-w-none",
+            "prose sm:prose-lg dark:prose-invert prose-p:font-serif",
             // Pre-EmDash this was `post.data.coverImage.url || "my-8"`, passing the truthy
             // ImageMetadata object itself into class:list — which spreads each of its own
             // enumerable keys in as a class name (confirmed in the pre-migration build output:
