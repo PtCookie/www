@@ -23,6 +23,7 @@
     --popover-foreground: oklch(0.148 0.004 228.8);
     --primary: oklch(0.508 0.118 165.612);
     --primary-foreground: oklch(0.979 0.021 166.113);
+    --primary-text: oklch(0.508 0.118 165.612);
     --secondary: oklch(0.967 0.001 286.375);
     --secondary-foreground: oklch(0.21 0.006 285.885);
     --muted: oklch(0.963 0.002 197.1);
@@ -59,6 +60,10 @@
     --popover-foreground: oklch(0.987 0.002 197.1);
     --primary: oklch(0.432 0.095 166.913);
     --primary-foreground: oklch(0.979 0.021 166.113);
+    /* --primary is tuned as a button/badge fill color; as text it fails WCAG contrast in dark
+     * mode (2.28:1). --primary-text keeps the same hue/chroma but is lifted to L=0.70 for
+     * readable text/link use (7.71:1 on --background, 6.79:1 on --card). */
+    --primary-text: oklch(0.7 0.095 166.913);
     --secondary: oklch(0.274 0.006 286.033);
     --secondary-foreground: oklch(0.985 0 0);
     --muted: oklch(0.275 0.011 216.9);
@@ -119,6 +124,7 @@
     --color-secondary-foreground: var(--secondary-foreground);
     --color-secondary: var(--secondary);
     --color-primary-foreground: var(--primary-foreground);
+    --color-primary-text: var(--primary-text);
     --color-primary: var(--primary);
     --color-popover-foreground: var(--popover-foreground);
     --color-popover: var(--popover);

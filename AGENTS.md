@@ -51,7 +51,8 @@ unsandboxed and Playwright's browser launch fails with a `mach_port_rendezvous` 
   (`ModeToggle`, `LangToggle`, `Navigation`, `Hamburger`, `Pagination`, `PostCard`). `Navigation` is hydrated
   (`client:load`) because its `Link` dropdown needs a Radix trigger — it used to be static SSR-only markup, so
   don't remove the directive assuming it's decorative. `src/components/ui/*` is shadcn-generated (new-york style)
-  — add components with the shadcn CLI instead of hand-writing them.
+  — prefer the shadcn CLI for adding new components, but small hand-edits to existing ones are fine (e.g. the
+  `cn`-import fix noted in Conventions, or retargeting a `cva()` variant's color token).
 - **Theming**: Catppuccin Latte (light) / Macchiato (dark) tokens in `src/styles/global.css` `@theme`.
   `src/hooks/useTheme.ts` owns the `dark`-class toggle on `<html>`; `ModeToggle` and `Hamburger` both consume it.
   This is **not** next-themes — the project doesn't use that library. `Header.astro`'s inline `<script>` does the
