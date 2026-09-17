@@ -1,4 +1,6 @@
 minimumReleaseAgeExclude:
+  - "@emdash-cms/cloudflare"
+  - emdash
   - miniflare
   - wrangler
 
