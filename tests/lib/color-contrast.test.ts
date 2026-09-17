@@ -3,10 +3,10 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, test } from "vitest";
 
-// Regression cover for the dark-mode `--primary`-as-text contrast bug (ui-review-findings.md
-// §1): nothing previously pinned these tokens' contrast, so a future edit to `--primary-text`
-// or `--muted-foreground` could silently reintroduce it. This reads the real tokens out of
-// global.css rather than hardcoding values, so it stays honest if they're retuned.
+// Regression cover for the dark-mode `--primary`-as-text contrast bug: nothing previously pinned
+// these tokens' contrast, so a future edit to `--primary-text` or `--muted-foreground` could
+// silently reintroduce it. This reads the real tokens out of global.css rather than hardcoding
+// values, so it stays honest if they're retuned.
 
 const cssPath = fileURLToPath(new URL("../../src/styles/global.css", import.meta.url));
 const css = readFileSync(cssPath, "utf-8");
