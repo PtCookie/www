@@ -4,8 +4,10 @@ Handoff note for the next session. Findings from a Web Interface Guidelines + vi
 review of `src/`, with the top items measured against a real preview deployment.
 
 Sections 4 and 5 were appended on 2026-09-16 — a design-system pass and a re-run against
-`vercel-labs/web-interface-guidelines` respectively. Both are static reading only; nothing in
-either was measured live.
+`vercel-labs/web-interface-guidelines` respectively. Both started as static reading only, with
+nothing measured live. Most of section 4 was implemented and visually confirmed in a 2026-09-18
+session (see each item's own "Fix applied" note); §4.5 stays an open design-judgement call and
+§4.10 is blocked on missing tooling.
 
 Status legend: **CONFIRMED** (measured live) · **UNVERIFIED** (static reading only) ·
 **BLOCKED** (tried to measure, harness got in the way) · ~~DONE~~
@@ -211,13 +213,18 @@ Verified green: `lint`, `prettier --check`, `tsc --noEmit`, `test run` (147 acro
 
 ---
 
-## 4. Design-system findings — added 2026-09-16, all UNVERIFIED (static reading only)
+## 4. Design-system findings — added 2026-09-16
 
 A second pass over `src/`, this time from a visual-design angle rather than a guidelines
-checklist. None of these were measured live. Ordered by impact; the first three are worth doing
-before any of section 3's leftovers.
+checklist. Originally all UNVERIFIED (static reading only); 4.1-4.4, 4.6-4.8, 4.11 were fixed and
+visually confirmed (`astro build` + `astro preview`, both themes) in a 2026-09-18 session — see
+"Fix applied" below. 4.9 turned out to already be fixed (see its note). 4.5 is left open on
+purpose — it was already flagged as a design judgement call, not a defect, in section 3, and
+redoing that call wasn't part of this pass. 4.10 is BLOCKED: no font-subsetting tooling
+(`fonttools`/`pyftsubset`/`woff2_compress`) is available in this environment, and installing it
+was out of scope for a UI-only session.
 
-### 4.1 No type scale — every page sizes its `h1` differently
+### 4.1 No type scale — every page sizes its `h1` differently — ~~DONE~~
 
 Section 3 flags `tags/index.astro`'s missing responsive step-down, but the real problem is that
 there is no shared scale for it to step down *to*:
@@ -238,7 +245,15 @@ There's a hierarchy inversion too: [work.astro:26](../src/pages/[lang]/work.astr
 [UnderConstruction.astro:17](../src/components/UnderConstruction.astro#L17) is `text-4xl` — the
 placeholder outranks the real section heading.
 
-### 4.2 `--font-heading` is a dead token
+**Fix applied (2026-09-18 session)**: unified `PostList.astro`, `posts/[...slug].astro`'s detail
+`h1`, and `404.astro`'s `h1` on `text-4xl font-extrabold text-balance sm:text-5xl` (`tags/index.astro`
+already matched, from the §5 pass). `about.astro`'s hero `h1` (`text-4xl ... sm:text-6xl`) is left
+as a deliberately larger "display" tier — it's a hero greeting, not a list/detail page title.
+`UnderConstruction.astro`'s heading dropped from `h2 text-4xl` to `h3 text-2xl` (it's the only
+caller, nested right under `work.astro`'s real `h2`, so `h3` is also the semantically correct
+level, not just a size fix).
+
+### 4.2 `--font-heading` is a dead token — ~~DONE~~
 
 Defined as mono in [global.css:97](../src/styles/global.css#L97), but the only consumer is
 `CardTitle` in `src/components/ui/card.tsx` — and `PostCard` never uses `CardTitle`, it renders
@@ -247,7 +262,11 @@ token reaches no heading anywhere on the site. Either drop it or commit to mono 
 actual system decision; leaving it is what keeps section 3's "three families, inconsistent roles"
 note true.
 
-### 4.3 Light-mode cards have no edge
+**Fix applied**: dropped the token from `@theme inline` in `global.css` (confirmed
+`grep -rn CardTitle src` has zero call sites, so nothing lost the class in practice). Left
+`ui/card.tsx`'s `CardTitle` itself alone — it's shadcn-generated and unused either way.
+
+### 4.3 Light-mode cards have no edge — ~~DONE~~
 
 `--card: oklch(1 0 0)` is **the same value as** `--background` in `:root`
 ([global.css:18,20](../src/styles/global.css#L18)), so a light-mode card is separated from the page
@@ -255,13 +274,24 @@ only by `ring-foreground/5` (5% opacity) and `shadow-md`. Dark mode has real sep
 (`0.218` card on `0.148` background). Cards are the primary UI on the home, list, tag and
 "read next" surfaces, so this asymmetry is the most visible unfixed defect after §1.
 
-### 4.4 Body measure exceeds ~80 characters
+**Fix applied**: `:root`'s `--card` moved to `oklch(0.993 0.002 197.1)` — a hair darker than
+`--background`, visually confirmed as a subtle-but-real edge in `astro preview`. Not pushed all the
+way to `--sidebar`'s `0.987` (which would read stronger): `tests/lib/color-contrast.test.ts` pins
+`--muted-foreground` at ≥4.5:1 on `--card`, and `0.987` only measures 4.45:1. `0.993` measures
+4.53:1, confirmed green on `pnpm run test:coverage`.
+
+### 4.4 Body measure exceeds ~80 characters — ~~DONE~~
 
 [posts/[...slug].astro:111](../src/pages/[lang]/posts/[...slug].astro#L111) sets `max-w-none`,
 which removes Tailwind Typography's `65ch` measure, and `main` is `sm:max-w-3xl` (48rem). Serif
 body text then runs the full width. Either drop `max-w-none` or re-cap the paragraph width.
 Timeline's `max-w-4xl` card bodies ([Timeline.astro:14](../src/components/Timeline.astro#L14)) are
 long for the same reason.
+
+**Fix applied**: dropped `max-w-none` from the post-detail article's `class:list` (the surrounding
+`main` container's `sm:max-w-3xl` plus Typography's own `65ch` cap now both apply — code blocks
+still scroll horizontally via Typography's own `pre` handling, unaffected by the container width).
+Timeline's description `<p>` gained `max-w-prose`.
 
 ### 4.5 Home hero — more specific than section 3's note
 
@@ -275,34 +305,56 @@ long for the same reason.
   free that slot for the real identity line ("2019년부터 웹 개발", currently two levels down in
   About) and close section 3's "nothing says whose site this is" item at the same time.
 
-### 4.6 Cards give no click affordance
+### 4.6 Cards give no click affordance — ~~DONE~~
 
 The whole card became one target via the stretched link
 ([PostCard.tsx:51](../src/components/PostCard.tsx#L51)), but the only hover feedback is the
 "더 읽기" underline, and the cursor stays default over the card body. A ring/shadow transition on
 `group-hover/card` would make the target legible.
 
-### 4.7 Tag surfaces
+**Fix applied**: added `hover:shadow-lg transition-shadow` plus a stronger `hover:ring-foreground/10
+dark:hover:ring-foreground/20` directly on `ui/card.tsx`'s `Card` root (it's `group/card` itself, so
+no child needs to react to a parent hover — the whole element is the hover target already). `Card`
+has exactly one caller (`PostCard.tsx`), so this didn't need a scoped variant. Visually confirmed in
+both themes.
+
+### 4.7 Tag surfaces — ~~DONE~~
 
 - [tags/index.astro:21](../src/pages/[lang]/tags/index.astro#L21) — `grid` with no column count,
   so it renders as a single column that grows without bound as tags accumulate.
 - [tags/[slug]/[...page].astro:29](../src/pages/[lang]/tags/[slug]/[...page].astro#L29) — the `h1`
   is the bare tag name ("React"), with nothing marking the page as a tag archive.
 
-### 4.8 About tech grid
+**Fix applied**: `tags/index.astro`'s list gained `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`.
+`tags/[slug]/[...page].astro` now passes `title={`#${tagName}`}` to `PostList` (BaseLayout's own
+`<title>` tag still gets the bare `tagName`) — reuses the same "#" convention every tag badge
+already renders elsewhere, so a tag archive reads as one at a glance without a new i18n string.
+
+### 4.8 About tech grid — ~~DONE~~
 
 Five items in `sm:grid-cols-3` ([about.astro:66](../src/pages/[lang]/about.astro#L66)) leaves a
 two-item orphan row. The logos also carry no visible label — only `alt` — so an unfamiliar mark is
 unidentifiable.
 
-### 4.9 Accessibility item missed by the section 3 pass
+**Fix applied**: swapped the fixed-column grid for `flex flex-wrap justify-center`, which centers
+every row including a trailing partial one (visually confirmed: the TypeScript/Node.js pair now
+centers under the row above it instead of pinning left). Each logo gained a visible
+`text-muted-foreground font-mono text-xs` label under it and moved to `alt=""` (decorative image +
+visible accessible text, the same pattern already used for post cover images).
+
+### 4.9 Accessibility item missed by the section 3 pass — already ~~DONE~~
 
 [Intro.astro:9](../src/components/Intro.astro#L9) gives the logo `role="img"
 aria-label="PtCookie"` while [:15](../src/components/Intro.astro#L15) carries an `sr-only`
 "PtCookie.Net" right after it — a screen reader announces effectively the same thing twice. The
 logo should be `aria-hidden`; the wordmark beside it is the accessible name.
 
-### 4.10 Font payload — the prerequisite for section 3's "no preload"
+Turned out to already be fixed — current `Intro.astro` only has `aria-hidden="true"` on the logo,
+no `role="img"`/duplicate `aria-label`. This matches the §5 log's "Intro.astro's logo lost its
+redundant `role="img" aria-label`" entry; this finding was written before that fix landed and never
+got crossed off. No action needed in the 2026-09-18 session.
+
+### 4.10 Font payload — the prerequisite for section 3's "no preload" — BLOCKED
 
 Five families load today: Inter Variable, JetBrains Mono Variable, Newsreader Variable, Pretendard
 (non-variable, so the whole weight set), and **MaruBuri as five separate `.otf` files**
@@ -310,11 +362,21 @@ Five families load today: Inter Variable, JetBrains Mono Variable, Newsreader Va
 and nothing is subset. Converting and subsetting MaruBuri comes before adding preload hints —
 preloading the current files just moves the cost earlier.
 
-### 4.11 Footer carries no links
+Checked in the 2026-09-18 session: no font-subsetting tooling (`pyftsubset`, `fonttools`,
+`woff2_compress`) is installed, and installing new system/Python tooling wasn't in scope for a
+UI-only pass. Still open — whoever picks this up needs to add that tooling first (or do the
+conversion outside this environment) before touching preload hints.
+
+### 4.11 Footer carries no links — ~~DONE~~
 
 `config.linkEntry` appears only in the header nav; [Footer.astro](../src/components/Footer.astro)
 is a generator credit plus a copyright line. The footer is where contact/source links are looked
 for.
+
+**Fix applied**: `Footer.astro` now renders `config.linkEntry` as a `role="list"` row above the
+generator/copyright lines, `target="_blank" rel="noreferrer"` matching the exact convention
+`Navigation.tsx`/`Hamburger.tsx` already use for the same data. No new content needed — reuses the
+existing `{ name: "Git", link: "https://git.ptcookie.net/" }` entry.
 
 ---
 

@@ -25,6 +25,11 @@ if (!page) {
 }
 ---
 
+{
+  /* "#tagName" marks this h1 as a tag archive at a glance — the same "#" convention already used
+    everywhere a tag renders as a badge (PostCard, tags/index.astro), so a bare tag name doesn't
+    read as an ordinary page title. */
+}
 <BaseLayout lang={lang} title={tagName}>
-  <PostList title={tagName} basePath={`/${lang}/tags/${slug}`} page={page} lang={lang} />
+  <PostList title={`#${tagName}`} basePath={`/${lang}/tags/${slug}`} page={page} lang={lang} />
 </BaseLayout>

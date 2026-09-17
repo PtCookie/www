@@ -15,7 +15,11 @@ const { lang, class: className, button = false } = Astro.props;
 
 <div class={cn("flex flex-col items-center justify-center gap-8 text-center", className)}>
   <div class="text-6xl sm:text-8xl" aria-hidden="true">&#x1F6A7;</div>
-  <h2 class="text-4xl font-bold">{translate(lang, "page.underConstruction")}</h2>
+  {
+    /* h3, sized below the real section h2 above this component — it's a placeholder note, not
+      a heading that should outrank the section it sits in. */
+  }
+  <h3 class="text-2xl font-bold">{translate(lang, "page.underConstruction")}</h3>
   {
     button && (
       <a href={`/${lang}`} class={cn(buttonVariants({ variant: "secondary" }), "p-6 text-xl sm:mt-2")}>

@@ -23,7 +23,7 @@ const timeline = getTimeline(lang);
             <div class="timeline-card bg-card rounded-lg border p-6 shadow-lg">
               <div class="text-muted-foreground mb-2 text-sm font-semibold">{item.period}</div>
               <h3 class="text-primary-text mb-2 text-xl font-bold text-balance break-words">{item.title}</h3>
-              <p class="text-secondary-foreground mb-4 font-serif break-words">{item.description}</p>
+              <p class="text-secondary-foreground mb-4 max-w-prose font-serif break-words">{item.description}</p>
               <ul role="list" class="mb-4 flex flex-wrap gap-2">
                 {item.technologies.map((tech) => (
                   <li class="bg-sidebar-accent text-sidebar-accent-foreground rounded-full px-3 py-1 font-mono text-xs font-medium">
