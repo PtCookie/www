@@ -71,11 +71,18 @@ export default defineConfig({
     // },
   ],
 
-  /* Run your local dev server before starting the tests */
+  /* Run your local dev server before starting the tests. On CI this command is really just a
+   * fallback: the `e2e` workflow job builds, starts a production preview server, and seeds it
+   * (see scripts/seed-preview-content.mjs and AGENTS.md's Testing section) *before* this config
+   * ever loads, so `reuseExistingServer` below finds it already answering and never invokes
+   * `command` at all. Locally, nothing pre-starts a server, so `pnpm run dev` runs as usual. */
   webServer: {
-    command: "pnpm run dev",
+    command: process.env.CI ? "pnpm run preview" : "pnpm run dev",
     url: "http://localhost:4321",
-    reuseExistingServer: !process.env.CI,
+    /* Always true, not just locally: on CI this is what lets the already-seeded preview server
+     * from the workflow's earlier steps stand in for a server this config would otherwise spawn
+     * itself (which would come up unseeded and, via `pnpm run preview`, rebuild for nothing). */
+    reuseExistingServer: true,
     env: { ASTRO_DEV_BACKGROUND: "0" },
   },
 });
