@@ -83,6 +83,6 @@ export default defineConfig({
      * from the workflow's earlier steps stand in for a server this config would otherwise spawn
      * itself (which would come up unseeded and, via `pnpm run preview`, rebuild for nothing). */
     reuseExistingServer: true,
-    env: { ASTRO_DEV_BACKGROUND: "0" },
+    env: { ASTRO_DEV_BACKGROUND: "0", ASTRO_PREVIEW_BACKGROUND: "0" },
   },
 });
