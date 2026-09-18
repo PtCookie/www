@@ -85,10 +85,7 @@ jobs:
 
   # Separate from `test` so a dev-server flake here doesn't hide the unit/component result.
   # Playwright's own webServer runs `pnpm dev`, which boots EmDash against a fresh miniflare-
-  # emulated D1/R2. That fresh database gets only `.emdash/seed.json`'s collection and taxonomy
-  # *definitions* from EmDash's auto-seed — sample content and taxonomy terms need an explicit
-  # `includeContent`, which the `setup` project in `e2e/warmup.setup.ts` applies via the dev-only
-  # `/_emdash/api/setup/dev-bypass` endpoint before any browser project runs.
+  # emulated D1/R2 — the seed in `.emdash/seed.json` is applied automatically on first request.
   e2e:
     name: e2e
     runs-on: ubuntu-latest

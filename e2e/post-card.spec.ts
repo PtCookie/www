@@ -3,23 +3,37 @@ import { expect, test } from "@playwright/test";
 // Post list under the Korean locale — the route that renders PostCard with its cover, tags and
 // the title's stretched link.
 const POSTS_PAGE = "/ko/posts";
+// The two navigation targets below, matching .emdash/seed.json's content.posts[0] slug and tags.
+const SAMPLE_POST_PAGE = "/ko/posts/hello-emdash";
+const SAMPLE_TAG_PAGE = "/ko/tags/typescript";
 
-// The database seed and the warm-up GETs — for this route and for the post detail and tag pages
-// the tests below navigate into — live in e2e/warmup.setup.ts, which the `setup` project runs
-// once for the whole suite. The navigation targets themselves are read off the rendered card
-// rather than hard-coded here.
-
-// See e2e/theme.spec.ts for why settling on network idle matters under `astro dev`.
-async function gotoReady(page: import("@playwright/test").Page, path: string) {
-  await page.goto(path);
-  await page.waitForLoadState("networkidle");
-}
+// See e2e/theme.spec.ts's `beforeAll` for why this warm-up exists: `astro dev` compiles a route on
+// its first request, which is slow enough to make a cold `goto` flaky.
+test.beforeAll(async ({ playwright }, testInfo) => {
+  const context = await playwright.request.newContext({ baseURL: testInfo.project.use.baseURL });
+  // A fresh database (CI, a new clone) only gets `.emdash/seed.json`'s collections/taxonomies
+  // from the auto-seed on first request — sample content and taxonomy terms are gated behind
+  // `includeContent`, which that auto-seed never sets (see AGENTS.md's EmDash gotchas, and
+  // node_modules/emdash/src/emdash-runtime.ts's `applySeed(db, seed, { onConflict: "skip" })`
+  // call). Hit the dev-only setup bypass first so the seeded sample post and its tags exist
+  // before any test below looks for a card.
+  await context.get("/_emdash/api/setup/dev-bypass");
+  // The post list, post detail and tag pages are three separate Astro route files pulling in
+  // disjoint module trees — the post detail branch alone drags in PortableText, its
+  // toolkit/list/mark components, and Shiki via Code.astro, none of which the list branch
+  // touches. `astro dev` only compiles whichever a request actually hits, so warming the list
+  // page alone leaves the other two routes' first compile to eat into a test's 5s `toHaveURL`
+  // timeout once a real click drives the navigation. Warm all three up front instead, the same
+  // idea as e2e/theme.spec.ts's beforeAll.
+  await Promise.all([POSTS_PAGE, SAMPLE_POST_PAGE, SAMPLE_TAG_PAGE].map((path) => context.get(path)));
+  await context.dispose();
+});
 
 // The title anchor carries `after:absolute after:inset-0`, so the whole card is one target. This
 // is the half that can silently regress: drop `relative` from the Card and the overlay escapes to
 // the nearest positioned ancestor instead, leaving the card body dead.
 test("clicking the card body navigates to the post", async ({ page }) => {
-  await gotoReady(page, POSTS_PAGE);
+  await page.goto(POSTS_PAGE);
 
   const card = page.getByTestId("card").first();
   const href = await card.getByRole("link").first().getAttribute("href");
@@ -34,19 +48,14 @@ test("clicking the card body navigates to the post", async ({ page }) => {
   if (!brief) throw new Error("the card's brief has no layout box");
   await page.mouse.click(brief.x + brief.width / 2, brief.y + brief.height / 2);
 
-  // `waitForURL`, not `expect(page).toHaveURL()`: a full-document navigation leaves `page.url()`
-  // on the old URL until the new document commits, and the expect timeout is the only budget that
-  // wait gets. Under `astro dev` on a CI runner an SSR response can outlast it, which failed this
-  // test six ways over (firefox/webkit/Mobile Safari) with the URL still reading `/ko/posts`.
-  // `waitForURL` falls back to the test timeout instead.
-  await page.waitForURL(new RegExp(`${href}/?$`));
+  await expect(page).toHaveURL(new RegExp(`${href}/?$`));
 });
 
 // The other half: the tag links sit *inside* that overlay's box, so they only stay reachable
 // because the list is lifted with `relative z-10`. Without it the overlay swallows tag clicks and
 // every tag silently navigates to the post instead.
 test("a tag inside the card still navigates to its tag page", async ({ page }) => {
-  await gotoReady(page, POSTS_PAGE);
+  await page.goto(POSTS_PAGE);
 
   const badge = page.getByTestId("card").first().getByTestId("badge").first();
   const href = await badge.getAttribute("href");
@@ -54,15 +63,14 @@ test("a tag inside the card still navigates to its tag page", async ({ page }) =
 
   await badge.click();
 
-  // Same reasoning as the navigation above.
-  await page.waitForURL(new RegExp(`${href}/?$`));
+  await expect(page).toHaveURL(new RegExp(`${href}/?$`));
 });
 
 // WCAG 2.5.8 (Target Size, Minimum) wants 24x24 CSS px. `badgeVariants` is shadcn-generated and
 // bases the chip at `h-5` (20px); `tagLinkClass` overrides it, which a regenerated badge or a
 // dropped `cn()` call would quietly undo.
 test("tag chips meet the 24px minimum touch target", async ({ page }) => {
-  await gotoReady(page, POSTS_PAGE);
+  await page.goto(POSTS_PAGE);
 
   const badges = page.getByTestId("card").first().getByTestId("badge");
   const count = await badges.count();

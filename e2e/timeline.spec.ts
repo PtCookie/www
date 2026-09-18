@@ -3,9 +3,14 @@ import { expect, test } from "@playwright/test";
 // Work page under the English locale — the only route that renders `Timeline.astro`.
 const WORK_PAGE = "/en/work";
 
-// `astro dev` compiles a route (and drags GSAP through Vite's dependency optimizer) on its first
-// request, which is slow enough to make a cold `goto` flaky — e2e/warmup.setup.ts warms this
-// route once for the whole suite. See e2e/theme.spec.ts for the longer version.
+// See e2e/theme.spec.ts's `beforeAll` for why this warm-up exists: `astro dev` compiles a route
+// (and drags GSAP through Vite's dependency optimizer) on its first request, which is slow enough
+// to make a cold `goto` flaky.
+test.beforeAll(async ({ playwright }, testInfo) => {
+  const context = await playwright.request.newContext({ baseURL: testInfo.project.use.baseURL });
+  await context.get(WORK_PAGE);
+  await context.dispose();
+});
 
 async function gotoReady(page: import("@playwright/test").Page, path: string) {
   await page.goto(path);
