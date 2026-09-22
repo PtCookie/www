@@ -27,7 +27,8 @@
   "sandbox": {
     "network": {
       "allowedDomains": [
-        "api.cloudflare.com"
+        "api.cloudflare.com",
+        "dash.cloudflare.com"
       ]
     },
     "excludedCommands": [

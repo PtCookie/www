@@ -208,6 +208,11 @@ form; read those files (or hand the change to the agent) before changing somethi
   adapter only auto-fills it when there's no custom `wrangler.jsonc` at all). The merged config a deploy really
   gets is `dist/server/wrangler.json` — read that, not just `wrangler.jsonc`. `wrangler deploy --dry-run`
   validates it against the real bindings without deploying.
+- A sandboxed `wrangler` that reports the login expired is usually **not** a real logout: it refreshes its OAuth
+  token against `dash.cloudflare.com`, and if the sandbox blocks that host the failed refresh surfaces as "not
+  logged in". Keep `dash.cloudflare.com` next to `api.cloudflare.com` in `.claude/settings.json`'s
+  `sandbox.network.allowedDomains`, and confirm with `pnpm exec wrangler whoami` before asking for a fresh
+  `wrangler login` (an interactive browser flow only the user can run).
 - `wrangler.jsonc`'s `assets.run_worker_first` must keep matching every real route — currently
   `["/*", "!/@vite/*", "!/@id/*", "!/@react-refresh", "!/@fs/*", "!/src/*", "!/node_modules/*", "!/_astro/*"]`,
   i.e. "everything, minus dev-only Vite-internal paths" (those `!`-exclusions exist for the
