@@ -85,12 +85,25 @@ unsandboxed and Playwright's browser launch fails with a `mach_port_rendezvous` 
   Testing Library + jest-dom, setup in `tests/setup.ts`.
 - Coverage tracks `src/**` minus `.astro` files, `src/*config.ts`, `src/components/ui/*`, and `src/lib/*`
   except `utils.ts`.
-- `e2e/**/*.spec.ts` → Playwright (`playwright.config.ts`, baseURL `:4321`), run by `pnpm run test:e2e`
-  against a `pnpm dev` server Playwright starts itself (that's `playwright.config.ts`'s own `webServer.command`,
-  a nested child process — it doesn't need the `run`/`exec` form itself since it inherits the parent's already
-  resolved sandbox status). Because that server compiles routes on first request, a
-  spec whose assertions ride on a client-side navigation must warm those routes first — `e2e/theme.spec.ts`'s
-  `beforeAll` is the pattern, and its own comments carry the trace.
+- `e2e/**/*.spec.ts` → Playwright (`playwright.config.ts`, baseURL `:4321`), run by `pnpm run test:e2e`. Locally
+  this boots a `pnpm dev` server itself (`webServer.command`, a nested child process — it doesn't need the
+  `run`/`exec` form since it inherits the parent's already resolved sandbox status); on CI it runs against a
+  **production preview build** instead (`pnpm run build` + `scripts/seed-preview-content.mjs`, both run by the
+  `e2e` workflow job *before* `pnpm run test:e2e`), which `webServer`'s `reuseExistingServer: true` picks up
+  rather than spawning its own. CI deliberately avoids `astro dev` here: it and workerd have an upstream bug
+  where a non-runnable dev environment's fallback `import("file://…")` outlives its request's I/O context and
+  gets killed (`Error: Promise will never complete.`) — not just on a route's first, cold-compiling request,
+  but intermittently on already-warm ones too, triggered by the ordinary concurrent sub-resource requests
+  (images, fonts) any real page load makes. No warm-up strategy closes that off; a fully bundled production
+  Worker simply doesn't have the dev-only fallback path the bug lives in. `astro dev` compiling routes on first
+  request is still true for **local** runs, though, so a spec whose assertions ride on a client-side navigation
+  should still warm those routes first — `e2e/theme.spec.ts`'s `beforeAll` is the pattern.
+  `scripts/seed-preview-content.mjs` seeds the preview build's sample content through
+  `POST /_emdash/api/setup` — not the dev-only `GET /_emdash/api/setup/dev-bypass` used elsewhere, which 403s
+  whenever `import.meta.env.DEV` is false, always the case for a built Worker. `/_emdash/api/setup` is the same
+  endpoint the admin setup wizard calls on a real deployment's first boot, gated only on "has setup already
+  run" (409), not dev-mode — see the script's own comments for why seeding by writing directly to the
+  Miniflare/workerd D1 sqlite file instead is unsafe.
 
 ## Documentation
 

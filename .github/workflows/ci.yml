@@ -84,8 +84,9 @@ jobs:
         run: pnpm run test run
 
   # Separate from `test` so a dev-server flake here doesn't hide the unit/component result.
-  # Playwright's own webServer runs `pnpm dev`, which boots EmDash against a fresh miniflare-
-  # emulated D1/R2 — the seed in `.emdash/seed.json` is applied automatically on first request.
+  # Runs against a production preview build, not `astro dev` — see AGENTS.md's Testing section
+  # for why (an upstream `astro dev` + workerd bug that a built Worker can't hit at all) and
+  # scripts/seed-preview-content.mjs for how the preview server gets its sample content.
   e2e:
     name: e2e
     runs-on: ubuntu-latest
@@ -101,6 +102,16 @@ jobs:
 
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium firefox webkit
+
+      - name: Build
+        run: pnpm run build
+
+      # Starts a bare `astro preview` (serving the build above, no rebuild) in the background,
+      # seeds it through EmDash's admin-setup endpoint, and exits leaving that server running —
+      # Playwright's `reuseExistingServer` (playwright.config.ts) picks it up in the next step.
+      # No explicit teardown needed: the runner VM is gone once this job ends.
+      - name: Start preview server and seed sample content
+        run: pnpm run e2e:seed-preview
 
       - name: Playwright test
         run: pnpm run test:e2e

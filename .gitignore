@@ -20,6 +20,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+# scripts/seed-preview-content.mjs's backgrounded `astro preview`, redirected here instead of
+# inherited stdio so the process survives past the CI step (or local shell) that started it.
+astro-preview.log
 
 # environment variables
 .env
@@ -46,3 +49,6 @@ emdash-env.d.ts
 
 # claude code local settings
 .claude/settings.local.json
+
+# codegraph
+.codegraph/
