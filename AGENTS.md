@@ -103,7 +103,10 @@ unsandboxed and Playwright's browser launch fails with a `mach_port_rendezvous` 
   whenever `import.meta.env.DEV` is false, always the case for a built Worker. `/_emdash/api/setup` is the same
   endpoint the admin setup wizard calls on a real deployment's first boot, gated only on "has setup already
   run" (409), not dev-mode — see the script's own comments for why seeding by writing directly to the
-  Miniflare/workerd D1 sqlite file instead is unsafe.
+  Miniflare/workerd D1 sqlite file instead is unsafe. Since EmDash 1.0 that endpoint also fails with
+  `SITE_URL_REQUIRED` in a production build unless `EMDASH_SITE_URL` reaches the Worker as a binding; the script
+  appends it to `dist/server/.dev.vars` (what `astro preview` reads — a shell env var or a root `.dev.vars`
+  written after the build is ignored).
 
 ## Documentation
 
