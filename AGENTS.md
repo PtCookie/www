@@ -103,7 +103,10 @@ unsandboxed and Playwright's browser launch fails with a `mach_port_rendezvous` 
   whenever `import.meta.env.DEV` is false, always the case for a built Worker. `/_emdash/api/setup` is the same
   endpoint the admin setup wizard calls on a real deployment's first boot, gated only on "has setup already
   run" (409), not dev-mode — see the script's own comments for why seeding by writing directly to the
-  Miniflare/workerd D1 sqlite file instead is unsafe.
+  Miniflare/workerd D1 sqlite file instead is unsafe. Since EmDash 1.0 that endpoint also fails with
+  `SITE_URL_REQUIRED` in a production build unless `EMDASH_SITE_URL` reaches the Worker as a binding; the script
+  appends it to `dist/server/.dev.vars` (what `astro preview` reads — a shell env var or a root `.dev.vars`
+  written after the build is ignored).
 
 ## Documentation
 
@@ -208,6 +211,11 @@ form; read those files (or hand the change to the agent) before changing somethi
   adapter only auto-fills it when there's no custom `wrangler.jsonc` at all). The merged config a deploy really
   gets is `dist/server/wrangler.json` — read that, not just `wrangler.jsonc`. `wrangler deploy --dry-run`
   validates it against the real bindings without deploying.
+- A sandboxed `wrangler` that reports the login expired is usually **not** a real logout: it refreshes its OAuth
+  token against `dash.cloudflare.com`, and if the sandbox blocks that host the failed refresh surfaces as "not
+  logged in". Keep `dash.cloudflare.com` next to `api.cloudflare.com` in `.claude/settings.json`'s
+  `sandbox.network.allowedDomains`, and confirm with `pnpm exec wrangler whoami` before asking for a fresh
+  `wrangler login` (an interactive browser flow only the user can run).
 - `wrangler.jsonc`'s `assets.run_worker_first` must keep matching every real route — currently
   `["/*", "!/@vite/*", "!/@id/*", "!/@react-refresh", "!/@fs/*", "!/src/*", "!/node_modules/*", "!/_astro/*"]`,
   i.e. "everything, minus dev-only Vite-internal paths" (those `!`-exclusions exist for the
