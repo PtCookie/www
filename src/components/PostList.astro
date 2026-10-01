@@ -19,35 +19,31 @@ const { title, basePath, page, lang = config.defaultLocale } = Astro.props;
 ---
 
 <h1 class="mt-8 mb-12 text-center text-4xl font-extrabold text-balance sm:text-5xl">{title}</h1>
-{
-  page.items.length === 0 ? (
-    <p class="text-muted-foreground flex-1 text-center">{translate(lang, "page.noPosts")}</p>
-  ) : (
-    <div class="grid flex-1 place-items-center content-start gap-8">
-      {page.items.map((post, index) => (
-        <PostCard post={post} lang={lang}>
-          <Image
-            image={post.coverImage.image}
-            alt=""
-            class="h-full w-full overflow-hidden rounded-t-xl object-cover"
-            priority={index === 0}
-          />
-        </PostCard>
-      ))}
-    </div>
-  )
-}
-{
-  page.totalPages > 1 && (
-    <div class="mt-8">
-      <Pagination
-        total={page.totalPages}
-        currentPage={page.currentPage}
-        basePath={basePath}
-        display={3}
-        prev={page.prevUrl}
-        next={page.nextUrl}
-      />
-    </div>
-  )
-}
+{page.items.length === 0 ? (
+  <p class="text-muted-foreground flex-1 text-center">{translate(lang, "page.noPosts")}</p>
+) : (
+  <div class="grid flex-1 place-items-center content-start gap-8">
+    {page.items.map((post, index) => (
+      <PostCard post={post} lang={lang}>
+        <Image
+          image={post.coverImage.image}
+          alt=""
+          class="h-full w-full overflow-hidden rounded-t-xl object-cover"
+          priority={index === 0}
+        />
+      </PostCard>
+    ))}
+  </div>
+)}
+{page.totalPages > 1 && (
+  <div class="mt-8">
+    <Pagination
+      total={page.totalPages}
+      currentPage={page.currentPage}
+      basePath={basePath}
+      display={3}
+      prev={page.prevUrl}
+      next={page.nextUrl}
+    />
+  </div>
+)}

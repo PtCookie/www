@@ -10,7 +10,9 @@ const text = "PtCookie.Net";
   </div>
   <div class="font-mono text-4xl font-bold drop-shadow-lg text-shadow-lg sm:text-6xl" translate="no">
     <span aria-hidden="true">
-      {text.split("").map((char) => <span class="char inline-block">{char}</span>)}
+      {text.split("").map((char) => (
+        <span class="char inline-block">{char}</span>
+      ))}
     </span>
     <span class="sr-only">{text}</span>
   </div>
