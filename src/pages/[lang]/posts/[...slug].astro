@@ -74,66 +74,64 @@ if (slug === undefined || isNumericSlug) {
   title={result.kind === "list" ? translate(lang, "page.allPosts") : result.postView.title}
   description={result.kind === "detail" ? result.postView.subtitle : undefined}
 >
-  {
-    result.kind === "list" ? (
-      <PostList title={translate(lang, "page.allPosts")} basePath={`/${lang}/posts`} page={result.page} lang={lang} />
-    ) : (
-      <Fragment>
-        <h1 class="my-4 text-4xl font-extrabold text-balance sm:my-8 sm:text-5xl">{result.postView.title}</h1>
-        <p class="mb-3 text-xl font-semibold sm:mb-4 sm:text-2xl">{result.postView.subtitle}</p>
-        <div class="text-muted-foreground mb-2 flex justify-between font-sans text-xs tabular-nums sm:text-sm">
-          <p>
-            <time datetime={result.postView.publishedAt}>{formatDate(lang, result.postView.publishedAt)}</time>
-          </p>
-          <p>
-            {result.postView.readTimeInMinutes}
-            {translate(lang, "component.readTime")}
-          </p>
-        </div>
-        {/* Rendered once here, aligned with the title/subtitle above it — a second copy used to
+  {result.kind === "list" ? (
+    <PostList title={translate(lang, "page.allPosts")} basePath={`/${lang}/posts`} page={result.page} lang={lang} />
+  ) : (
+    <Fragment>
+      <h1 class="my-4 text-4xl font-extrabold text-balance sm:my-8 sm:text-5xl">{result.postView.title}</h1>
+      <p class="mb-3 text-xl font-semibold sm:mb-4 sm:text-2xl">{result.postView.subtitle}</p>
+      <div class="text-muted-foreground mb-2 flex justify-between font-sans text-xs tabular-nums sm:text-sm">
+        <p>
+          <time datetime={result.postView.publishedAt}>{formatDate(lang, result.postView.publishedAt)}</time>
+        </p>
+        <p>
+          {result.postView.readTimeInMinutes}
+          {translate(lang, "component.readTime")}
+        </p>
+      </div>
+      {/* Rendered once here, aligned with the title/subtitle above it — a second copy used to
             repeat the same list below the article body, right-aligned up here and left-aligned
             down there. */}
-        <TagList tags={result.postView.tags} lang={lang} class="justify-start" />
+      <TagList tags={result.postView.tags} lang={lang} class="justify-start" />
 
-        {result.postView.coverImage.image && (
-          <figure class="relative mt-4 mb-8 sm:mt-6 sm:mb-10">
-            <Image image={result.postView.coverImage.image} alt="" priority class="rounded-md" />
-            {result.postView.coverImage.photographer && result.postView.coverImage.attribution && (
-              <figcaption class="bg-muted absolute right-2 bottom-2 rounded-sm px-2.5 py-1 text-xs italic sm:right-4 sm:bottom-4 sm:text-sm">
-                Photo by&nbsp;
-                <a href={result.postView.coverImage.attribution} target="_blank" rel="noreferrer" class="underline">
-                  {result.postView.coverImage.photographer}
-                </a>
-              </figcaption>
-            )}
-          </figure>
-        )}
+      {result.postView.coverImage.image && (
+        <figure class="relative mt-4 mb-8 sm:mt-6 sm:mb-10">
+          <Image image={result.postView.coverImage.image} alt="" priority class="rounded-md" />
+          {result.postView.coverImage.photographer && result.postView.coverImage.attribution && (
+            <figcaption class="bg-muted absolute right-2 bottom-2 rounded-sm px-2.5 py-1 text-xs italic sm:right-4 sm:bottom-4 sm:text-sm">
+              Photo by&nbsp;
+              <a href={result.postView.coverImage.attribution} target="_blank" rel="noreferrer" class="underline">
+                {result.postView.coverImage.photographer}
+              </a>
+            </figcaption>
+          )}
+        </figure>
+      )}
 
-        <article
-          class:list={[
-            "prose sm:prose-lg dark:prose-invert prose-p:font-serif",
-            // Pre-EmDash this was `post.data.coverImage.url || "my-8"`, passing the truthy
-            // ImageMetadata object itself into class:list — which spreads each of its own
-            // enumerable keys in as a class name (confirmed in the pre-migration build output:
-            // `class="... src width height format"`). Coerce to a boolean instead.
-            result.postView.coverImage.image ? undefined : "my-8",
-          ]}
-        >
-          <PortableText value={result.post.data.content} components={{ type: { code: Code } }} />
-        </article>
+      <article
+        class:list={[
+          "prose sm:prose-lg dark:prose-invert prose-p:font-serif",
+          // Pre-EmDash this was `post.data.coverImage.url || "my-8"`, passing the truthy
+          // ImageMetadata object itself into class:list — which spreads each of its own
+          // enumerable keys in as a class name (confirmed in the pre-migration build output:
+          // `class="... src width height format"`). Coerce to a boolean instead.
+          result.postView.coverImage.image ? undefined : "my-8",
+        ]}
+      >
+        <PortableText value={result.post.data.content} components={{ type: { code: Code } }} />
+      </article>
 
-        {(result.prevPost || result.nextPost) && (
-          <Fragment>
-            <h2 class="mt-6 text-center text-lg font-medium sm:mt-8 sm:mb-4 sm:text-xl">
-              {translate(lang, "page.readNext")}
-            </h2>
-            <div class="my-4 grid flex-1 place-items-center content-center gap-8">
-              {result.nextPost && <PostCard post={result.nextPost} lang={lang} disableImage={true} headingLevel="h3" />}
-              {result.prevPost && <PostCard post={result.prevPost} lang={lang} disableImage={true} headingLevel="h3" />}
-            </div>
-          </Fragment>
-        )}
-      </Fragment>
-    )
-  }
+      {(result.prevPost || result.nextPost) && (
+        <Fragment>
+          <h2 class="mt-6 text-center text-lg font-medium sm:mt-8 sm:mb-4 sm:text-xl">
+            {translate(lang, "page.readNext")}
+          </h2>
+          <div class="my-4 grid flex-1 place-items-center content-center gap-8">
+            {result.nextPost && <PostCard post={result.nextPost} lang={lang} disableImage={true} headingLevel="h3" />}
+            {result.prevPost && <PostCard post={result.prevPost} lang={lang} disableImage={true} headingLevel="h3" />}
+          </div>
+        </Fragment>
+      )}
+    </Fragment>
+  )}
 </BaseLayout>
