@@ -61,6 +61,12 @@
 		// `component-url` used to — root-relative `/src/*` requests were never reaching Vite's static
 		// middleware at all, since `/src/*` wasn't in this list either. Confirmed via the dev server's
 		// network log: the exact same request 404s with this line absent and 200s with it present.
+		//
+		// The trailing `public/` entries (`/fonts/*`, `/logos/*` and the root-level icons/images) are
+		// the same kind of dev fix: under `/*`, `astro dev` sends those requests into the simulated
+		// Worker, whose env.ASSETS has no `public/` directory behind it, so they all 404 instead of
+		// reaching Vite's own publicDir middleware. In production they're asset-first like `/_astro/*`
+		// (they exist under dist/client). Adding a file or folder to `public/` means adding it here.
 		"run_worker_first": [
 			"/*",
 			"!/@vite/*",
@@ -69,7 +75,14 @@
 			"!/@fs/*",
 			"!/src/*",
 			"!/node_modules/*",
-			"!/_astro/*"
+			"!/_astro/*",
+			"!/fonts/*",
+			"!/logos/*",
+			"!/favicon.ico",
+			"!/favicon.svg",
+			"!/apple-touch-icon.png",
+			"!/og.png",
+			"!/x.png"
 		]
 	},
 	// database_id is the real provisioned production database (`wrangler d1 create www-db`), not a
