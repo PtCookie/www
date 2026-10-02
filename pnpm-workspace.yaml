@@ -1,10 +1,14 @@
 # Dependency Resolution
 minimumReleaseAgeExclude:
+  - "@cloudflare/unenv-preset"
+  - "@emdash-cms/admin"
+  - "@emdash-cms/auth"
+  - "@emdash-cms/blocks"
   - "@emdash-cms/cloudflare"
+  - "@emdash-cms/gutenberg-to-portable-text"
   - emdash
   - miniflare
   - wrangler
-  - "@cloudflare/unenv-preset"
 
 # Build Settings
 verifyDepsBeforeRun: warn
