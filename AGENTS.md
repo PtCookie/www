@@ -103,7 +103,10 @@ unsandboxed and Playwright's browser launch fails with a `mach_port_rendezvous` 
   whenever `import.meta.env.DEV` is false, always the case for a built Worker. `/_emdash/api/setup` is the same
   endpoint the admin setup wizard calls on a real deployment's first boot, gated only on "has setup already
   run" (409), not dev-mode — see the script's own comments for why seeding by writing directly to the
-  Miniflare/workerd D1 sqlite file instead is unsafe.
+  Miniflare/workerd D1 sqlite file instead is unsafe. Since EmDash 1.0 that endpoint also fails with
+  `SITE_URL_REQUIRED` in a production build unless `EMDASH_SITE_URL` reaches the Worker as a binding; the script
+  appends it to `dist/server/.dev.vars` (what `astro preview` reads — a shell env var or a root `.dev.vars`
+  written after the build is ignored).
 
 ## Documentation
 
@@ -214,9 +217,12 @@ form; read those files (or hand the change to the agent) before changing somethi
   `sandbox.network.allowedDomains`, and confirm with `pnpm exec wrangler whoami` before asking for a fresh
   `wrangler login` (an interactive browser flow only the user can run).
 - `wrangler.jsonc`'s `assets.run_worker_first` must keep matching every real route — currently
-  `["/*", "!/@vite/*", "!/@id/*", "!/@react-refresh", "!/@fs/*", "!/src/*", "!/node_modules/*", "!/_astro/*"]`,
-  i.e. "everything, minus dev-only Vite-internal paths" (those `!`-exclusions exist for the
-  `dev-island-url.ts` workaround below, not for SSR routing). Don't narrow it back to an app-route
+  `["/*", "!/@vite/*", "!/@id/*", "!/@react-refresh", "!/@fs/*", "!/src/*", "!/node_modules/*", "!/_astro/*"]`
+  plus one `!` entry per `public/` file or folder (`/fonts/*`, `/logos/*`, `/favicon.ico`, `/favicon.svg`,
+  `/apple-touch-icon.png`, `/og.png`, `/x.png`), i.e. "everything, minus dev-only Vite-internal paths and
+  static `public/` files" (the Vite-internal `!`-exclusions exist for the `dev-island-url.ts` workaround below,
+  not for SSR routing; the `public/` ones because `astro dev` otherwise answers them 404 — its simulated
+  `env.ASSETS` doesn't cover `public/`). Anything new under `public/` needs its own entry. Don't narrow it back to an app-route
   scoped list like `["/_emdash/*"]` — with a scoped list, Cloudflare's static-assets layer answers
   SSR routes with its own 404 before the Worker ever runs. Neither `astro dev` nor a successful
   build shows this — only requesting e.g. `/ko/posts` through `astro preview`.

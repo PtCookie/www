@@ -16,20 +16,18 @@ interface Props {
 const { tags, lang, class: className } = Astro.props;
 ---
 
-{
-  tags.length > 0 && (
-    <ul role="list" class:list={["flex flex-wrap gap-2", className]}>
-      {tags.map((tag) => (
-        <li>
-          <a
-            href={`/${lang}/tags/${tag.slug}`}
-            data-testid="badge"
-            class={cn(badgeVariants({ variant: "secondary" }), tagLinkClass)}
-          >
-            #{tag.name}
-          </a>
-        </li>
-      ))}
-    </ul>
-  )
-}
+{tags.length > 0 && (
+  <ul role="list" class:list={["flex flex-wrap gap-2", className]}>
+    {tags.map((tag) => (
+      <li>
+        <a
+          href={`/${lang}/tags/${tag.slug}`}
+          data-testid="badge"
+          class={cn(badgeVariants({ variant: "secondary" }), tagLinkClass)}
+        >
+          #{tag.name}
+        </a>
+      </li>
+    ))}
+  </ul>
+)}

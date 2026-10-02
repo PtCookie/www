@@ -18,6 +18,12 @@
 // itself calls on a real deployment's first boot (node_modules/emdash/src/astro/routes/api/setup/
 // index.ts) -- its only guard is "has setup already run" (409), not dev-mode.
 //
+// EmDash 1.0 also refuses that first setup in a production build unless it knows the site's public
+// origin (`SITE_URL_REQUIRED`) -- only `astro dev` on a loopback host gets to fall back to the
+// request URL. `EMDASH_SITE_URL` has to reach workerd as a binding, and neither a shell env var
+// nor a root `.dev.vars` written after the build does: `astro preview` reads
+// `dist/server/.dev.vars`, which the build generates from `.env`. So append it there.
+//
 // This script starts a *bare* `astro preview` (no rebuild -- run `pnpm run build` first) in the
 // background, waits for it to answer, seeds it, and then exits while leaving that server running.
 // The next CI step (`pnpm run test:e2e`) finds it already up and, via playwright.config.ts's
@@ -29,11 +35,15 @@
 // carries Cloudflare-internal `_cf_*` bookkeeping tables a foreign writer doesn't know about.
 
 import { spawn } from "node:child_process";
-import { openSync } from "node:fs";
+import { appendFileSync, openSync } from "node:fs";
 
 const BASE_URL = "http://localhost:4321";
 const READY_TIMEOUT_MS = 60_000;
 const POLL_INTERVAL_MS = 500;
+const PREVIEW_VARS_PATH = "dist/server/.dev.vars";
+
+// A leading newline keeps this on its own line if the generated file lacks a trailing one.
+appendFileSync(PREVIEW_VARS_PATH, `\nEMDASH_SITE_URL=${BASE_URL}\n`);
 
 const logFd = openSync("astro-preview.log", "a");
 

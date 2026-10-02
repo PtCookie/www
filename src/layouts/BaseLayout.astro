@@ -106,15 +106,13 @@ const pathLocale = isLocale(maybePathLocale) ? maybePathLocale : undefined;
           />
         ))
     }
-    {
-      pathLocale && (
-        <link
-          rel="alternate"
-          hreflang="x-default"
-          href={new URL(localePath(pathLocale, config.defaultLocale, Astro.url.pathname), Astro.site)}
-        />
-      )
-    }
+    {pathLocale && (
+      <link
+        rel="alternate"
+        hreflang="x-default"
+        href={new URL(localePath(pathLocale, config.defaultLocale, Astro.url.pathname), Astro.site)}
+      />
+    )}
     <!--Open Graph-->
     <meta property="og:title" content={title} />
     <meta property="og:type" content={ogType} />
@@ -156,7 +154,5 @@ const pathLocale = isLocale(maybePathLocale) ? maybePathLocale : undefined;
       <slot />
     </main>
     <Footer />
-
-
   </body>
 </html>
