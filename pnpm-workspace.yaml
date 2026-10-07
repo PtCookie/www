@@ -6,6 +6,8 @@ minimumReleaseAgeExclude:
   - "@emdash-cms/blocks"
   - "@emdash-cms/cloudflare"
   - "@emdash-cms/gutenberg-to-portable-text"
+  - "@emdash-cms/plugin-types"
+  - "@emdash-cms/registry-verification"
   - emdash
   - miniflare
   - wrangler
