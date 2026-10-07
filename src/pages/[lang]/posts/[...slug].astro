@@ -13,6 +13,7 @@
 import { Image, PortableText } from "emdash/ui";
 
 import BaseLayout from "@/layouts/BaseLayout.astro";
+import PostComments from "@/components/PostComments.astro";
 import PostList from "@/components/PostList.astro";
 import Code from "@/components/portable-text/Code.astro";
 import TagList from "@/components/TagList.astro";
@@ -120,6 +121,8 @@ if (slug === undefined || isNumericSlug) {
       >
         <PortableText value={result.post.data.content} components={{ type: { code: Code } }} />
       </article>
+
+      <PostComments lang={lang} contentId={result.post.data.id} publishedAt={result.post.data.publishedAt} />
 
       {(result.prevPost || result.nextPost) && (
         <Fragment>

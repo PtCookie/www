@@ -68,7 +68,27 @@ export function getPostCountLabel(lang: Locale, count: number): string {
   return translate(lang, category === "one" ? "page.post" : "page.posts");
 }
 
-const DATE_LOCALE: Record<Locale, string> = { ko: "ko-KR", en: "en-US" };
+// Heading for EmDash's <Comments> list. Korean wraps the number ("댓글 3개"), so the count is
+// substituted into a `{count}` placeholder instead of being prefixed like getPostCountLabel's.
+export function getCommentHeading(lang: Locale, count: number): string {
+  if (count === 0) return translate(lang, "component.noComments");
+  const category = new Intl.PluralRules(PLURAL_LOCALE[lang]).select(count);
+  const template = translate(lang, category === "one" ? "component.commentCountOne" : "component.commentCountOther");
+  return template.replace("{count}", String(count));
+}
+
+// Mirrors EmDash's own server-side check (node_modules/emdash/src/comments/public-submission.ts),
+// which rejects submissions with 403 COMMENTS_CLOSED once a collection's
+// `commentsClosedAfterDays` (0 = never) have passed since publishing. <CommentForm> only checks
+// `commentsEnabled`, so without this the form would render on every old post and always fail.
+export function areCommentsClosed(publishedAt: Date | null, closedAfterDays: number, now = new Date()): boolean {
+  if (closedAfterDays <= 0 || !publishedAt) return false;
+  const closedDate = new Date(publishedAt);
+  closedDate.setDate(closedDate.getDate() + closedAfterDays);
+  return now > closedDate;
+}
+
+export const DATE_LOCALE: Record<Locale, string> = { ko: "ko-KR", en: "en-US" };
 
 // Post publishedAt values are stored with a +09:00 offset, so the timezone is pinned to
 // Asia/Seoul rather than the request-handling Worker's own timezone — this is a server-rendered,

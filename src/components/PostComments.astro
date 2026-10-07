@@ -1,0 +1,115 @@
+---
+// Imported from `emdash/ui/comments` rather than the `emdash/ui` barrel so the comment styles only
+// load on the post detail page. Both components check the collection's `commentsEnabled` setting
+// themselves and render nothing while it's off.
+import { getCollectionInfo } from "emdash";
+import { CommentForm, Comments } from "emdash/ui/comments";
+
+import type { Locale } from "@/config.ts";
+import { areCommentsClosed, DATE_LOCALE, getCommentHeading, translate } from "@/lib/utils.ts";
+
+interface Props {
+  lang: Locale;
+  // The post's ULID (`post.data.id`), not its slug — comment submission looks the row up by id.
+  contentId: string;
+  publishedAt: Date | null;
+}
+
+const { lang, contentId, publishedAt } = Astro.props;
+
+const collection = await getCollectionInfo("posts");
+const enabled = collection?.commentsEnabled ?? false;
+const closed = areCommentsClosed(publishedAt, collection?.commentsClosedAfterDays ?? 0);
+---
+
+{
+  /* Gated here as well as inside both components so a disabled collection leaves no empty
+     wrapper (and its top margin) behind. */
+  enabled && (
+    <section class="post-comments mt-10 font-sans sm:mt-12">
+      <Comments
+        collection="posts"
+        contentId={contentId}
+        threaded
+        locale={DATE_LOCALE[lang]}
+        labels={{
+          heading: (count) => getCommentHeading(lang, count),
+          member: translate(lang, "component.commentMember"),
+        }}
+      />
+      {closed ? (
+        <p class="text-muted-foreground mt-6 text-sm">{translate(lang, "component.commentsClosed")}</p>
+      ) : (
+        <CommentForm
+          collection="posts"
+          contentId={contentId}
+          class="mt-6"
+          labels={{
+            name: translate(lang, "component.commentName"),
+            email: translate(lang, "component.commentEmail"),
+            comment: translate(lang, "component.commentBody"),
+            submit: translate(lang, "component.commentSubmit"),
+            submitting: translate(lang, "component.commentSubmitting"),
+            published: translate(lang, "component.commentPublished"),
+            pending: translate(lang, "component.commentPending"),
+            error: translate(lang, "component.commentError"),
+            networkError: translate(lang, "component.commentNetworkError"),
+          }}
+        />
+      )}
+    </section>
+  )
+}
+
+<script>
+  // BaseLayout's <ClientRouter /> intercepts every same-origin form submit from a document-level
+  // listener registered before EmDash's, so it would turn CommentForm's fetch-based submit into a
+  // GET navigation (the comment ending up in the query string) before EmDash's handler runs. The
+  // router skips forms carrying `data-astro-reload`, which CommentForm has no prop for — tag the
+  // form during the capture phase instead, which always runs ahead of both bubble-phase listeners.
+  document.addEventListener(
+    "submit",
+    (event) => {
+      if (event.target instanceof HTMLFormElement && event.target.hasAttribute("data-ec-comment-form")) {
+        event.target.dataset.astroReload = "";
+      }
+    },
+    { capture: true },
+  );
+</script>
+
+<style>
+  /* EmDash's comment components expose their colors as --ec-* custom properties with hardcoded
+     gray fallbacks. Retarget them at the site's Catppuccin tokens. Each selector here has to
+     outrank the component's own scoped rule that declares the same property: --ec-comment-border
+     is set on `.ec-comments[data-astro-cid-*]` (0,2,0), and the dark-mode input colors on
+     `.dark .ec-comment-form-field input[data-astro-cid-*]` (0,3,1). */
+  .post-comments,
+  .post-comments :global(.ec-comment-form .ec-comment-form-field :is(input, textarea)) {
+    --ec-form-bg: var(--color-background);
+    --ec-form-border: var(--color-input);
+    --ec-form-color: var(--color-foreground);
+    --ec-form-user-bg: var(--color-muted);
+    --ec-form-user-bg-dark: var(--color-muted);
+    --ec-form-user-border: var(--color-border);
+    --ec-form-submit-bg: var(--color-primary);
+    --ec-form-submit-color: var(--color-primary-foreground);
+    --ec-form-success-color: var(--color-primary-text);
+    --ec-form-error-color: var(--color-destructive);
+  }
+
+  .post-comments :global(section.ec-comments) {
+    --ec-comment-border: 1px solid var(--color-border);
+  }
+
+  .post-comments :global(.ec-comments-heading) {
+    margin-bottom: 1rem;
+    font-size: 1.125rem;
+    font-weight: 500;
+  }
+
+  .post-comments :global(.ec-comment-form-field :is(input, textarea):focus-visible) {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 1px;
+  }
+</style>
