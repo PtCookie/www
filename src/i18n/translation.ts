@@ -14,6 +14,20 @@ export interface Translation {
   "component.toggleLocale": string;
   "component.themeGroup": string;
   "component.localeGroup": string;
+  "component.noComments": string;
+  "component.commentCountOne": string;
+  "component.commentCountOther": string;
+  "component.commentMember": string;
+  "component.commentName": string;
+  "component.commentEmail": string;
+  "component.commentBody": string;
+  "component.commentSubmit": string;
+  "component.commentSubmitting": string;
+  "component.commentPublished": string;
+  "component.commentPending": string;
+  "component.commentError": string;
+  "component.commentNetworkError": string;
+  "component.commentsClosed": string;
   "page.recentPosts": string;
   "page.viewAll": string;
   "page.allPosts": string;
@@ -53,6 +67,20 @@ export const translation: Record<Locale, Translation> = {
     "component.toggleLocale": "언어 전환",
     "component.themeGroup": "테마 선택",
     "component.localeGroup": "언어 선택",
+    "component.noComments": "아직 댓글이 없습니다",
+    "component.commentCountOne": "댓글 {count}개",
+    "component.commentCountOther": "댓글 {count}개",
+    "component.commentMember": "사이트 회원",
+    "component.commentName": "이름",
+    "component.commentEmail": "이메일",
+    "component.commentBody": "댓글",
+    "component.commentSubmit": "댓글 남기기",
+    "component.commentSubmitting": "등록 중…",
+    "component.commentPublished": "댓글이 등록되었습니다.",
+    "component.commentPending": "댓글은 검토 후 게시됩니다.",
+    "component.commentError": "댓글을 등록하지 못했습니다.",
+    "component.commentNetworkError": "네트워크 오류입니다. 다시 시도해 주세요.",
+    "component.commentsClosed": "댓글 작성이 마감되었습니다.",
     "page.recentPosts": "최근 게시글",
     "page.viewAll": "전체 보기",
     "page.allPosts": "모든 게시글",
@@ -90,6 +118,20 @@ export const translation: Record<Locale, Translation> = {
     "component.toggleLocale": "Toggle locale",
     "component.themeGroup": "Theme selection",
     "component.localeGroup": "Language selection",
+    "component.noComments": "No comments yet",
+    "component.commentCountOne": "{count} comment",
+    "component.commentCountOther": "{count} comments",
+    "component.commentMember": "Site member",
+    "component.commentName": "Name",
+    "component.commentEmail": "Email",
+    "component.commentBody": "Comment",
+    "component.commentSubmit": "Post comment",
+    "component.commentSubmitting": "Submitting…",
+    "component.commentPublished": "Your comment has been posted.",
+    "component.commentPending": "Your comment will appear after review.",
+    "component.commentError": "Couldn’t post your comment.",
+    "component.commentNetworkError": "Network error. Please try again.",
+    "component.commentsClosed": "Comments are closed.",
     "page.recentPosts": "Recent Posts",
     "page.viewAll": "View All",
     "page.allPosts": "All Posts",

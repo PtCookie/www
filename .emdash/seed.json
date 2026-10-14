@@ -18,6 +18,7 @@
             "description": "Blog posts, one row per locale (translations link via the admin's Translations panel).",
             "icon": "file-text",
             "supports": ["drafts", "revisions", "search"],
+            "commentsEnabled": true,
             "fields": [
                 {
                     "slug": "title",

@@ -1,7 +1,17 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 
 import type { Tag } from "@/lib/post.ts";
-import { formatDate, getAllTags, getPostCountLabel, getTimeline, localePath, range, translate } from "@/lib/utils.ts";
+import {
+  areCommentsClosed,
+  formatDate,
+  getAllTags,
+  getCommentHeading,
+  getPostCountLabel,
+  getTimeline,
+  localePath,
+  range,
+  translate,
+} from "@/lib/utils.ts";
 import { formatPeriod, timelineEntry } from "@/i18n/timeline.ts";
 
 describe("getAllTags", () => {
@@ -130,6 +140,40 @@ describe("getPostCountLabel", () => {
   test("should return the same Korean word regardless of count", () => {
     expect(getPostCountLabel("ko", 1)).toBe("게시글");
     expect(getPostCountLabel("ko", 2)).toBe("게시글");
+  });
+});
+
+describe("areCommentsClosed", () => {
+  const publishedAt = new Date("2026-01-01T00:00:00Z");
+
+  test("should stay open when the collection never closes comments", () => {
+    expect(areCommentsClosed(publishedAt, 0, new Date("2030-01-01T00:00:00Z"))).toBe(false);
+  });
+
+  test("should stay open for an entry without a publish date", () => {
+    expect(areCommentsClosed(null, 90, new Date("2030-01-01T00:00:00Z"))).toBe(false);
+  });
+
+  test("should close once the window has passed", () => {
+    expect(areCommentsClosed(publishedAt, 90, new Date("2026-03-01T00:00:00Z"))).toBe(false);
+    expect(areCommentsClosed(publishedAt, 90, new Date("2026-04-02T00:00:00Z"))).toBe(true);
+  });
+});
+
+describe("getCommentHeading", () => {
+  test("should use the empty-state text for zero comments", () => {
+    expect(getCommentHeading("en", 0)).toBe("No comments yet");
+    expect(getCommentHeading("ko", 0)).toBe("아직 댓글이 없습니다");
+  });
+
+  test("should pick the English singular or plural form", () => {
+    expect(getCommentHeading("en", 1)).toBe("1 comment");
+    expect(getCommentHeading("en", 3)).toBe("3 comments");
+  });
+
+  test("should substitute the count into the Korean template", () => {
+    expect(getCommentHeading("ko", 1)).toBe("댓글 1개");
+    expect(getCommentHeading("ko", 12)).toBe("댓글 12개");
   });
 });
 

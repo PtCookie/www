@@ -46,6 +46,8 @@ export interface Tag {
 // `emdash types` and gitignored, so a fresh clone would have no types at all if source code
 // depended on them. Keep this in sync with .emdash/seed.json's `posts` collection fields.
 export interface PostData {
+  // The row's ULID, which EmDash keys comments on — the entry's own `id` is its slug.
+  id: string;
   slug: string | null;
   title: string;
   subtitle: string;
