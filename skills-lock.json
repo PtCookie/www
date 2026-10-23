@@ -1,12 +1,6 @@
 {
   "version": 1,
   "skills": {
-    "cf-cli": {
-      "source": "cloudflare/skills",
-      "sourceType": "github",
-      "skillPath": "skills/cf-cli/SKILL.md",
-      "computedHash": "91da778590a135b120129c96f8f673e8005e8329d436cfb8787e70101d5a0dba"
-    },
     "shadcn": {
       "source": "shadcn/ui",
       "sourceType": "github",
