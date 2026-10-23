@@ -33,7 +33,9 @@ export function Navigation({ menuEntry, linkEntry = EMPTY_LINK_ENTRY }: Props) {
         {linkEntry.length > 0 && (
           <NavigationMenuItem>
             <NavigationMenuTrigger className="font-sans sm:text-lg">Link</NavigationMenuTrigger>
-            <NavigationMenuContent>
+            {/* Patina's panel is a 420px two-column grid for titled links; this menu is a short list of plain
+                external links, so let the panel shrink to its content instead. */}
+            <NavigationMenuContent className="w-auto min-w-40 grid-cols-1">
               {linkEntry.map((item) => (
                 <NavigationMenuLink
                   key={item.link}

@@ -255,6 +255,15 @@
     --font-serif: "Newsreader Variable", "MaruBuri", ui-serif, Georgia, serif;
 }
 
+/* EmDash's <Table> (src/components/Table.astro) paints its header and zebra rows with
+ * `var(--color-surface, #f5f5f5)` / `var(--color-bg-subtle, #fafafa)` — light-mode fallbacks that stay
+ * near-white in dark mode, under `prose-invert`'s near-white text. Map them onto Patina tokens so both
+ * themes follow `:root`/`.dark`. (`--color-border` already exists via `@theme inline` above.) */
+:root {
+    --color-surface: var(--muted);
+    --color-bg-subtle: var(--muted-hover);
+}
+
 @layer base {
     @font-face {
         font-family: MaruBuri;
