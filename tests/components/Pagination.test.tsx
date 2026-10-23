@@ -55,4 +55,15 @@ describe("Pagination Component", () => {
 
     expect(activePage).toHaveAttribute("aria-current", "page");
   });
+
+  test.each([
+    { lang: "ko", nav: "페이지 이동", prev: "이전 페이지로 이동", next: "다음 페이지로 이동" },
+    { lang: "en", nav: "Pagination", prev: "Go to previous page", next: "Go to next page" },
+  ] as const)("labels the controls in $lang", ({ lang, nav, prev, next }) => {
+    render(<Pagination total={10} currentPage={5} basePath="/pages" prev="/pages/4" next="/pages/6" lang={lang} />);
+
+    expect(screen.getByRole("navigation", { name: nav })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: prev })).toHaveAttribute("href", "/pages/4");
+    expect(screen.getByRole("link", { name: next })).toHaveAttribute("href", "/pages/6");
+  });
 });

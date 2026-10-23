@@ -1,15 +1,34 @@
 import * as React from "react";
-import type { VariantProps } from "class-variance-authority";
-import { cn } from "cn";
-
-import { buttonVariants } from "@/components/ui/button.tsx";
+import { cva, type VariantProps } from "class-variance-authority";
 import { CaretLeftIcon, CaretRightIcon, DotsThreeIcon } from "@phosphor-icons/react";
 
-function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
+import { cn } from "cn";
+
+// Page links: ghost 36px squares, the current page outlined on `background`. Use real links (an href per
+// page) so pages are crawlable. Show first, last, current ± 1 and an ellipsis for the gaps.
+const paginationLinkVariants = cva(
+  "text-foreground hover:bg-muted focus-visible:outline-ring aria-[current=page]:border-border aria-[current=page]:bg-background inline-flex h-(--control-md) min-w-(--control-md) items-center justify-center gap-1 rounded-lg border border-transparent text-sm font-medium tabular-nums transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 aria-disabled:pointer-events-none aria-disabled:opacity-50",
+  {
+    variants: {
+      edge: {
+        none: "px-2.5",
+        start: "pr-2.5 pl-2",
+        end: "pr-2 pl-2.5",
+      },
+    },
+    defaultVariants: {
+      edge: "none",
+    },
+  },
+);
+
+// The English strings are defaults. `label` is the accessible name (screen readers), `text` the visible words;
+// pass translations for both. A plain `aria-label` on the element still wins over `label`.
+function Pagination({ className, label = "Pagination", ...props }: React.ComponentProps<"nav"> & { label?: string }) {
   return (
     <nav
       role="navigation"
-      aria-label="pagination"
+      aria-label={label}
       data-slot="pagination"
       data-testid="pagination"
       className={cn("mx-auto flex w-full justify-center", className)}
@@ -33,19 +52,17 @@ function PaginationItem({ ...props }: React.ComponentProps<"li">) {
   return <li data-slot="pagination-item" data-testid="pagination-item" {...props} />;
 }
 
-type PaginationLinkProps = {
-  isActive?: boolean;
-} & Pick<VariantProps<typeof buttonVariants>, "size"> &
+type PaginationLinkProps = { isActive?: boolean } & VariantProps<typeof paginationLinkVariants> &
   React.ComponentProps<"a">;
 
-function PaginationLink({ className, isActive, size = "icon", ...props }: PaginationLinkProps) {
+function PaginationLink({ className, isActive, edge, ...props }: PaginationLinkProps) {
   return (
     <a
       aria-current={isActive ? "page" : undefined}
       data-slot="pagination-link"
-      data-active={isActive}
       data-testid="pagination-link"
-      className={cn(buttonVariants({ variant: isActive ? "outline" : "ghost", size }), className)}
+      data-active={isActive}
+      className={cn(paginationLinkVariants({ edge }), className)}
       {...props}
     />
   );
@@ -54,18 +71,13 @@ function PaginationLink({ className, isActive, size = "icon", ...props }: Pagina
 function PaginationPrevious({
   className,
   text = "Previous",
+  label = "Go to previous page",
   ...props
-}: React.ComponentProps<typeof PaginationLink> & { text?: string }) {
+}: React.ComponentProps<"a"> & { isActive?: boolean; text?: string; label?: string }) {
   return (
-    <PaginationLink
-      aria-label="Go to previous page"
-      size="default"
-      data-testid="pagination-previous"
-      className={cn("pl-2!", className)}
-      {...props}
-    >
-      <CaretLeftIcon data-icon="inline-start" />
-      <span className="hidden sm:block">{text}</span>
+    <PaginationLink aria-label={label} data-testid="pagination-previous" edge="start" className={className} {...props}>
+      <CaretLeftIcon className="size-4" aria-hidden />
+      <span>{text}</span>
     </PaginationLink>
   );
 }
@@ -73,32 +85,35 @@ function PaginationPrevious({
 function PaginationNext({
   className,
   text = "Next",
+  label = "Go to next page",
   ...props
-}: React.ComponentProps<typeof PaginationLink> & { text?: string }) {
+}: React.ComponentProps<"a"> & { isActive?: boolean; text?: string; label?: string }) {
   return (
-    <PaginationLink
-      aria-label="Go to next page"
-      size="default"
-      data-testid="pagination-next"
-      className={cn("pr-2!", className)}
-      {...props}
-    >
-      <span className="hidden sm:block">{text}</span>
-      <CaretRightIcon data-icon="inline-end" />
+    <PaginationLink aria-label={label} data-testid="pagination-next" edge="end" className={className} {...props}>
+      <span>{text}</span>
+      <CaretRightIcon className="size-4" aria-hidden />
     </PaginationLink>
   );
 }
 
-function PaginationEllipsis({ className, ...props }: React.ComponentProps<"span">) {
+function PaginationEllipsis({
+  className,
+  label = "More pages",
+  ...props
+}: React.ComponentProps<"span"> & { label?: string }) {
   return (
     <span
+      aria-hidden
       data-slot="pagination-ellipsis"
       data-testid="pagination-ellipsis"
-      className={cn("flex size-9 items-center justify-center [&_svg:not([class*='size-'])]:size-4", className)}
+      className={cn(
+        "text-muted-foreground pointer-events-none inline-flex h-(--control-md) min-w-(--control-md) items-center justify-center border border-transparent px-2.5 text-sm",
+        className,
+      )}
       {...props}
     >
-      <DotsThreeIcon aria-hidden="true" />
-      <span className="sr-only">More pages</span>
+      <DotsThreeIcon className="size-4" />
+      <span className="sr-only">{label}</span>
     </span>
   );
 }
@@ -111,4 +126,5 @@ export {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
+  paginationLinkVariants,
 };

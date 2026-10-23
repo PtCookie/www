@@ -1,8 +1,11 @@
+import * as React from "react";
 import { NavigationMenu as NavigationMenuPrimitive } from "@base-ui/react/navigation-menu";
-import { cva } from "class-variance-authority";
-import { cn } from "cn";
 import { CaretDownIcon } from "@phosphor-icons/react";
+import { cva, type VariantProps } from "class-variance-authority";
 
+import { cn } from "cn";
+
+// The site's top navigation: ghost items in a row, with optional panels of links. Below 640px, use a Sheet.
 function NavigationMenu({
   align = "start",
   className,
@@ -44,8 +47,10 @@ function NavigationMenuItem({ className, ...props }: React.ComponentPropsWithRef
   );
 }
 
+// A top-level item: 36px, medium weight. Hover fills `muted`; the current page and an open trigger sit on the
+// quieter `muted-hover`. Triggers use it directly; a top-level link uses `<NavigationMenuLink variant="item">`.
 const navigationMenuTriggerStyle = cva(
-  "group/navigation-menu-trigger hover:bg-muted focus:bg-muted focus-visible:ring-ring/30 data-popup-open:bg-muted/50 data-popup-open:hover:bg-muted data-open:bg-muted/50 data-open:hover:bg-muted data-open:focus:bg-muted inline-flex h-9 w-max items-center justify-center rounded-3xl px-4.5 py-2.5 text-sm font-medium transition-all outline-none focus-visible:ring-3 focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50",
+  "group/navigation-menu-trigger text-foreground hover:bg-muted focus-visible:outline-ring aria-[current=page]:bg-muted-hover data-popup-open:bg-muted-hover data-open:bg-muted-hover inline-flex h-(--control-md) w-max items-center justify-center gap-1 rounded-lg border-0 bg-transparent px-3 text-sm font-medium transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:pointer-events-none disabled:opacity-50",
 );
 
 function NavigationMenuTrigger({ className, children, ...props }: NavigationMenuPrimitive.Trigger.Props) {
@@ -53,27 +58,25 @@ function NavigationMenuTrigger({ className, children, ...props }: NavigationMenu
     <NavigationMenuPrimitive.Trigger
       data-slot="navigation-menu-trigger"
       data-testid="navigation-menu-trigger"
-      className={cn(navigationMenuTriggerStyle(), "group", className)}
+      className={cn(navigationMenuTriggerStyle(), className)}
       {...props}
     >
-      {children}{" "}
+      {children}
       <CaretDownIcon
-        className="relative top-px ml-1 size-3 transition duration-300 group-data-open/navigation-menu-trigger:rotate-180 group-data-popup-open/navigation-menu-trigger:rotate-180"
+        className="size-4 transition-transform duration-150 group-data-open/navigation-menu-trigger:rotate-180 group-data-popup-open/navigation-menu-trigger:rotate-180"
         aria-hidden="true"
       />
     </NavigationMenuPrimitive.Trigger>
   );
 }
 
+// The panel content: two columns of links by default.
 function NavigationMenuContent({ className, ...props }: NavigationMenuPrimitive.Content.Props) {
   return (
     <NavigationMenuPrimitive.Content
       data-slot="navigation-menu-content"
       data-testid="navigation-menu-content"
-      className={cn(
-        "data-ending-style:data-activation-direction=left:translate-x-[50%] data-ending-style:data-activation-direction=right:translate-x-[-50%] data-starting-style:data-activation-direction=left:translate-x-[-50%] data-starting-style:data-activation-direction=right:translate-x-[50%] group-data-[viewport=false]/navigation-menu:bg-popover group-data-[viewport=false]/navigation-menu:text-popover-foreground group-data-[viewport=false]/navigation-menu:ring-foreground/5 data-[motion=from-end]:slide-in-from-right-52 data-[motion=from-start]:slide-in-from-left-52 data-[motion=to-end]:slide-out-to-right-52 data-[motion=to-start]:slide-out-to-left-52 data-[motion^=from-]:animate-in data-[motion^=from-]:fade-in data-[motion^=to-]:animate-out data-[motion^=to-]:fade-out group-data-[viewport=false]/navigation-menu:dark:ring-foreground/10 group-data-[viewport=false]/navigation-menu:data-open:animate-in group-data-[viewport=false]/navigation-menu:data-open:fade-in-0 group-data-[viewport=false]/navigation-menu:data-open:zoom-in-95 group-data-[viewport=false]/navigation-menu:data-closed:animate-out group-data-[viewport=false]/navigation-menu:data-closed:fade-out-0 group-data-[viewport=false]/navigation-menu:data-closed:zoom-out-95 h-full w-auto p-2.5 pr-3 transition-[opacity,transform,translate] duration-[0.35s] ease-[cubic-bezier(0.22,1,0.36,1)] group-data-[viewport=false]/navigation-menu:rounded-3xl group-data-[viewport=false]/navigation-menu:shadow-lg group-data-[viewport=false]/navigation-menu:ring-1 group-data-[viewport=false]/navigation-menu:duration-300 data-ending-style:opacity-0 data-starting-style:opacity-0 **:data-[slot=navigation-menu-link]:focus:ring-0 **:data-[slot=navigation-menu-link]:focus:outline-none",
-        className,
-      )}
+      className={cn("grid h-full w-[420px] grid-cols-2 gap-1 p-1.5", className)}
       {...props}
     />
   );
@@ -90,67 +93,84 @@ function NavigationMenuPositioner({
   return (
     <NavigationMenuPrimitive.Portal>
       <NavigationMenuPrimitive.Positioner
-        data-slot="navigation-menu-positioner"
-        data-testid="navigation-menu-positioner"
         side={side}
         sideOffset={sideOffset}
         align={align}
         alignOffset={alignOffset}
         className={cn(
-          "isolate z-50 h-(--positioner-height) w-(--positioner-width) max-w-(--available-width) transition-[top,left,right,bottom] duration-[0.35s] ease-[cubic-bezier(0.22,1,0.36,1)] data-instant:transition-none data-[side=bottom]:before:top-[-10px] data-[side=bottom]:before:right-0 data-[side=bottom]:before:left-0",
+          "isolate z-50 h-(--positioner-height) w-(--positioner-width) max-w-(--available-width) data-instant:transition-none",
           className,
         )}
         {...props}
       >
-        <NavigationMenuPrimitive.Popup className="data-[ending-style]:easing-[ease] xs:w-(--popup-width) bg-popover text-popover-foreground ring-foreground/5 dark:ring-foreground/10 relative h-(--popup-height) w-(--popup-width) origin-(--transform-origin) rounded-3xl shadow-lg ring-1 transition-[opacity,transform,width,height,scale,translate] duration-[0.35s] ease-[cubic-bezier(0.22,1,0.36,1)] outline-none data-ending-style:scale-90 data-ending-style:opacity-0 data-ending-style:duration-150 data-starting-style:scale-90 data-starting-style:opacity-0">
-          <NavigationMenuPrimitive.Viewport className="relative size-full overflow-hidden" />
+        <NavigationMenuPrimitive.Popup className="bg-popover text-popover-foreground relative h-(--popup-height) w-(--popup-width) origin-(--transform-origin) rounded-2xl shadow-(--shadow-menu) outline-none">
+          <NavigationMenuPrimitive.Viewport className="relative size-full overflow-hidden rounded-2xl" />
         </NavigationMenuPrimitive.Popup>
       </NavigationMenuPrimitive.Positioner>
     </NavigationMenuPrimitive.Portal>
   );
 }
 
-function NavigationMenuLink({ className, ...props }: NavigationMenuPrimitive.Link.Props) {
+// `panel` (default) is a link inside a panel: a title and a one-line description, stacked. `item` is a top-level
+// link in the bar, styled like a trigger. The two never share classes, so className can add to either safely.
+const navigationMenuLinkVariants = cva("", {
+  variants: {
+    variant: {
+      panel:
+        "hover:bg-muted focus-visible:outline-ring flex flex-col gap-0.5 rounded-md px-3 py-2 text-sm text-inherit transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2",
+      item: navigationMenuTriggerStyle(),
+    },
+  },
+  defaultVariants: {
+    variant: "panel",
+  },
+});
+
+function NavigationMenuLink({
+  className,
+  variant,
+  ...props
+}: NavigationMenuPrimitive.Link.Props & VariantProps<typeof navigationMenuLinkVariants>) {
   return (
     <NavigationMenuPrimitive.Link
       data-slot="navigation-menu-link"
       data-testid="navigation-menu-link"
-      className={cn(
-        "hover:bg-muted focus:bg-muted focus-visible:ring-ring/30 data-[active=true]:bg-muted/50 data-[active=true]:hover:bg-muted data-[active=true]:focus:bg-muted flex items-center gap-1.5 rounded-3xl p-3 text-sm transition-all outline-none focus-visible:ring-3 focus-visible:outline-1 in-data-[slot=navigation-menu-content]:rounded-2xl [&_svg:not([class*='size-'])]:size-4",
-        className,
-      )}
+      className={cn(navigationMenuLinkVariants({ variant }), className)}
+      {...props}
+    />
+  );
+}
+function NavigationMenuLinkTitle({ className, ...props }: React.ComponentProps<"span">) {
+  return (
+    <span
+      data-slot="navigation-menu-link-title"
+      data-testid="navigation-menu-link-title"
+      className={cn("font-medium", className)}
       {...props}
     />
   );
 }
 
-function NavigationMenuIndicator({
-  className,
-  ...props
-}: React.ComponentPropsWithRef<typeof NavigationMenuPrimitive.Icon>) {
+function NavigationMenuLinkDescription({ className, ...props }: React.ComponentProps<"span">) {
   return (
-    <NavigationMenuPrimitive.Icon
-      data-slot="navigation-menu-indicator"
-      data-testid="navigation-menu-indicator"
-      className={cn(
-        "data-[state=hidden]:animate-out data-[state=hidden]:fade-out data-[state=visible]:animate-in data-[state=visible]:fade-in top-full z-1 flex h-1.5 items-end justify-center overflow-hidden",
-        className,
-      )}
+    <span
+      data-slot="navigation-menu-link-description"
+      data-testid="navigation-menu-link-description"
+      className={cn("text-muted-foreground text-[13px]/[18px]", className)}
       {...props}
-    >
-      <div className="bg-border relative top-[60%] h-2 w-2 rotate-45 rounded-tl-sm shadow-md" />
-    </NavigationMenuPrimitive.Icon>
+    />
   );
 }
 
 export {
   NavigationMenu,
   NavigationMenuContent,
-  NavigationMenuIndicator,
   NavigationMenuItem,
   NavigationMenuLink,
+  NavigationMenuLinkDescription,
+  NavigationMenuLinkTitle,
   NavigationMenuList,
+  NavigationMenuPositioner,
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
-  NavigationMenuPositioner,
 };
