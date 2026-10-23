@@ -4,8 +4,8 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, test } from "vitest";
 
 // Regression cover for the dark-mode `--primary`-as-text contrast bug: nothing previously pinned
-// these tokens' contrast, so a future edit to `--primary-text` or `--muted-foreground` could
-// silently reintroduce it. This reads the real tokens out of global.css rather than hardcoding
+// these tokens' contrast, so a future edit to `--link` or `--muted-foreground` could silently
+// reintroduce it. This reads the real tokens out of global.css rather than hardcoding
 // values, so it stays honest if they're retuned.
 
 const cssPath = fileURLToPath(new URL("../../src/styles/global.css", import.meta.url));
@@ -29,6 +29,9 @@ function extractBlock(source: string, selector: string): string {
 }
 
 function readOklch(block: string, token: string): [number, number, number] {
+  // Patina aliases some tokens to others (light `--link: var(--primary)`); follow the alias.
+  const alias = block.match(new RegExp(`--${token}:\\s*var\\(--([a-z0-9-]+)\\)`));
+  if (alias?.[1]) return readOklch(block, alias[1]);
   const match = block.match(new RegExp(`--${token}:\\s*oklch\\(([^)]+)\\)`));
   if (!match) throw new Error(`token not found: --${token}`);
   const raw = match[1];
@@ -91,15 +94,16 @@ describe.each([
   const card = readOklch(block, "card");
   const primary = readOklch(block, "primary");
   const primaryForeground = readOklch(block, "primary-foreground");
-  const primaryText = readOklch(block, "primary-text");
+  const link = readOklch(block, "link");
+  const muted = readOklch(block, "muted");
   const mutedForeground = readOklch(block, "muted-foreground");
 
-  test("--primary-text is readable on --background", () => {
-    expect(contrastRatio(primaryText, background)).toBeGreaterThanOrEqual(4.5);
+  test("--link is readable on --background", () => {
+    expect(contrastRatio(link, background)).toBeGreaterThanOrEqual(4.5);
   });
 
-  test("--primary-text is readable on --card", () => {
-    expect(contrastRatio(primaryText, card)).toBeGreaterThanOrEqual(4.5);
+  test("--link is readable on --card", () => {
+    expect(contrastRatio(link, card)).toBeGreaterThanOrEqual(4.5);
   });
 
   test("--muted-foreground is readable on --background", () => {
@@ -108,6 +112,10 @@ describe.each([
 
   test("--muted-foreground is readable on --card", () => {
     expect(contrastRatio(mutedForeground, card)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  test("--muted-foreground is readable on --muted", () => {
+    expect(contrastRatio(mutedForeground, muted)).toBeGreaterThanOrEqual(4.5);
   });
 
   test("--primary-foreground is readable on --primary (button fill)", () => {

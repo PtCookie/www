@@ -50,10 +50,21 @@ unsandboxed and Playwright's browser launch fails with a `mach_port_rendezvous` 
 - **UI**: `.astro` for static markup, `.tsx` React islands only where interaction is needed
   (`ModeToggle`, `LangToggle`, `Navigation`, `Hamburger`, `Pagination`, `PostCard`). `Navigation` is hydrated
   (`client:load`) because its `Link` dropdown needs a Radix trigger — it used to be static SSR-only markup, so
-  don't remove the directive assuming it's decorative. `src/components/ui/*` is shadcn-generated (new-york style)
-  — prefer the shadcn CLI for adding new components, but small hand-edits to existing ones are fine (e.g. the
-  `cn`-import fix noted in Conventions, or retargeting a `cva()` variant's color token).
-- **Theming**: Catppuccin Latte (light) / Macchiato (dark) tokens in `src/styles/global.css` `@theme`.
+  don't remove the directive assuming it's decorative. `src/components/ui/*` comes from the **Patina** registry
+  (`@patina` in `components.json`, https://patina.ptcookie.net, Base UI + Phosphor) — add or refresh components
+  with `pnpm exec shadcn add @patina/<name>` before reaching for a stock shadcn one, and fix design problems in
+  Patina rather than hand-editing these files, which the next `add --overwrite` would undo. Patina's components
+  import `cn` from the `cn` package and ship default `data-testid`s equal to their `data-slot`, plus
+  translatable `label`/`text`/`closeLabel` props — pass `translate()` strings rather than relying on the English
+  defaults.
+- **Theming**: Patina design tokens (emerald on the Mist neutral) in `src/styles/global.css`'s `:root`, `.dark` and
+  `@theme inline`, copied verbatim from the registry's base item (`/r/base.json`) — don't retune them locally.
+  Colour only through token names: emerald **text** is `text-link` (dark `primary` is a fill that fails as text),
+  no palette classes, `dark:` colour overrides or `/NN` opacity modifiers on colours. `font-heading` is JetBrains
+  Mono, `font-serif` (Newsreader + MaruBuri) is for long-form body text only, Pretendard comes from the
+  `pretendard` package (`"Pretendard Variable"`) and D2Coding/MaruBuri are the official files in `public/fonts/`
+  with their OFL texts — never subset or convert them (Reserved Font Names). Don't let `shadcn init` rewrite
+  `@custom-variant dark` back to `&:is(.dark *)`.
   `src/hooks/useTheme.ts` owns the `dark`-class toggle on `<html>`; `ModeToggle` and `Hamburger` both consume it.
   This is **not** next-themes — the project doesn't use that library. `Header.astro`'s inline `<script>` does the
   FOUC-free init from `localStorage` and persists whatever the hook writes via a `MutationObserver`.

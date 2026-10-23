@@ -73,7 +73,9 @@ export function Hamburger({ lang = config.defaultLocale, menuEntry, linkEntry = 
             </div>
           )}
         </div>
-        <SheetFooter>
+        {/* Patina's footer is a right-aligned button row; the theme and locale groups don't fit side by
+            side in a 75%-wide phone sheet, so stack them as the menu did before. */}
+        <SheetFooter className="flex-col">
           <div className="flex items-center" role="group" aria-label={translate(lang, "component.themeGroup")}>
             <div className="flex items-center justify-center">
               <SunIcon

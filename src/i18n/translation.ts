@@ -28,6 +28,12 @@ export interface Translation {
   "component.commentError": string;
   "component.commentNetworkError": string;
   "component.commentsClosed": string;
+  "component.pagination": string;
+  "component.previous": string;
+  "component.next": string;
+  "component.previousPage": string;
+  "component.nextPage": string;
+  "component.morePages": string;
   "page.recentPosts": string;
   "page.viewAll": string;
   "page.allPosts": string;
@@ -81,6 +87,12 @@ export const translation: Record<Locale, Translation> = {
     "component.commentError": "댓글을 등록하지 못했습니다.",
     "component.commentNetworkError": "네트워크 오류입니다. 다시 시도해 주세요.",
     "component.commentsClosed": "댓글 작성이 마감되었습니다.",
+    "component.pagination": "페이지 이동",
+    "component.previous": "이전",
+    "component.next": "다음",
+    "component.previousPage": "이전 페이지로 이동",
+    "component.nextPage": "다음 페이지로 이동",
+    "component.morePages": "더 많은 페이지",
     "page.recentPosts": "최근 게시글",
     "page.viewAll": "전체 보기",
     "page.allPosts": "모든 게시글",
@@ -132,6 +144,12 @@ export const translation: Record<Locale, Translation> = {
     "component.commentError": "Couldn’t post your comment.",
     "component.commentNetworkError": "Network error. Please try again.",
     "component.commentsClosed": "Comments are closed.",
+    "component.pagination": "Pagination",
+    "component.previous": "Previous",
+    "component.next": "Next",
+    "component.previousPage": "Go to previous page",
+    "component.nextPage": "Go to next page",
+    "component.morePages": "More pages",
     "page.recentPosts": "Recent Posts",
     "page.viewAll": "View All",
     "page.allPosts": "All Posts",
